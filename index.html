@@ -3,96 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>我的个人主页 - Steven Zhang</title>
+    <title>Steven Zhang | 个人主页</title>
     <style>
-        /* --- 这里是CSS样式区域，控制网页长什么样 --- */
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            max-width: 800px;
-            margin: 0 auto; /* 页面居中 */
-            padding: 20px;
-            background-color: #f4f4f9;
-        }
-        header {
-            text-align: center;
-            padding: 40px 0;
-            border-bottom: 2px solid #eaeaea;
-            margin-bottom: 40px;
-        }
-        header h1 {
-            margin: 0;
-            color: #2c3e50;
-        }
-        .container {
-            background: white;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-        }
-        /* 每一条内容的样式 */
-        .post {
-            margin-bottom: 40px;
-            padding-bottom: 20px;
-            border-bottom: 1px solid #eee;
-        }
-        .post h2 {
-            margin-top: 0;
-            color: #3498db;
-        }
-        .post-date {
-            color: #999;
-            font-size: 0.9em;
-            margin-bottom: 15px;
-            display: block;
-        }
-        /* 图片的样式 */
-        .post img {
-            max-width: 100%; /* 确保图片不超过容器宽度 */
-            height: auto;
-            border-radius: 4px;
-            margin-top: 10px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        }
-        footer {
-            text-align: center;
-            margin-top: 40px;
-            color: #777;
-            font-size: 0.9em;
-        }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; max-width: 800px; margin: 0 auto; padding: 40px 20px; background-color: #f9f9f9; }
+        header { border-bottom: 2px solid #007bff; padding-bottom: 20px; margin-bottom: 30px; }
+        h1 { color: #007bff; margin: 0; }
+        .tagline { font-style: italic; color: #666; }
+        nav { margin-top: 10px; }
+        nav a { margin-right: 15px; text-decoration: none; color: #007bff; font-weight: bold; }
+        section { background: white; padding: 25px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .social-links { margin-top: 20px; }
     </style>
 </head>
 <body>
-
     <header>
-        <h1>欢迎来到我的个人空间</h1>
-        <p>这里记录我的想法和分享</p>
+        <h1>Steven Zhang (Zym)</h1>
+        <p class="tagline">数学爱好者 | 终身学习者</p>
+        <nav>
+            <a href="#">首页</a>
+            <a href="#">研究/项目</a>
+            <a href="#">博客</a>
+        </nav>
     </header>
 
-    <div class="container">
-
-        <article class="post">
-            <h2>我的第一篇博文</h2>
-            <span class="post-date">2025年12月31日</span>
-            <p>你好，世界！这是我的个人网站的第一次尝试。</p>
-            <p>建立这个网站是为了分享我在学习过程中的笔记、有趣的数学问题，或者仅仅是一些生活随想。使用 GitHub Pages 让这一切变得非常简单且免费。</p>
-            <p>我会持续更新这里的内容。</p>
-        </article>
-        <article class="post">
-            <h2>分享一张图片</h2>
-            <span class="post-date">2025年12月31日</span>
-            <p>这是一张示例图片。在实际使用时，你需要把你自己的图片上传到 GitHub 仓库中，然后修改下面的链接。</p>
-            
-            <img src="https://via.placeholder.com/800x400?text=这是你的图片位置" alt="示例图片描述">
-            
-            <p>（图片下方的文字说明）</p>
-        </article>
-        </div>
+    <section>
+        <h2>关于我</h2>
+        <p>你好！我是 Steven。我目前对**线性代数**、**数论**及其在密码学中的应用深感兴趣。我享受解决复杂数学问题的过程，并热衷于探索数学分析的奥秘。</p>
+        
+        <h2>最近活动</h2>
+        <ul>
+            <li>正在研究数学分析相关项目</li>
+            <li>关注 Simon Marais 数学竞赛 (SMMC) 相关策略</li>
+            <li>开发基于 Python 的词汇学习小工具</li>
+        </ul>
+    </section>
 
     <footer>
-        <p>© 2025 Steven Zhang. Hosted on GitHub Pages.</p>
+        <p class="social-links">
+            联系方式: <a href="mailto:stevenzhang.lp@gmail.com">stevenzhang.lp@gmail.com</a>
+        </p>
     </footer>
-
 </body>
 </html>
