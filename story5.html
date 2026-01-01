@@ -1,0 +1,122 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<title>作品详情 / Details </title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+		<link rel="stylesheet" href="assets/css/main.css" />
+		<noscript><link rel="stylesheet" href="assets/css/noscript.css" /></noscript>
+	</head>
+	<body class="is-preload">
+		<div id="wrapper">
+			<header id="header">
+				<a href="index.html" class="logo">个人空间 / MY SPACE</a>
+			</header>
+
+			<nav id="nav">
+				<ul class="links">
+					<li><a href="index.html">首页 / HOME</a></li>
+					<li class="active"><a href="photography.html">摄影专栏 / PHOTOGRAPHY</a></li>
+                    <li><a href="academic.html">学习成果 / ACADEMIC</a></li>
+				</ul>
+                <ul class="icons">
+					<li><a href="https://instagram.com/zhang.lp.28" class="icon brands fa-instagram" target="_blank"><span class="label">Instagram</span></a></li> 
+                    <li><a href="https://v.douyin.com/WNPNUeIn-lg/ 7@3.com" class="icon brands fa-tiktok" target="_blank" rel="noopener noreferrer"></a>
+				</ul>
+			</nav>
+
+			<div id="main">
+    			<div class="back-nav">
+        			<a href="index.html" class="icon solid fa-home">
+            			<span>返回首页 / Home</span>
+        			</a>
+        		<span class="nav-separator">/</span>
+        			<a href="landscape.html" class="icon solid fa-th">
+            			<span>返回分类 / Landscapes</span>
+        			</a>
+    			</div>
+
+    <article class="post">
+        <header class="major">
+            <span class="date">Aug 3, 2023</span>
+            <p>感悟湖山之间的静谧与悠远。<br />Embracing the serenity and vastness within the lake and mountains.</p>
+        </header>
+
+        <div class="image main"><img src="images/pic05.JPG" alt="" /></div>
+
+        <div class="exif-data">
+            <ul>
+                <li><i class="icon solid fa-camera"></i> <strong>SONY A7R4A</strong></li>
+                <li><i class="icon solid fa-arrows-alt-h"></i><span>70mm</span></li>	
+                <li><i class="icon solid fa-stopwatch"></i> <strong>1/500s</strong></li>
+                <li><i class="icon solid fa-dot-circle"></i> <strong>f/11.0</strong></li>
+                <li><i class="icon solid fa-film"></i> <strong>ISO 100</strong></li>
+            </ul>
+        </div>
+
+        <hr />
+
+        <p>远山衔云，一角飞檐在碧色与湖光中安稳落座。这是万物止息的瞬间，唯有风在层叠的云影间悄声叙事。时间在这里不再流逝，而是像波纹一样，一圈圈荡漾开来。<br />
+            <i>"Clouds rest upon distant peaks as an ancient eave sits peacefully between the azure sky and the shimmering lake. It is a moment where all is still, save for the wind whispering tales amidst the shifting shadows."</i></p>
+<hr />
+<h3>更多视角 / More Perspectives</h3>
+
+<div class="row gtr-50 gtr-uniform gallery-grid">
+    <div class="col-4 col-12-small">
+        <span class="image fit gallery-item"><img src="images/d9.JPG" alt="细节1" /></span>
+    </div>
+    </div>
+</article>
+</div>
+
+<!-- Copyright -->
+					<div id="copyright">
+						<ul><li>&copy; Steven Zhang</li><li>Design: <a href="https://html5up.net">HTML5 UP</a></li></ul>
+					</div>
+		</div><div id="lightbox-modal">
+    <span id="lightbox-close">&times;</span>
+    <img class="lightbox-content" id="lightbox-image">
+	</div>
+	<script>
+    // 获取元素
+    var modal = document.getElementById('lightbox-modal');
+    var modalImg = document.getElementById("lightbox-image");
+    // 获取所有带有 gallery-item 类的图片
+    var images = document.querySelectorAll('.gallery-item img');
+
+    // 为每张图片添加点击事件
+    images.forEach(function(img) {
+        img.addEventListener('click', function() {
+            modal.style.display = "flex"; // 显示弹窗
+            modalImg.src = this.src;      // 将大图路径设置为被点击图片的路径
+        });
+    });
+
+    // 获取关闭按钮
+    var span = document.getElementById("lightbox-close");
+
+    // 点击关闭按钮关闭弹窗
+    span.onclick = function() {
+        modal.style.display = "none";
+    }
+
+    // 点击黑色背景区域也能关闭弹窗
+    modal.onclick = function(event) {
+        if (event.target === modal) {
+            modal.style.display = "none";
+        }
+    }
+</script>
+
+		
+		<script src="assets/js/jquery.min.js"></script>
+		<script src="assets/js/jquery.scrollex.min.js"></script>
+		<script src="assets/js/jquery.scrolly.min.js"></script>
+		<script src="assets/js/browser.min.js"></script>
+		<script src="assets/js/breakpoints.min.js"></script>
+		<script src="assets/js/util.js"></script>
+		<script src="assets/js/main.js"></script>
+
+	
+	</body>
+</html>
