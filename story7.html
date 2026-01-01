@@ -1,0 +1,125 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<title>作品详情 / Details </title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+		<link rel="stylesheet" href="assets/css/main.css" />
+		<noscript><link rel="stylesheet" href="assets/css/noscript.css" /></noscript>
+	</head>
+	<body class="is-preload">
+		<div id="wrapper">
+			<header id="header">
+				<a href="index.html" class="logo">个人空间 / MY SPACE</a>
+			</header>
+
+			<nav id="nav">
+				<ul class="links">
+					<li><a href="index.html">首页 / HOME</a></li>
+					<li class="active"><a href="photography.html">摄影专栏 / PHOTOGRAPHY</a></li>
+                    <li><a href="academic.html">学习成果 / ACADEMIC</a></li>
+				</ul>
+                <ul class="icons">
+					<li><a href="https://instagram.com/zhang.lp.28" class="icon brands fa-instagram" target="_blank"><span class="label">Instagram</span></a></li> 
+                    <li><a href="https://v.douyin.com/WNPNUeIn-lg/ 7@3.com" class="icon brands fa-tiktok" target="_blank" rel="noopener noreferrer"></a>
+				</ul>
+			</nav>
+
+			<div id="main">
+    			<div class="back-nav">
+        			<a href="index.html" class="icon solid fa-home">
+            			<span>返回首页 / Home</span>
+        			</a>
+        		<span class="nav-separator">/</span>
+        			<a href="urbanlife.html" class="icon solid fa-th">
+            			<span>返回分类 / Urban Life</span>
+        			</a>
+    			</div>
+
+    <article class="post">
+        <header class="major">
+            <span class="date">Dec 11, 2025</span>
+            <p>捕捉自然与生活在宁静中重叠的瞬间。<br />Capturing the moments where nature and life overlap in tranquility.</p>
+        </header>
+
+        <div class="image main"><img src="images/pic07.JPG" alt="" /></div>
+
+        <div class="exif-data">
+            <ul>
+                <li><i class="icon solid fa-camera"></i> <strong>SONY A7R4A</strong></li>
+                <li><i class="icon solid fa-arrows-alt-h"></i><span>24mm</span></li>	
+                <li><i class="icon solid fa-stopwatch"></i> <strong>1/4000s</strong></li>
+                <li><i class="icon solid fa-dot-circle"></i> <strong>f/2.8</strong></li>
+                <li><i class="icon solid fa-film"></i> <strong>ISO 100</strong></li>
+            </ul>
+        </div>
+
+        <hr />
+
+        <p>黑白交织的影调剥离了色彩的喧嚣，只留下林木与湖水在静谧中对谈。行人缓步其间，如墨色点缀在时光的长卷里，定格出一份不被惊扰的平和。<br />
+            <i>"The interplay of black and white strips away the clamor of color, leaving only the woods and the lake in a silent dialogue. Passersby move slowly, like ink dots on the long scroll of time, capturing a moment of undisturbed peace."</i></p>
+<hr />
+<h3>更多视角 / More Perspectives</h3>
+
+<div class="row gtr-50 gtr-uniform gallery-grid">
+    <div class="col-4 col-12-small">
+        <span class="image fit gallery-item"><img src="images/d11.JPG" alt="细节1" /></span>
+    </div>
+    <div class="col-4 col-12-small">
+        <span class="image fit gallery-item"><img src="images/d10.JPG" alt="细节2" /></span>
+    </div>
+    </div>
+</article>
+</div>
+
+<!-- Copyright -->
+					<div id="copyright">
+						<ul><li>&copy; Steven Zhang</li><li>Design: <a href="https://html5up.net">HTML5 UP</a></li></ul>
+					</div>
+		</div><div id="lightbox-modal">
+    <span id="lightbox-close">&times;</span>
+    <img class="lightbox-content" id="lightbox-image">
+	</div>
+	<script>
+    // 获取元素
+    var modal = document.getElementById('lightbox-modal');
+    var modalImg = document.getElementById("lightbox-image");
+    // 获取所有带有 gallery-item 类的图片
+    var images = document.querySelectorAll('.gallery-item img');
+
+    // 为每张图片添加点击事件
+    images.forEach(function(img) {
+        img.addEventListener('click', function() {
+            modal.style.display = "flex"; // 显示弹窗
+            modalImg.src = this.src;      // 将大图路径设置为被点击图片的路径
+        });
+    });
+
+    // 获取关闭按钮
+    var span = document.getElementById("lightbox-close");
+
+    // 点击关闭按钮关闭弹窗
+    span.onclick = function() {
+        modal.style.display = "none";
+    }
+
+    // 点击黑色背景区域也能关闭弹窗
+    modal.onclick = function(event) {
+        if (event.target === modal) {
+            modal.style.display = "none";
+        }
+    }
+</script>
+
+		
+		<script src="assets/js/jquery.min.js"></script>
+		<script src="assets/js/jquery.scrollex.min.js"></script>
+		<script src="assets/js/jquery.scrolly.min.js"></script>
+		<script src="assets/js/browser.min.js"></script>
+		<script src="assets/js/breakpoints.min.js"></script>
+		<script src="assets/js/util.js"></script>
+		<script src="assets/js/main.js"></script>
+
+	
+	</body>
+</html>
