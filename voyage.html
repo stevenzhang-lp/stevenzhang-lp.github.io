@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>STEVEN ZHANG | 时空档案室</title>
+	<meta name="description" content="Steven Zhang's photography portfolio - The Voyage Archive. A visual diary exploring landscapes, streets, and human moments across eras.">
+	<meta property="og:title" content="STEVEN ZHANG | 时空档案室">
+	<meta property="og:description" content="Steven Zhang's photography portfolio - The Voyage Archive. A visual diary exploring landscapes, streets, and human moments across eras.">
+	<meta property="og:type" content="website">
+	<meta name="twitter:card" content="summary_large_image">
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;500&family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+	<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+	<!-- Header -->
+	<header class="site-header">
+		<h1 class="logo">
+			<a href="index.html" style="color: inherit; text-decoration: none;">STEVEN ZHANG</a>
+			<span class="site-subtitle">
+				<span class="lang-en">| THE VOYAGE ARCHIVE</span>
+				<span class="lang-zh">| 时空档案室</span>
+			</span>
+		</h1>
+		<nav class="main-nav">
+			<a href="index.html" class="nav-link">
+				<span class="lang-en">THE HUB</span>
+				<span class="lang-zh">返回主站</span>
+			</a>
+			<a href="#" id="lang-toggle" class="lang-toggle-text">
+				<span class="lang-en">中文</span>
+				<span class="lang-zh">ENGLISH</span>
+			</a>
+		</nav>
+	</header>
+
+	<!-- Main Gallery View -->
+	<main id="gallery-view" class="view active">
+		<aside class="sidebar">
+			<div class="filter-group">
+				<h4 class="filter-title">
+					<span class="lang-en">By Country</span>
+					<span class="lang-zh">按国家</span>
+				</h4>
+				<ul class="filter-list" id="country-filter">
+					<li data-country="ALL" class="active">
+						<span class="lang-en">All</span><span class="lang-zh">全部</span>
+					</li>
+					<li data-country="CHINA">
+						<span class="lang-en">China</span><span class="lang-zh">中国</span>
+					</li>
+					<li data-country="MALAYSIA">
+						<span class="lang-en">Malaysia</span><span class="lang-zh">马来西亚</span>
+					</li>
+					<li data-country="SINGAPORE">
+						<span class="lang-en">Singapore</span><span class="lang-zh">新加坡</span>
+					</li>
+				</ul>
+			</div>
+
+			<div class="filter-group">
+				<h4 class="filter-title">
+					<span class="lang-en">Era</span>
+					<span class="lang-zh">年份</span>
+				</h4>
+				<ul class="filter-list" id="era-filter">
+					<li data-era="ALL" class="active">
+						<span class="lang-en">All</span><span class="lang-zh">全部</span>
+					</li>
+					<li data-era="2026">
+						<span class="lang-en">2026 - Current</span><span class="lang-zh">2026 - 至今</span>
+					</li>
+					<li data-era="2025">2025</li>
+					<li data-era="<2025">
+						<span class="lang-en">Before 2025</span><span class="lang-zh">2025之前</span>
+					</li>
+				</ul>
+			</div>
+		</aside>
+
+		<section class="gallery-grid" id="gallery-grid">
+			<!-- Cards will be injected here via JS -->
+		</section>
+	</main>
+
+	<!-- Detail View (Cinematic Screen) -->
+	<main id="detail-view" class="view">
+		<div class="hero-section" id="detail-hero">
+			<div class="hero-bg-image" id="detail-hero-bg"></div>
+			<button class="back-btn" id="back-btn">
+				<span class="lang-en">← BACK TO VAULT</span>
+				<span class="lang-zh">← 返回档案室</span>
+			</button>
+			<button class="immerse-btn" id="immerse-btn">
+				<span class="lang-en">[ IMMERSE ]</span>
+				<span class="lang-zh">[ 沉浸模式 ]</span>
+			</button>
+			
+			<div id="pan-hint" class="pan-hint">
+				<span class="lang-en pc-hint">[ Scroll to Zoom | Drag to Pan | Click to Exit ]</span>
+				<span class="lang-zh pc-hint">[ 滚轮缩放 | 拖拽浏览 | 单击退出 ]</span>
+				<span class="lang-en mobile-hint">[ Pinch to Zoom | Drag to Pan | Click to Exit ]</span>
+				<span class="lang-zh mobile-hint">[ 双指缩放 | 拖拽浏览 | 单击退出 ]</span>
+			</div>
+
+			<div class="hero-overlay">
+				<h1 class="hero-title" id="detail-title">TITLE</h1>
+				<p class="hero-subtitle" id="detail-subtitle">DATE</p>
+			</div>
+		</div>
+
+		<div class="detail-content">
+			<div class="story-section">
+				<h2 class="story-heading">
+					<span class="lang-en">THE NARRATIVE</span>
+					<span class="lang-zh">背后的故事</span>
+				</h2>
+				<h3 class="story-title-display" id="detail-story-title"></h3>
+				<p class="story-text" id="detail-story"></p>
+			</div>
+
+			<h3 class="other-perspectives-title">
+				<span class="lang-en">OTHER PERSPECTIVES<span class="scroll-hint">&larr; Scroll to explore &rarr;<br>&middot; Click to enlarge &middot;</span></span>
+				<span class="lang-zh">更多视角<span class="scroll-hint">&larr; 左右滑动浏览 &rarr;<br>&middot; 单击放大查看 &middot;</span></span>
+			</h3>
+			<div class="masonry-grid" id="detail-masonry">
+			</div>
+		</div>
+	</main>
+
+	<!-- Footer -->
+	<footer class="site-footer">
+		<div class="footer-content">
+			<p>&copy; 2026 Steven Zhang. All Rights Reserved.</p>
+			<ul class="footer-links">
+				<li><a href="https://instagram.com/zhang.lp.28" target="_blank">Instagram</a></li>
+				<li><a href="https://v.douyin.com/WNPNUeIn-lg/" target="_blank">
+					<span class="lang-en">Douyin</span>
+					<span class="lang-zh">抖音</span>
+				</a></li>
+			</ul>
+		</div>
+	</footer>
+
+	<!-- Lightbox for clicking images in masonry -->
+	<div id="lightbox" class="lightbox">
+		<span class="close-lightbox">&times;</span>
+		<img class="lightbox-content" id="lightbox-img">
+		<button class="lightbox-immerse-btn" id="lightbox-immerse-btn">
+			<span class="lang-en">[ IMMERSE THIS PHOTO ]</span>
+			<span class="lang-zh">[ 沉浸式预览此图 ]</span>
+		</button>
+	</div>
+
+	<script src="app.js"></script>
+</body>
+
+</html>
