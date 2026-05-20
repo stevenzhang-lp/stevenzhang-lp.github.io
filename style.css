@@ -10,6 +10,7 @@
 
 html {
   scrollbar-gutter: stable;
+  background-color: #121212;
 }
 
 * {
@@ -35,7 +36,7 @@ body {
   flex-direction: column;
   min-height: 100vh;
   opacity: 0;
-  transition: opacity 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+  transition: opacity 1.2s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
 body.fonts-loaded {
@@ -1409,19 +1410,43 @@ body.home-body {
   }
 
   .site-footer {
-    padding: 2.5rem 1.5rem;
+    padding: 1.5rem 1.5rem;
+    border-top: none;
+    background: transparent;
   }
 
   .footer-content {
     flex-direction: column;
-    gap: 1rem;
+    gap: 0.5rem;
     text-align: center;
+  }
+
+  .footer-content p {
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    opacity: 0.45;
+    letter-spacing: 0.05em;
   }
 
   .footer-links {
     justify-content: center;
-    gap: 1.5rem;
+    gap: 1.25rem;
     padding: 0;
+    margin: 0;
+  }
+
+  .footer-links li a {
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    opacity: 0.45;
+    letter-spacing: 0.05em;
+    text-decoration: none;
+    transition: opacity 0.3s, color 0.3s;
+  }
+
+  .footer-links li a:hover {
+    opacity: 1;
+    color: var(--accent);
   }
 
   /* Home Page Mobile */
@@ -1629,5 +1654,646 @@ body.home-body {
 
   .lightbox-immerse-btn {
     display: none !important;
+  }
+}
+
+/* =========================================
+   SEARCH SYSTEM STYLES
+   ========================================= */
+
+/* Search Trigger Button */
+.search-trigger-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-family: 'Inter', sans-serif;
+  font-size: 0.85rem;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  transition: color 0.3s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 4px 10px;
+}
+
+.search-trigger-btn:hover {
+  color: var(--accent) !important;
+}
+
+.search-btn-icon {
+  margin-top: -1px;
+}
+
+/* Search Modal Overlay */
+.search-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(18, 18, 18, 0.95);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  z-index: 2000;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: 10vh;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.4s cubic-bezier(0.25, 1, 0.5, 1), visibility 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.search-modal-overlay.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+.search-modal-content {
+  width: 90%;
+  max-width: 800px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  padding: 0 1rem;
+}
+
+.close-search {
+  position: absolute;
+  top: -4rem;
+  right: 1rem;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 2.5rem;
+  cursor: pointer;
+  transition: color 0.3s;
+}
+
+.close-search:hover {
+  color: var(--accent);
+}
+
+.search-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 0.8rem 0;
+  transition: border-color 0.3s;
+}
+
+.search-input-wrapper:focus-within {
+  border-color: var(--accent);
+}
+
+.search-input-icon {
+  color: var(--text-muted);
+  margin-right: 1rem;
+  flex-shrink: 0;
+}
+
+.search-input-wrapper:focus-within .search-input-icon {
+  color: var(--accent);
+}
+
+#search-input {
+  background: transparent;
+  border: none;
+  color: var(--text-main);
+  font-size: 1.5rem;
+  font-family: inherit;
+  width: 100%;
+  outline: none;
+}
+
+#search-input::placeholder {
+  color: rgba(255, 255, 255, 0.25);
+  font-family: inherit;
+  font-weight: 300;
+}
+
+/* Results Container */
+.search-results-container {
+  max-height: 65vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding-bottom: 2rem;
+  padding-right: 0.5rem;
+}
+
+/* Scrollbar styling for results */
+.search-results-container::-webkit-scrollbar {
+  width: 4px;
+}
+
+.search-results-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.search-results-container::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+}
+
+.search-results-container::-webkit-scrollbar-thumb:hover {
+  background: var(--accent);
+}
+
+/* Search result item */
+.search-result-item {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 1.2rem;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+  text-decoration: none;
+  color: inherit;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.search-result-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: var(--accent);
+  transform: translateY(-2px);
+}
+
+.search-result-img-container {
+  width: 90px;
+  height: 65px;
+  overflow: hidden;
+  border-radius: 2px;
+  background-color: #1a1a1a;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.search-result-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.search-result-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+.search-result-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.search-result-title {
+  font-family: 'Playfair Display', 'Noto Serif SC', serif;
+  font-size: 1.15rem;
+  color: var(--accent);
+  margin: 0;
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.search-result-meta {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.search-result-excerpt {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Sub-site Address Label Tag */
+.subsite-label {
+  font-size: 0.7rem;
+  letter-spacing: 0.05em;
+  padding: 2px 8px;
+  background: rgba(212, 196, 168, 0.1);
+  border: 1px solid rgba(212, 196, 168, 0.3);
+  color: var(--accent);
+  border-radius: 2px;
+  white-space: nowrap;
+  font-family: 'Inter', sans-serif;
+  text-transform: uppercase;
+}
+
+/* No results styling */
+.search-no-results {
+  text-align: center;
+  color: var(--text-muted);
+  padding: 4rem 0;
+  font-size: 1rem;
+  letter-spacing: 0.05em;
+}
+
+/* Entry Detail Modal overrides */
+.entry-detail-modal-content {
+  max-width: 700px;
+}
+
+.entry-detail-header {
+  margin-bottom: 2rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  padding-bottom: 1.5rem;
+}
+
+.entry-detail-subsite-label {
+  font-size: 0.75rem;
+  color: var(--accent);
+  letter-spacing: 0.1em;
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+}
+
+.entry-detail-meta {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-top: 0.5rem;
+  font-family: 'Inter', sans-serif;
+}
+
+.entry-detail-image-wrapper {
+  width: 100%;
+  max-height: 350px;
+  overflow: hidden;
+  border-radius: 4px;
+  margin-bottom: 2rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.entry-detail-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.entry-detail-text {
+  font-size: 1.05rem;
+  line-height: 1.9;
+  color: #ccc;
+  text-align: justify;
+}
+
+.entry-detail-exif {
+  font-family: monospace;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 2rem;
+  text-align: right;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  padding-top: 1rem;
+}
+
+@media (max-width: 768px) {
+  .search-modal-overlay {
+    padding-top: 4rem;
+    align-items: flex-start;
+  }
+  
+  .search-modal-content {
+    width: 92%;
+    gap: 1.5rem;
+    padding: 0;
+  }
+
+  .close-search {
+    position: fixed;
+    top: 1rem;
+    right: 1.5rem;
+    font-size: 2rem;
+    z-index: 2100;
+  }
+
+  #search-input {
+    font-size: 1.2rem; /* Comfortable size, prevents auto-zoom on iOS */
+  }
+
+  .search-input-wrapper {
+    padding: 0.6rem 0;
+  }
+
+  .search-results-container {
+    max-height: calc(100vh - 160px);
+    gap: 1rem;
+  }
+
+  .search-result-item {
+    padding: 0.8rem;
+    gap: 0.8rem;
+  }
+
+  .search-result-img-container {
+    width: 70px;
+    height: 50px;
+  }
+
+  .search-result-title {
+    font-size: 0.95rem;
+    white-space: normal;
+    line-height: 1.4;
+  }
+
+  .search-result-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.1rem;
+  }
+
+  .search-result-meta {
+    font-size: 0.75rem;
+  }
+
+  .search-result-excerpt {
+    font-size: 0.8rem;
+    -webkit-line-clamp: 2;
+  }
+
+  .search-trigger-btn {
+    gap: 0;
+    padding: 4px 6px;
+  }
+
+  .search-trigger-btn span {
+    display: none !important;
+  }
+}
+
+/* =========================================
+   PRIVATE VAULT (EASTER EGG) STYLES
+   ========================================= */
+.private-vault-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(10, 10, 10, 0.98);
+  backdrop-filter: blur(25px);
+  -webkit-backdrop-filter: blur(25px);
+  z-index: 3000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.private-vault-overlay.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+.private-vault-content {
+  width: 90%;
+  max-width: 900px;
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+  padding: 2.5rem;
+  background: rgba(20, 20, 20, 0.6);
+  border: 1px solid rgba(212, 196, 168, 0.2);
+  border-radius: 8px;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.5), inset 0 0 40px rgba(212, 196, 168, 0.05);
+  transform: scale(0.95) translateY(10px);
+  transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.private-vault-overlay.show .private-vault-content {
+  transform: scale(1) translateY(0);
+}
+
+/* Gold vault glow scanner line */
+.private-vault-content::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(212, 196, 168, 0.05), transparent);
+  transform: skewX(-25deg);
+  animation: vault-scan 6s infinite linear;
+}
+
+@keyframes vault-scan {
+  0% { left: -100%; }
+  100% { left: 200%; }
+}
+
+.vault-header {
+  text-align: center;
+  border-bottom: 1px solid rgba(212, 196, 168, 0.15);
+  padding-bottom: 1.5rem;
+}
+
+.vault-subtitle {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.75rem;
+  color: var(--accent);
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+.vault-title {
+  font-family: 'Playfair Display', 'Noto Serif SC', serif;
+  font-size: 2rem;
+  color: #fff;
+  letter-spacing: 0.1em;
+  margin: 0;
+  text-shadow: 0 0 10px rgba(212, 196, 168, 0.3);
+}
+
+.vault-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1.8rem;
+}
+
+.vault-card {
+  background: rgba(30, 30, 30, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  transition: all 0.4s ease;
+  position: relative;
+  cursor: default;
+}
+
+.vault-card:hover {
+  border-color: var(--accent);
+  background: rgba(212, 196, 168, 0.03);
+  transform: translateY(-4px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+}
+
+.vault-card-header {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  padding-bottom: 0.5rem;
+}
+
+.vault-card-title {
+  font-family: 'Playfair Display', 'Noto Serif SC', serif;
+  font-size: 1.15rem;
+  color: var(--accent);
+  margin: 0 0 0.3rem 0;
+}
+
+.vault-card-meta {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-family: 'Inter', sans-serif;
+}
+
+.vault-card-body {
+  font-size: 0.88rem;
+  line-height: 1.8;
+  color: #bbb;
+  text-align: justify;
+}
+
+.vault-card-footer {
+  margin-top: auto;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-family: monospace;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  padding-top: 0.5rem;
+}
+
+.lock-vault-btn {
+  align-self: center;
+  background: transparent;
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  padding: 0.8rem 2.5rem;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.8rem;
+  letter-spacing: 0.15em;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.3s;
+  text-transform: uppercase;
+  margin-top: 1rem;
+}
+
+.lock-vault-btn:hover {
+  background: var(--accent);
+  color: #121212;
+  box-shadow: 0 0 15px rgba(212, 196, 168, 0.4);
+}
+
+/* Unlock animation effect classes */
+.search-input-wrapper.vault-unlocked-glow {
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 15px rgba(212, 196, 168, 0.5);
+  animation: pulse-glow 1.5s infinite alternate;
+}
+
+@keyframes pulse-glow {
+  0% { box-shadow: 0 0 5px rgba(212, 196, 168, 0.2); }
+  100% { box-shadow: 0 0 20px rgba(212, 196, 168, 0.6); }
+}
+
+/* Unlock error shake animation classes */
+@keyframes vaultShake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-6px); }
+  40%, 80% { transform: translateX(6px); }
+}
+
+.vault-error-shake {
+  animation: vaultShake 0.4s ease-in-out;
+  border-color: #ff3333 !important;
+  box-shadow: 0 0 15px rgba(255, 51, 51, 0.4) !important;
+}
+
+.error-placeholder::placeholder {
+  color: #ff5555 !important;
+}
+
+/* L2 Verification Modal Styles */
+.vault-l2-overlay {
+  align-items: center !important;
+  padding-top: 0 !important;
+}
+
+.vault-l2-content {
+  max-width: 440px !important;
+  background: rgba(18, 18, 18, 0.85) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 12px !important;
+  padding: 2.5rem 2rem !important;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6) !important;
+  gap: 1.5rem !important;
+}
+
+.vault-l2-content .search-trigger-btn {
+  padding: 0.6rem 1.5rem;
+  font-size: 0.8rem;
+  letter-spacing: 0.1em;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.vault-l2-content .search-trigger-btn:hover {
+  opacity: 0.8;
+}
+
+/* Decryption Success Animation */
+.search-modal-overlay.vault-decrypt-success {
+  background-color: #121212 !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  transition: background-color 0.8s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.vault-decrypt-success .vault-l2-content,
+.vault-decrypt-success .search-modal-content {
+  animation: vaultUnlock 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes vaultUnlock {
+  0% {
+    transform: scale(1);
+    filter: blur(0);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.05);
+    filter: blur(8px);
+    opacity: 0;
   }
 }

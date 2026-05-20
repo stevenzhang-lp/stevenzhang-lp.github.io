@@ -46,7 +46,7 @@
 					<span class="lang-en">Category</span>
 					<span class="lang-zh">类别</span>
 				</h4>
-				<ul class="filter-list">
+				<ul class="filter-list" id="category-filter">
 					<li class="filter-empty">
 						<span class="lang-en">No Categories</span><span class="lang-zh">暂无分类</span>
 					</li>
@@ -58,7 +58,7 @@
 					<span class="lang-en">Year</span>
 					<span class="lang-zh">年份</span>
 				</h4>
-				<ul class="filter-list">
+				<ul class="filter-list" id="year-filter">
 					<li class="filter-empty">
 						<span class="lang-en">No Records</span><span class="lang-zh">暂无记录</span>
 					</li>
@@ -66,7 +66,9 @@
 			</div>
 		</aside>
 
-		<section class="journal-empty-container">
+		<section class="gallery-grid" id="journal-grid" style="display: none;"></section>
+
+		<section class="journal-empty-container" id="journal-empty-container">
 			<div class="journal-empty-card">
 				<div class="journal-empty-icon">&ldquo;</div>
 				<h2 class="journal-empty-title">
@@ -99,6 +101,8 @@
 		</div>
 	</footer>
 
+	<script src="data.js"></script>
+	<script src="search.js"></script>
 	<script src="journal.js"></script>
 </body>
 

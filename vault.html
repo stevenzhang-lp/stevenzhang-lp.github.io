@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>STEVEN ZHANG | PRIVATE VAULT</title>
+	<link rel="stylesheet" href="style.css">
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Noto+Serif+SC:wght@300;400;600;900&family=Outfit:wght@200;400;600&display=swap" rel="stylesheet">
+	<style>
+		/* Custom vault layout overrides */
+		body.vault-body {
+			background-color: var(--bg-color);
+			min-height: 100vh;
+			display: flex;
+			flex-direction: column;
+			opacity: 1 !important;
+		}
+
+		.vault-page-container {
+			flex: 1;
+			width: 90%;
+			max-width: 1000px;
+			margin: 8rem auto 4rem auto;
+			display: flex;
+			flex-direction: column;
+			gap: 3rem;
+		}
+
+		/* Re-styling vault-grid for standalone page */
+		.vault-grid {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+			gap: 2rem;
+		}
+
+		.vault-card {
+			background: rgba(18, 18, 18, 0.4);
+			border: 1px solid rgba(212, 196, 168, 0.15);
+			box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+			padding: 2rem;
+		}
+
+		.vault-card:hover {
+			border-color: var(--accent);
+			background: rgba(212, 196, 168, 0.04);
+		}
+	</style>
+</head>
+<body class="vault-body">
+	<!-- Header -->
+	<header class="site-header">
+		<h1 class="logo">
+			<a href="index.html" style="color: inherit; text-decoration: none;">STEVEN ZHANG</a>
+			<span class="site-subtitle">
+				<span class="lang-en">| PRIVATE VAULT</span>
+				<span class="lang-zh">| 私人密室</span>
+			</span>
+		</h1>
+		<nav class="main-nav">
+			<a href="#" id="lock-return-link" class="nav-link">
+				<span class="lang-en">LOCK & RETURN TO THE HUB</span>
+				<span class="lang-zh">锁定并回到主站</span>
+			</a>
+			<a href="#" id="lang-toggle" class="lang-toggle-text">
+				<span class="lang-en">中文</span>
+				<span class="lang-zh">ENGLISH</span>
+			</a>
+		</nav>
+	</header>
+
+	<main class="vault-page-container">
+		<div class="vault-grid" id="vault-entries-grid">
+			<!-- Rendered dynamically from data.js -->
+		</div>
+	</main>
+
+	<!-- Footer -->
+	<footer class="site-footer">
+		<div class="footer-content">
+			<p>&copy; 2026 Steven Zhang. All Rights Reserved.</p>
+			<ul class="footer-links">
+				<li><a href="https://instagram.com/zhang.lp.28" target="_blank">Instagram</a></li>
+				<li><a href="https://v.douyin.com/WNPNUeIn-lg/" target="_blank">
+					<span class="lang-en">Douyin</span>
+					<span class="lang-zh">抖音</span>
+				</a></li>
+			</ul>
+		</div>
+	</footer>
+
+	<script src="data.js"></script>
+	<script>
+		document.addEventListener('DOMContentLoaded', () => {
+			// Set up language toggle
+			const langToggle = document.getElementById('lang-toggle');
+			let currentLang = localStorage.getItem('voyage_lang') || 'zh';
+			document.body.classList.remove('lang-zh', 'lang-en');
+			document.body.classList.add(`lang-${currentLang}`);
+
+			function updateTitle(lang) {
+				document.title = lang === 'en' ? "STEVEN ZHANG | PRIVATE VAULT" : "STEVEN ZHANG | 私人密室";
+			}
+			updateTitle(currentLang);
+
+			if (langToggle) {
+				langToggle.addEventListener('click', (e) => {
+					e.preventDefault();
+					let newLang = document.body.classList.contains('lang-zh') ? 'en' : 'zh';
+					document.body.classList.remove('lang-zh', 'lang-en');
+					document.body.classList.add(`lang-${newLang}`);
+					localStorage.setItem('voyage_lang', newLang);
+					updateTitle(newLang);
+				});
+			}
+
+			// Verify direct navigation authorization to prevent access via URL/bookmarks/refreshes
+			const isAuthorized = sessionStorage.getItem('vault_authorized') === 'true';
+			
+			// Consume (delete) the one-time authorization token immediately
+			sessionStorage.removeItem('vault_authorized');
+
+			if (!isAuthorized) {
+				// Access violation, reload, bookmark, or direct URL entry -> redirect to homepage
+				sessionStorage.removeItem('decrypted_vault_entries');
+				window.location.href = 'index.html';
+				return;
+			}
+
+			// Retrieve and render entries
+			const grid = document.getElementById('vault-entries-grid');
+			let entries = null;
+			try {
+				const stored = sessionStorage.getItem('decrypted_vault_entries');
+				if (stored) {
+					entries = JSON.parse(stored);
+				}
+			} catch (err) {
+				console.error("Failed to parse stored vault entries:", err);
+			}
+
+			if (entries === null) {
+				// Access violation or expired session - redirect back to hub
+				window.location.href = 'index.html';
+				return;
+			}
+
+			if (grid) {
+				grid.innerHTML = entries.map(entry => `
+					<div class="vault-card">
+						<div class="vault-card-header">
+							<h3 class="vault-card-title">
+								<span class="lang-zh">${entry.titleZh}</span>
+								<span class="lang-en">${entry.titleEn}</span>
+							</h3>
+							<div class="vault-card-meta">
+								<span class="lang-zh">${entry.categoryZh} | ${entry.date}</span>
+								<span class="lang-en">${entry.categoryEn} | ${entry.date}</span>
+							</div>
+						</div>
+						<div class="vault-card-body">
+							<span class="lang-zh">${entry.contentZh}</span>
+							<span class="lang-en">${entry.contentEn}</span>
+						</div>
+						<div class="vault-card-footer">
+							${entry.footer}
+						</div>
+					</div>
+				`).join('');
+			}
+
+			// Secure lock-and-exit helper with fade-out animation
+			function lockAndExit() {
+				// Wipe session data immediately
+				sessionStorage.removeItem('decrypted_vault_entries');
+				sessionStorage.removeItem('vault_authorized');
+				
+				// Smooth fade out transition
+				document.body.style.transition = 'opacity 0.4s cubic-bezier(0.25, 1, 0.5, 1)';
+				document.body.style.opacity = '0';
+				
+				setTimeout(() => {
+					window.location.href = 'index.html';
+				}, 400);
+			}
+
+			// Securely handle lock and return click
+			const lockReturnLink = document.getElementById('lock-return-link');
+			if (lockReturnLink) {
+				lockReturnLink.addEventListener('click', (e) => {
+					e.preventDefault();
+					lockAndExit();
+				});
+			}
+
+			// Immediately wipe session if the user navigates away or closes tab
+			window.addEventListener('pagehide', () => {
+				sessionStorage.removeItem('decrypted_vault_entries');
+				sessionStorage.removeItem('vault_authorized');
+			});
+
+			// Idle Auto-Lock (3 minutes)
+			let idleTimer;
+			const IDLE_TIMEOUT_MS = 3 * 60 * 1000;
+
+			function resetIdleTimer() {
+				clearTimeout(idleTimer);
+				idleTimer = setTimeout(() => {
+					lockAndExit();
+				}, IDLE_TIMEOUT_MS);
+			}
+
+			const activityEvents = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'];
+			activityEvents.forEach(evt => {
+				document.addEventListener(evt, resetIdleTimer, true);
+			});
+			resetIdleTimer();
+
+			// Prevent Flash of Unstyled Text (FOUT) and ensure transition starts from opacity: 0
+			setTimeout(() => {
+				if (document.fonts) {
+					document.fonts.ready.then(() => {
+						document.body.classList.add('fonts-loaded');
+					});
+					setTimeout(() => {
+						document.body.classList.add('fonts-loaded');
+					}, 1000);
+				} else {
+					document.body.classList.add('fonts-loaded');
+				}
+			}, 80);
+
+			// Anti-save protections
+			document.addEventListener('contextmenu', event => event.preventDefault());
+			document.addEventListener('dragstart', event => {
+				if (event.target.tagName.toLowerCase() === 'img') {
+					event.preventDefault();
+				}
+			});
+			document.addEventListener('keydown', event => {
+				if (event.key === 'F12' ||
+					(event.ctrlKey && event.shiftKey && event.key === 'I') ||
+					(event.metaKey && event.altKey && event.key === 'I') ||
+					(event.ctrlKey && event.key === 'U') ||
+					(event.metaKey && event.key === 'u')) {
+					event.preventDefault();
+				}
+			});
+		});
+	</script>
+</body>
+</html>

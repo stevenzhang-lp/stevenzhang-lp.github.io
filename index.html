@@ -25,7 +25,7 @@
 	<!-- Top Header (Black Background) -->
 	<header class="site-header">
 		<h1 class="logo">
-			<a href="#" style="color: inherit; text-decoration: none;">STEVEN ZHANG</a>
+			<a href="index.html" style="color: inherit; text-decoration: none;">STEVEN ZHANG</a>
 			<span class="site-subtitle">
 				<span class="lang-en">| THE MASTER ARCHIVE</span>
 				<span class="lang-zh">| 总档案库</span>
@@ -129,15 +129,22 @@
 			<div class="modal-body">
 				<p>
 					<span class="lang-zh">欢迎来到我的主页。我是 Steven Zhang，一名来自中国的 XMUM（厦门大学马来西亚分校）学生。</span>
-					<span class="lang-en">Welcome to my archive. I'm Steven Zhang, a student from China currently studying at XMUM (Xiamen University Malaysia).</span>
+					<span class="lang-en">Welcome to my archive. I'm Steven Zhang, a student from China currently
+						studying at XMUM (Xiamen University Malaysia).</span>
 				</p>
 				<p>
-					<span class="lang-zh">建立这个网站的初衷，是希望能有一个纯粹的角落，去安放我在旅途中捕获的光影切片。对我而言，相机不仅是一台记录仪，更是一台能够让时间倒流、空间重构的时光机。它帮我定格住那些稍纵即逝的瞬间，成为我凝视世界的方式。</span>
-					<span class="lang-en">The original intention of building this website was to create a dedicated sanctuary for the slices of light and shadow captured during my journeys. For me, a camera is not just a recording device; it is a time machine that allows time to reverse and space to reconstruct, freezing fleeting moments as my unique way of gazing at the world.</span>
+					<span
+						class="lang-zh">建立这个网站的初衷，是希望能有一个纯粹的角落，去安放我在旅途中捕获的光影切片。对我而言，相机不仅是一台记录仪，更是一台能够让时间倒流、空间重构的时光机。它帮我定格住那些稍纵即逝的瞬间，成为我凝视世界的方式。</span>
+					<span class="lang-en">The original intention of building this website was to create a dedicated
+						sanctuary for the slices of light and shadow captured during my journeys. For me, a camera is
+						not just a recording device; it is a time machine that allows time to reverse and space to
+						reconstruct, freezing fleeting moments as my unique way of gazing at the world.</span>
 				</p>
 				<p>
 					<span class="lang-zh">除了行旅的光影，我也会在这里分享日常的碎屑与一些随笔。如果你在这些影像与文字中找到了共鸣，非常欢迎通过社交媒体与我取得联系，期待与你相遇。</span>
-					<span class="lang-en">Beyond travel photography, I also share daily life fragments and occasional essays here. If you find resonance in my content, please feel free to connect with me via social media. I look forward to hearing from you.</span>
+					<span class="lang-en">Beyond travel photography, I also share daily life fragments and occasional
+						essays here. If you find resonance in my content, please feel free to connect with me via social
+						media. I look forward to hearing from you.</span>
 				</p>
 			</div>
 		</div>
@@ -182,6 +189,8 @@
 
 
 
+	<script src="data.js"></script>
+	<script src="search.js"></script>
 	<script>
 		// Language Toggle Logic for Home
 		const langToggle = document.getElementById('lang-toggle-home');
@@ -209,18 +218,20 @@
 			});
 		}
 
-		// Prevent Flash of Unstyled Text (FOUT)
-		if (document.fonts) {
-			document.fonts.ready.then(() => {
+		// Prevent Flash of Unstyled Text (FOUT) and ensure transition starts from opacity: 0
+		setTimeout(() => {
+			if (document.fonts) {
+				document.fonts.ready.then(() => {
+					document.body.classList.add('fonts-loaded');
+				});
+				// Fallback in case loading is extremely slow
+				setTimeout(() => {
+					document.body.classList.add('fonts-loaded');
+				}, 1000);
+			} else {
 				document.body.classList.add('fonts-loaded');
-			});
-			// Fallback in case loading is extremely slow
-			setTimeout(() => {
-				document.body.classList.add('fonts-loaded');
-			}, 1000);
-		} else {
-			document.body.classList.add('fonts-loaded');
-		}
+			}
+		}, 80);
 
 		// Modal Toggle Logic
 		const openAbout = document.getElementById('open-about');
