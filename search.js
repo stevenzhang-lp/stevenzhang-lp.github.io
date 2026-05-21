@@ -106,7 +106,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (e.key === 'Enter') {
                 const query = searchInput.value.trim();
 
-                if (query === 'stevenzhang.lp.28') {
+                if (query === 'sz.lp.28') {
                     e.preventDefault();
                     if (typeof vaultConfig !== 'undefined') {
                         try {
@@ -624,7 +624,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return bytes;
     }
 
-    // Decrypt Vault using single-layer passcode (stevenzhang.lp.28)
+    // Decrypt Vault using single-layer passcode (sz.lp.28)
     async function decryptVault(passcode, config) {
         if (!config || !config.encryptedPrivJwk) return null;
 

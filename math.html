@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>STEVEN ZHANG | MATHEMATICAL WORKBENCH</title>
+	
+	<!-- Security Check: Redirect immediately if unauthorized -->
+	<script>
+		if (sessionStorage.getItem('vault_authorized') !== 'true') {
+			window.location.href = 'index.html';
+		}
+	</script>
+
+	<link rel="stylesheet" href="style.css">
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Noto+Serif+SC:wght@300;400;600;900&family=Outfit:wght@200;400;600&family=Fira+Code:wght@300;400;500&display=swap" rel="stylesheet">
+	
+	<!-- Styling imported via style.css -->
+</head>
+<body class="math-body">
+	<!-- Header -->
+	<header class="site-header">
+		<h1 class="logo">
+			<a href="index.html" style="color: inherit; text-decoration: none;">STEVEN ZHANG</a>
+			<span class="site-subtitle">
+				<span class="lang-en">| MATH WORKBENCH</span>
+				<span class="lang-zh">| 常用数学工作台</span>
+			</span>
+		</h1>
+		<nav class="main-nav">
+			<a href="vault.html" class="nav-link">
+				<span class="lang-en">&larr; BACK TO VAULT</span>
+				<span class="lang-zh">&larr; 返回密室</span>
+			</a>
+			<a href="#" id="lang-toggle" class="lang-toggle-text">
+				<span class="lang-en">中文</span>
+				<span class="lang-zh">ENGLISH</span>
+			</a>
+		</nav>
+	</header>
+
+	<!-- Main Workspace -->
+	<main class="math-page-container">
+		<div class="math-intro">
+			<h2>
+				<span class="lang-zh">常用数学工作台</span>
+				<span class="lang-en">Mathematical Workbench</span>
+			</h2>
+		</div>
+		<div class="math-tools-grid">
+			
+			<!-- Module 1: Function Plotter (Desmos) -->
+			<div class="math-tool-card" id="tool-plotter" style="grid-column: span 2; display: flex; flex-direction: column; gap: 1.5rem;">
+				<div class="tool-header">
+					<h3 class="tool-title">
+						<span class="lang-zh">函数图像绘制 (Desmos)</span>
+						<span class="lang-en">Function Plotter (Desmos)</span>
+					</h3>
+				</div>
+				
+				<div class="canvas-container" style="aspect-ratio: 16/7; background: #fff; border: 1px solid rgba(212, 196, 168, 0.2);">
+					<iframe src="https://www.desmos.com/calculator" style="width: 100%; height: 100%; border: none;" allowfullscreen></iframe>
+				</div>
+
+				<a href="https://www.desmos.com/calculator" target="_blank" class="math-btn" style="text-decoration: none; text-align: center; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;">
+					<span class="lang-zh">访问 Desmos 官网 &rarr;</span>
+					<span class="lang-en">Visit Desmos Website &rarr;</span>
+				</a>
+			</div>
+
+			<!-- Module 2: LaTeX Table Generator -->
+			<div class="math-tool-card" id="tool-latex" style="grid-column: span 2; display: flex; flex-direction: column; gap: 1.5rem;">
+				<div>
+					<div class="tool-header">
+						<h3 class="tool-title">
+							<span class="lang-zh">LaTeX 表格生成器</span>
+							<span class="lang-en">LaTeX Table Generator</span>
+						</h3>
+					</div>
+					
+					<p class="tool-card-description" style="color: var(--text-muted); font-size: 0.9rem; line-height: 1.6; margin: 1.5rem 0 0 0;">
+						<span class="lang-zh">基于 Tables Generator 的在线表格转换工具。支持在类似 Excel 的可视化网格中编辑表格、直接复制粘贴 Excel 或 CSV 数据、自动调整合并单元格并一键导出 LaTeX 格式代码。</span>
+						<span class="lang-en">Online table converter based on Tables Generator. Edit tables in an Excel-like grid, paste raw Excel/CSV data directly, merge cells automatically, and generate clean LaTeX table code instantly.</span>
+					</p>
+				</div>
+
+				<a href="https://www.tablesgenerator.com/" target="_blank" class="math-btn" style="text-decoration: none; text-align: center; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; align-self: flex-start;">
+					<span class="lang-zh">访问 Tables Generator &rarr;</span>
+					<span class="lang-en">Visit Tables Generator &rarr;</span>
+				</a>
+			</div>
+
+			<!-- Module 3: Base Converter & Bitwise Sandbox -->
+			<div class="math-tool-card" id="tool-bitwise">
+				<div class="tool-header">
+					<h3 class="tool-title">
+						<span class="lang-zh">进制转换与位运算</span>
+						<span class="lang-en">Base & Bitwise Sandbox</span>
+					</h3>
+				</div>
+
+				<div class="math-input-group">
+					<label class="math-label">
+						<span class="lang-zh">输入数值 (支持十进制/十六进制如0xFF/二进制如0b1010)</span>
+						<span class="lang-en">Input Number (Decimal/Hex 0xNN/Binary 0bNN)</span>
+					</label>
+					<input type="text" id="conv-input" class="math-input monospace" value="42">
+				</div>
+
+				<div class="converter-outputs">
+					<div class="conv-row">
+						<span class="conv-label">BIN:</span>
+						<span class="conv-val" id="conv-bin">00101010</span>
+					</div>
+					<div class="conv-row">
+						<span class="conv-label">OCT:</span>
+						<span class="conv-val" id="conv-oct">52</span>
+					</div>
+					<div class="conv-row">
+						<span class="conv-label">DEC:</span>
+						<span class="conv-val" id="conv-dec">42</span>
+					</div>
+					<div class="conv-row">
+						<span class="conv-label">HEX:</span>
+						<span class="conv-val" id="conv-hex">2A</span>
+					</div>
+				</div>
+
+				<div class="bitwise-sandbox">
+					<div class="math-label">
+						<span class="lang-zh">位运算仿真 (32位有符号整型)</span>
+						<span class="lang-en">Bitwise Operation (32-bit Integer)</span>
+					</div>
+					<div class="bitwise-inputs">
+						<input type="text" id="bit-val-a" class="math-input monospace" value="12" placeholder="Value A">
+						<input type="text" id="bit-val-b" class="math-input monospace" value="5" placeholder="Value B">
+					</div>
+					<select id="bit-op" class="bitwise-op-select">
+						<option value="AND">A & B (AND / 按位与)</option>
+						<option value="OR">A | B (OR / 按位或)</option>
+						<option value="XOR">A ^ B (XOR / 按位异或)</option>
+						<option value="NOT">~A (NOT / 按位取反)</option>
+						<option value="SHL">A &lt;&lt; B (Shift Left / 左移)</option>
+						<option value="SHR">A &gt;&gt; B (Shift Right / 右移)</option>
+					</select>
+					<div class="bitwise-visual" id="bit-visual-out">
+						<!-- Binary alignment display -->
+					</div>
+				</div>
+			</div>
+
+			<!-- Module 4: Cryptographic Sandbox -->
+			<div class="math-tool-card" id="tool-crypto">
+				<div class="tool-header">
+					<h3 class="tool-title">
+						<span class="lang-zh">密码学沙盒</span>
+						<span class="lang-en">Cryptographic Sandbox</span>
+					</h3>
+				</div>
+
+				<div class="crypto-tab-btns">
+					<button class="matrix-tab active" id="crypto-tab-hash">SHA-256 HASH</button>
+					<button class="matrix-tab" id="crypto-tab-aes">AES-GCM</button>
+				</div>
+
+				<!-- Panel 1: SHA-256 -->
+				<div class="crypto-panel active" id="crypto-panel-hash">
+					<div class="math-input-group">
+						<label class="math-label">
+							<span class="lang-zh">纯文本数据</span>
+							<span class="lang-en">Plaintext input</span>
+						</label>
+						<textarea id="hash-input" class="math-input" style="min-height: 4rem; resize: vertical;" placeholder="Type text to hash in real-time..."></textarea>
+					</div>
+					<div class="math-input-group">
+						<label class="math-label">SHA-256 Hashing Outcome</label>
+						<div class="math-result" id="hash-output" style="font-size: 0.8rem;">
+							e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+						</div>
+					</div>
+				</div>
+
+				<!-- Panel 2: AES-GCM -->
+				<div class="crypto-panel" id="crypto-panel-aes">
+					<div class="math-input-group">
+						<label class="math-label">
+							<span class="lang-zh">密码 / 密钥密钥 (Passphrase)</span>
+							<span class="lang-en">Secret Passphrase</span>
+						</label>
+						<input type="text" id="aes-pass" class="math-input monospace" value="secret-vault-key-28">
+					</div>
+					<div class="math-input-group">
+						<label class="math-label">
+							<span class="lang-zh">要加密的消息</span>
+							<span class="lang-en">Message to Encrypt</span>
+						</label>
+						<input type="text" id="aes-plain" class="math-input" value="Hello, this is a secret note from the vault.">
+					</div>
+					<div style="display: flex; gap: 0.5rem;">
+						<button class="math-btn" id="aes-encrypt-btn">Encrypt</button>
+						<button class="math-btn" id="aes-decrypt-btn">Decrypt</button>
+					</div>
+					<div class="math-input-group">
+						<label class="math-label">
+							<span class="lang-zh">运算结果 (密文/明文)</span>
+							<span class="lang-en">Ciphertext / Decrypted Outcome</span>
+						</label>
+						<div class="math-result" id="aes-result" style="font-size: 0.8rem;">
+							Press Encrypt or Decrypt...
+						</div>
+					</div>
+				</div>
+			</div>
+
+		</div>
+	</main>
+
+	<!-- Footer -->
+	<footer class="site-footer">
+		<div class="footer-content">
+			<p>&copy; 2026 Steven Zhang. All Rights Reserved.</p>
+			<ul class="footer-links">
+				<li><a href="https://instagram.com/zhang.lp.28" target="_blank">Instagram</a></li>
+				<li><a href="https://v.douyin.com/WNPNUeIn-lg/" target="_blank">
+					<span class="lang-en">Douyin</span>
+					<span class="lang-zh">抖音</span>
+				</a></li>
+			</ul>
+		</div>
+	</footer>
+
+	<script src="math.js"></script>
+</body>
+</html>

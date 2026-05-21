@@ -8,45 +8,6 @@
 	<link rel="preconnect" href="https://fonts.googleapis.com">
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Noto+Serif+SC:wght@300;400;600;900&family=Outfit:wght@200;400;600&display=swap" rel="stylesheet">
-	<style>
-		/* Custom vault layout overrides */
-		body.vault-body {
-			background-color: var(--bg-color);
-			min-height: 100vh;
-			display: flex;
-			flex-direction: column;
-			opacity: 1 !important;
-		}
-
-		.vault-page-container {
-			flex: 1;
-			width: 90%;
-			max-width: 1000px;
-			margin: 8rem auto 4rem auto;
-			display: flex;
-			flex-direction: column;
-			gap: 3rem;
-		}
-
-		/* Re-styling vault-grid for standalone page */
-		.vault-grid {
-			display: grid;
-			grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-			gap: 2rem;
-		}
-
-		.vault-card {
-			background: rgba(18, 18, 18, 0.4);
-			border: 1px solid rgba(212, 196, 168, 0.15);
-			box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
-			padding: 2rem;
-		}
-
-		.vault-card:hover {
-			border-color: var(--accent);
-			background: rgba(212, 196, 168, 0.04);
-		}
-	</style>
 </head>
 <body class="vault-body">
 	<!-- Header -->
@@ -71,8 +32,57 @@
 	</header>
 
 	<main class="vault-page-container">
-		<div class="vault-grid" id="vault-entries-grid">
-			<!-- Rendered dynamically from data.js -->
+		<div class="vault-blocks-grid">
+			<!-- Block 1: Mathematical Tools -->
+			<a href="math.html" class="vault-block-item" id="block-math">
+				<div class="vault-block-meta">01 / FUNCTIONAL MODULE</div>
+				<h2 class="vault-block-title">
+					<span class="lang-zh">数学工具</span>
+					<span class="lang-en">MATHEMATICAL TOOLS</span>
+				</h2>
+				<p class="vault-block-description">
+					<span class="lang-zh">内置交互式函数图像绘制、LaTeX 表格生成器、进制转换与位运算。</span>
+					<span class="lang-en">Built-in interactive function plotter, LaTeX table generator, and bitwise binary converter.</span>
+				</p>
+				<div class="vault-block-action">
+					<span class="lang-zh">开启工具箱 &rarr;</span>
+					<span class="lang-en">OPEN WORKBENCH &rarr;</span>
+				</div>
+			</a>
+
+			<!-- Block 2: Private Journals -->
+			<div class="vault-block-item" id="block-thoughts">
+				<div class="vault-block-meta">02 / OFFLINE ARCHIVES</div>
+				<h2 class="vault-block-title">
+					<span class="lang-zh">私密随笔</span>
+					<span class="lang-en">PRIVATE JOURNALS</span>
+				</h2>
+				<p class="vault-block-description">
+					<span class="lang-zh">归档个人离线思维碎片，保存技术细节、研究日志以及在时间荒野中的见闻。</span>
+					<span class="lang-en">Offline archive of personal fragments, technical research, and diary thoughts.</span>
+				</p>
+				<div class="vault-block-action">
+					<span class="lang-zh">未开放 &bull; 处于锁定状态</span>
+					<span class="lang-en">LOCKED &bull; OFFLINE ARCHIVE</span>
+				</div>
+			</div>
+
+			<!-- Block 3: Creative Laboratory -->
+			<div class="vault-block-item" id="block-lab">
+				<div class="vault-block-meta">03 / CREATIVE GRAPHICS</div>
+				<h2 class="vault-block-title">
+					<span class="lang-zh">创意实验室</span>
+					<span class="lang-en">CREATIVE LABORATORY</span>
+				</h2>
+				<p class="vault-block-description">
+					<span class="lang-zh">基于 WebGL/Canvas 技术的生成艺术和混沌数学曲线，探索几何学与感性的碰撞。</span>
+					<span class="lang-en">Generative art and chaos curves based on WebGL/Canvas, blending math and emotion.</span>
+				</p>
+				<div class="vault-block-action">
+					<span class="lang-zh">未开放 &bull; 处于锁定状态</span>
+					<span class="lang-en">LOCKED &bull; OFFLINE ARCHIVE</span>
+				</div>
+			</div>
 		</div>
 	</main>
 
@@ -118,8 +128,8 @@
 			// Verify direct navigation authorization to prevent access via URL/bookmarks/refreshes
 			const isAuthorized = sessionStorage.getItem('vault_authorized') === 'true';
 			
-			// Consume (delete) the one-time authorization token immediately
-			sessionStorage.removeItem('vault_authorized');
+			// We DO NOT delete vault_authorized immediately on load so that subpages (like math.html) can read it,
+			// and returning here doesn't lock you out. It will be wiped on closing the tab, clicking lock, or returning to standard pages.
 
 			if (!isAuthorized) {
 				// Access violation, reload, bookmark, or direct URL entry -> redirect to homepage
@@ -128,47 +138,7 @@
 				return;
 			}
 
-			// Retrieve and render entries
-			const grid = document.getElementById('vault-entries-grid');
-			let entries = null;
-			try {
-				const stored = sessionStorage.getItem('decrypted_vault_entries');
-				if (stored) {
-					entries = JSON.parse(stored);
-				}
-			} catch (err) {
-				console.error("Failed to parse stored vault entries:", err);
-			}
-
-			if (entries === null) {
-				// Access violation or expired session - redirect back to hub
-				window.location.href = 'index.html';
-				return;
-			}
-
-			if (grid) {
-				grid.innerHTML = entries.map(entry => `
-					<div class="vault-card">
-						<div class="vault-card-header">
-							<h3 class="vault-card-title">
-								<span class="lang-zh">${entry.titleZh}</span>
-								<span class="lang-en">${entry.titleEn}</span>
-							</h3>
-							<div class="vault-card-meta">
-								<span class="lang-zh">${entry.categoryZh} | ${entry.date}</span>
-								<span class="lang-en">${entry.categoryEn} | ${entry.date}</span>
-							</div>
-						</div>
-						<div class="vault-card-body">
-							<span class="lang-zh">${entry.contentZh}</span>
-							<span class="lang-en">${entry.contentEn}</span>
-						</div>
-						<div class="vault-card-footer">
-							${entry.footer}
-						</div>
-					</div>
-				`).join('');
-			}
+			// Authorization verified successfully, render static content blocks.
 
 			// Secure lock-and-exit helper with fade-out animation
 			function lockAndExit() {
@@ -194,11 +164,21 @@
 				});
 			}
 
-			// Immediately wipe session if the user navigates away or closes tab
-			window.addEventListener('pagehide', () => {
-				sessionStorage.removeItem('decrypted_vault_entries');
-				sessionStorage.removeItem('vault_authorized');
-			});
+			// Intercept mobile clicks on Mathematical Tools (Block 1)
+			const blockMath = document.getElementById('block-math');
+			if (blockMath) {
+				blockMath.addEventListener('click', (e) => {
+					const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) 
+						|| window.innerWidth < 1024;
+						
+					if (isMobile) {
+						e.preventDefault();
+						const zhMsg = "该数学工具箱内包含复杂公式、图像与表格编辑器，仅支持在电脑端访问以获得最佳体验。";
+						const enMsg = "The Math Workbench features complex equations, plotting, and table editors. It is only accessible on desktop screens.";
+						alert(document.body.classList.contains('lang-zh') ? zhMsg : enMsg);
+					}
+				});
+			}
 
 			// Idle Auto-Lock (3 minutes)
 			let idleTimer;
