@@ -338,6 +338,43 @@
 			color: #000;
 		}
 
+		.share-explore-action {
+			margin-top: 1.5rem;
+			margin-bottom: 0.5rem;
+			display: flex;
+			justify-content: flex-start;
+		}
+
+		.share-explore-btn {
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			background: transparent;
+			border: 1px solid var(--accent, #e5c158);
+			color: var(--accent, #e5c158);
+			padding: 0.75rem 1.8rem;
+			border-radius: 24px;
+			text-decoration: none;
+			font-family: 'Inter', sans-serif;
+			font-size: 0.8rem;
+			letter-spacing: 0.1em;
+			font-weight: 500;
+			text-transform: uppercase;
+			transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+			cursor: pointer;
+		}
+
+		.share-explore-btn:hover {
+			background: var(--accent, #e5c158);
+			color: #000;
+			transform: translateY(-2px);
+			box-shadow: 0 4px 15px rgba(229, 193, 88, 0.2);
+		}
+
+		.share-explore-btn:active {
+			transform: translateY(0);
+		}
+
 		@media (max-width: 991px) {
 			.share-container {
 				margin: 2rem auto;
@@ -387,6 +424,10 @@
 				align-items: center;
 				text-align: center;
 				gap: 1.2rem;
+			}
+
+			.share-explore-action {
+				justify-content: center;
 			}
 		}
 	</style>
@@ -450,6 +491,20 @@
 			let currentLang = localStorage.getItem('voyage_lang') || 'zh';
 			document.body.classList.remove('lang-zh', 'lang-en');
 			document.body.classList.add(`lang-${currentLang}`);
+
+			// Prevent Flash of Unstyled Text (FOUT) and ensure transition starts from opacity: 0
+			setTimeout(() => {
+				if (document.fonts) {
+					document.fonts.ready.then(() => {
+						document.body.classList.add('fonts-loaded');
+					});
+					setTimeout(() => {
+						document.body.classList.add('fonts-loaded');
+					}, 1000);
+				} else {
+					document.body.classList.add('fonts-loaded');
+				}
+			}, 80);
 
 			function updatePageTitle(item, type) {
 				const suffixEn = type ? ` | ${type.toUpperCase()}` : '';
@@ -647,6 +702,13 @@
 								
 								<div class="share-body-container">
 									${bodyHtml}
+								</div>
+								
+								<div class="share-explore-action">
+									<a href="${type}.html?id=${item.id}" class="share-explore-btn">
+										<span class="lang-zh">进入页面互动探索 &rarr;</span>
+										<span class="lang-en">EXPLORE IN ARCHIVE &rarr;</span>
+									</a>
 								</div>
 							</div>
 
