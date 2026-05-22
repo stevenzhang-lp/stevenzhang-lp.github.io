@@ -1159,13 +1159,13 @@ body.home-body {
   }
 
   .share-btn {
-    right: 11rem;
+    right: 12.5rem;
     left: auto;
     bottom: 1.5rem;
-    width: 2.4rem;
-    height: 2.4rem;
-    border-radius: 50%;
-    padding: 0;
+    width: auto;
+    height: auto;
+    border-radius: 20px;
+    padding: 0.6rem 1.2rem;
   }
 
   .hero-section {
@@ -1325,13 +1325,14 @@ body.home-body {
   }
 
   .share-btn {
-    right: 8rem;
+    right: 9.5rem;
     left: auto;
     bottom: 1.5rem;
-    width: 2.4rem;
-    height: 2.4rem;
-    border-radius: 50%;
-    padding: 0;
+    width: auto;
+    height: auto;
+    border-radius: 20px;
+    padding: 0.5rem 1.1rem;
+    font-size: 0.7rem;
   }
 
   .immerse-btn {
@@ -1683,6 +1684,18 @@ body.home-body {
     right: 1.5rem !important;
     left: auto !important;
     bottom: 1.5rem !important;
+    width: 2.4rem !important;
+    height: 2.4rem !important;
+    border-radius: 50% !important;
+    padding: 0 !important;
+  }
+
+  .share-btn .detail-share-icon {
+    display: block !important;
+  }
+
+  .share-btn .share-text {
+    display: none !important;
   }
 }
 
@@ -2856,25 +2869,28 @@ body.math-body {
   stroke: currentColor;
 }
 
-/* Detail View Share Button (Circular Icon Button) */
+/* Detail View Share Button (Text Button on Desktop/Landscape, Icon Button on Mobile Portrait) */
 .share-btn {
   position: absolute;
   bottom: 2.5rem;
-  right: 13rem; /* Next to immerse-btn which is at right: 4rem */
-  width: 2.6rem;
-  height: 2.6rem;
-  padding: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  right: 14.5rem; /* Next to immerse-btn which is at right: 4rem */
   background: rgba(0, 0, 0, 0.3);
   border: 1px solid rgba(255, 255, 255, 0.2);
   color: rgba(255, 255, 255, 0.9);
+  padding: 0.6rem 1.4rem;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.75rem;
+  letter-spacing: 0.15em;
   cursor: pointer;
   z-index: 10;
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  border-radius: 50%;
+  border-radius: 20px;
+  width: auto;
+  height: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
@@ -2882,8 +2898,16 @@ body.math-body {
   background: rgba(255, 255, 255, 0.9);
   color: #000;
   border-color: #fff;
-  transform: translateY(-2px) scale(1.05);
+  transform: translateY(-2px);
   box-shadow: 0 4px 15px rgba(255, 255, 255, 0.1);
+}
+
+.share-btn .detail-share-icon {
+  display: none;
+}
+
+.share-btn .share-text {
+  display: inline;
 }
 
 .detail-share-icon {
