@@ -158,6 +158,15 @@ lightbox.addEventListener('click', (e) => {
 
 // Event Listeners
 document.getElementById('back-btn').addEventListener('click', closeDetail);
+const voyageShareBtn = document.getElementById('voyage-share-btn');
+if (voyageShareBtn) {
+    voyageShareBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (activePhoto && typeof window.openShareModal === 'function') {
+            window.openShareModal(activePhoto, 'voyage');
+        }
+    });
+}
 
 // Zen Mode Logic
 const heroSection = document.getElementById('detail-hero');

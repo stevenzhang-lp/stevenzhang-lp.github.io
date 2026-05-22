@@ -482,7 +482,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="entry-detail-header">
                     <div class="entry-detail-subsite-label" id="entry-detail-subsite"></div>
                     <h2 class="modal-title" id="entry-detail-title"></h2>
-                    <div class="entry-detail-meta" id="entry-detail-meta"></div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-top: 0.5rem;">
+                        <div class="entry-detail-meta" id="entry-detail-meta" style="margin-top: 0;"></div>
+                        <button class="entry-share-btn" id="entry-share-btn">
+                            <span class="lang-en">[ SHARE ]</span>
+                            <span class="lang-zh">[ 分享 ]</span>
+                        </button>
+                    </div>
                 </div>
                 <div class="modal-body" id="entry-detail-body"></div>
             </div>
@@ -566,6 +572,19 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         body.innerHTML = contentHtml;
+
+        // Wire Share button click handler dynamically
+        const shareBtn = document.getElementById('entry-share-btn');
+        if (shareBtn) {
+            const newShareBtn = shareBtn.cloneNode(true);
+            shareBtn.parentNode.replaceChild(newShareBtn, shareBtn);
+            newShareBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                if (typeof window.openShareModal === 'function') {
+                    window.openShareModal(item, type);
+                }
+            });
+        }
 
         // Show modal
         modal.classList.add('show');

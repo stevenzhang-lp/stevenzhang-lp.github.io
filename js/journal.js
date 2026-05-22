@@ -6,13 +6,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // Set initial language class
     document.body.classList.remove('lang-zh', 'lang-en');
     document.body.classList.add(`lang-${currentLang}`);
-    updateDiaryTitle(currentLang);
+    updateJournalTitle(currentLang);
 
-    function updateDiaryTitle(lang) {
+    function updateJournalTitle(lang) {
         if (lang === 'en') {
-            document.title = "STEVEN ZHANG | Daily Fragments";
+            document.title = "STEVEN ZHANG | Thought Fragments";
         } else {
-            document.title = "STEVEN ZHANG | 日常切片";
+            document.title = "STEVEN ZHANG | 思维碎片";
         }
     }
 
@@ -23,37 +23,37 @@ document.addEventListener('DOMContentLoaded', () => {
             document.body.classList.remove('lang-zh', 'lang-en');
             document.body.classList.add(`lang-${newLang}`);
             localStorage.setItem('voyage_lang', newLang);
-            updateDiaryTitle(newLang);
+            updateJournalTitle(newLang);
         });
     }
 
     // 2. Dynamic Content Rendering & Filters
-    const diaryGrid = document.getElementById('diary-grid');
-    const emptyContainer = document.getElementById('diary-empty-container');
+    const journalGrid = document.getElementById('journal-grid');
+    const emptyContainer = document.getElementById('journal-empty-container');
     const categoryFilterList = document.getElementById('category-filter');
     const yearFilterList = document.getElementById('year-filter');
 
     let currentCategory = 'ALL';
     let currentYear = 'ALL';
 
-    if (typeof diaries !== 'undefined' && diaries.length > 0) {
+    if (typeof journals !== 'undefined' && journals.length > 0) {
         // Hide empty state, show grid
         if (emptyContainer) emptyContainer.style.display = 'none';
-        if (diaryGrid) diaryGrid.style.display = 'grid';
+        if (journalGrid) journalGrid.style.display = 'grid';
 
         initFilters();
-        renderDiaries();
+        renderJournals();
     } else {
         // Keep empty state
         if (emptyContainer) emptyContainer.style.display = 'flex';
-        if (diaryGrid) diaryGrid.style.display = 'none';
+        if (journalGrid) journalGrid.style.display = 'none';
     }
 
     function initFilters() {
         if (!categoryFilterList || !yearFilterList) return;
 
         // Categories
-        const categories = [...new Set(diaries.map(d => JSON.stringify({ zh: d.categoryZh, en: d.categoryEn })))].map(c => JSON.parse(c));
+        const categories = [...new Set(journals.map(j => JSON.stringify({ zh: j.categoryZh, en: j.categoryEn })))].map(c => JSON.parse(c));
         categoryFilterList.innerHTML = `
             <li data-category="ALL" class="active">
                 <span class="lang-en">All</span><span class="lang-zh">全部</span>
@@ -66,7 +66,7 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
 
         // Years
-        const years = [...new Set(diaries.map(d => d.year))].sort((a, b) => b - a);
+        const years = [...new Set(journals.map(j => j.year))].sort((a, b) => b - a);
         yearFilterList.innerHTML = `
             <li data-year="ALL" class="active">
                 <span class="lang-en">All</span><span class="lang-zh">全部</span>
@@ -83,7 +83,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 catItems.forEach(i => i.classList.remove('active'));
                 item.classList.add('active');
                 currentCategory = item.getAttribute('data-category');
-                renderDiaries();
+                renderJournals();
             });
         });
 
@@ -93,26 +93,26 @@ document.addEventListener('DOMContentLoaded', () => {
                 yearItems.forEach(i => i.classList.remove('active'));
                 item.classList.add('active');
                 currentYear = item.getAttribute('data-year');
-                renderDiaries();
+                renderJournals();
             });
         });
     }
 
-    function renderDiaries() {
-        if (!diaryGrid) return;
-        diaryGrid.innerHTML = '';
+    function renderJournals() {
+        if (!journalGrid) return;
+        journalGrid.innerHTML = '';
 
-        const filtered = diaries.filter(d => {
-            const matchCategory = currentCategory === 'ALL' || d.categoryEn === currentCategory;
-            const matchYear = currentYear === 'ALL' || d.year === currentYear;
+        const filtered = journals.filter(j => {
+            const matchCategory = currentCategory === 'ALL' || j.categoryEn === currentCategory;
+            const matchYear = currentYear === 'ALL' || j.year === currentYear;
             return matchCategory && matchYear;
         });
 
         if (filtered.length === 0) {
-            diaryGrid.innerHTML = `
+            journalGrid.innerHTML = `
                 <div style="grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: 4rem 0;">
-                    <span class="lang-zh">暂无相关切片</span>
-                    <span class="lang-en">No daily fragments found</span>
+                    <span class="lang-zh">暂无相关碎片</span>
+                    <span class="lang-en">No thought fragments found</span>
                 </div>
             `;
             return;
@@ -123,31 +123,35 @@ document.addEventListener('DOMContentLoaded', () => {
             card.className = 'analog-card';
             card.style.animationDelay = `${index * 0.1}s`;
             card.innerHTML = `
-                <div class="card-header">
-                    <h3 class="card-title">
+                <div class="card-header" style="text-align: left; border-bottom: 1px solid rgba(0,0,0,0.05); padding-bottom: 0.5rem; margin-bottom: 0.5rem;">
+                    <h3 class="card-title" style="color: var(--card-text); text-align: left; font-size: 1.15rem;">
                         <span class="lang-zh">${item.titleZh}</span>
                         <span class="lang-en">${item.titleEn}</span>
                     </h3>
-                    <p class="card-subtitle">
+                    <p class="card-subtitle" style="text-align: left; font-size: 0.75rem;">
                         <span class="lang-zh">${item.categoryZh} | ${item.date}</span>
                         <span class="lang-en">${item.categoryEn} | ${item.date}</span>
                     </p>
                 </div>
-                <div class="card-image-container">
-                    <img src="${item.image}" alt="${item.titleEn}" class="card-image" loading="lazy">
+                <div class="card-text-excerpt" style="color: var(--card-text-muted); font-size: 0.9rem; line-height: 1.7; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; flex: 1; margin-bottom: 0.5rem; text-align: justify;">
+                    <span class="lang-zh">${item.contentZh}</span>
+                    <span class="lang-en">${item.contentEn}</span>
                 </div>
-                <div class="card-footer">${item.exif}</div>
+                <div class="card-footer" style="margin-top: auto; border-top: 1px solid rgba(0,0,0,0.05); text-align: right; color: var(--card-text-muted); font-family: monospace; font-size: 0.7rem; padding-top: 0.5rem;">
+                    ${item.year}
+                </div>
             `;
 
             card.addEventListener('click', () => {
                 if (typeof window.openEntryDetailModal === 'function') {
-                    window.openEntryDetailModal(item, 'diary');
+                    window.openEntryDetailModal(item, 'journal');
                 }
             });
 
-            diaryGrid.appendChild(card);
+            journalGrid.appendChild(card);
         });
     }
+
 
     // 3. Prevent Flash of Unstyled Text (FOUT) and ensure transition starts from opacity: 0
     setTimeout(() => {
