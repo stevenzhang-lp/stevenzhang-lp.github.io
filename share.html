@@ -489,6 +489,9 @@
 	<script src="js/data.js"></script>
 	<script src="js/qrcode.min.js"></script>
 	<script>
+		// Disable right-click context menu on share page
+		document.addEventListener('contextmenu', e => e.preventDefault());
+
 		document.addEventListener('DOMContentLoaded', () => {
 			// Language Toggle Logic
 			const langToggle = document.getElementById('lang-toggle');

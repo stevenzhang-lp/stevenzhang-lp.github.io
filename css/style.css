@@ -111,6 +111,17 @@ h6 {
   opacity: 1;
 }
 
+/* Deep link instant load overrides */
+.direct-detail-load #gallery-view {
+  display: none !important;
+  opacity: 0 !important;
+}
+
+.direct-detail-load #detail-view {
+  display: flex !important;
+  opacity: 1 !important;
+}
+
 /* Header */
 .site-header {
   display: flex;

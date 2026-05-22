@@ -406,29 +406,27 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // 5. Deep Linking Support (Open item if loaded from URL parameter)
-    setTimeout(() => {
-        const urlParams = new URLSearchParams(window.location.search);
-        const idParam = urlParams.get('id');
-        if (idParam) {
-            const id = parseInt(idParam);
-            if (isVoyage && typeof photos !== 'undefined') {
-                const photo = photos.find(p => p.id === id);
-                if (photo && typeof openDetail === 'function') {
-                    openDetail(photo);
-                }
-            } else if (isDiary && typeof diaries !== 'undefined') {
-                const diary = diaries.find(d => d.id === id);
-                if (diary) {
-                    openEntryDetailModal(diary, 'diary');
-                }
-            } else if (isJournal && typeof journals !== 'undefined') {
-                const journal = journals.find(j => j.id === id);
-                if (journal) {
-                    openEntryDetailModal(journal, 'journal');
-                }
+    const urlParams = new URLSearchParams(window.location.search);
+    const idParam = urlParams.get('id');
+    if (idParam) {
+        const id = parseInt(idParam);
+        if (isVoyage && typeof photos !== 'undefined') {
+            const photo = photos.find(p => p.id === id);
+            if (photo && typeof openDetail === 'function') {
+                openDetail(photo, true);
+            }
+        } else if (isDiary && typeof diaries !== 'undefined') {
+            const diary = diaries.find(d => d.id === id);
+            if (diary) {
+                openEntryDetailModal(diary, 'diary');
+            }
+        } else if (isJournal && typeof journals !== 'undefined') {
+            const journal = journals.find(j => j.id === id);
+            if (journal) {
+                openEntryDetailModal(journal, 'journal');
             }
         }
-    }, 300);
+    }
 
     // Helper functions for dynamic insertion
     function insertSearchButton() {

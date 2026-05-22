@@ -77,7 +77,7 @@ function setupFilters() {
 
 let activePhoto = null;
 
-function openDetail(photo) {
+function openDetail(photo, instant = false) {
     activePhoto = photo;
     updateVoyageTitle(localStorage.getItem('voyage_lang') || 'zh');
 
@@ -94,17 +94,27 @@ function openDetail(photo) {
     document.getElementById('detail-story-title').innerHTML = `<span class="lang-en">${photo.titleEn}</span><span class="lang-zh">${photo.titleZh}</span>`;
     document.getElementById('detail-story').innerHTML = `<span class="lang-zh">${photo.storyZh}</span><span class="lang-en"><i>${photo.storyEn}</i></span>`;
 
-    // Switch views
-    document.getElementById('gallery-view').classList.remove('active');
-    setTimeout(() => {
+    if (instant) {
+        document.getElementById('gallery-view').classList.remove('active');
         document.getElementById('gallery-view').style.display = 'none';
         document.getElementById('detail-view').style.display = 'flex';
-        // Small delay for fade in
-        setTimeout(() => document.getElementById('detail-view').classList.add('active'), 50);
-
+        document.getElementById('detail-view').classList.add('active');
+        document.documentElement.classList.remove('direct-detail-load');
         window.scrollTo(0, 0);
         loadMasonry(photo);
-    }, 500); // match transition time
+    } else {
+        // Switch views
+        document.getElementById('gallery-view').classList.remove('active');
+        setTimeout(() => {
+            document.getElementById('gallery-view').style.display = 'none';
+            document.getElementById('detail-view').style.display = 'flex';
+            // Small delay for fade in
+            setTimeout(() => document.getElementById('detail-view').classList.add('active'), 50);
+
+            window.scrollTo(0, 0);
+            loadMasonry(photo);
+        }, 500); // match transition time
+    }
 }
 
 function closeDetail() {
@@ -527,7 +537,9 @@ function updateVoyageTitle(lang) {
 
 // Init
 document.addEventListener('DOMContentLoaded', () => {
-    document.getElementById('gallery-view').style.display = 'flex';
+    if (!new URLSearchParams(window.location.search).has('id')) {
+        document.getElementById('gallery-view').style.display = 'flex';
+    }
 
     // Language setup
     let currentLang = localStorage.getItem('voyage_lang') || 'zh';
