@@ -12,6 +12,10 @@
 	<link rel="stylesheet" href="css/style.css">
 	<style>
 		/* Custom overrides and layout details for the public share page */
+		body {
+			opacity: 1 !important;
+		}
+
 		.share-container {
 			max-width: 1200px;
 			margin: 4rem auto;
@@ -483,7 +487,7 @@
 
 	<!-- Data source and QR Code Generator -->
 	<script src="js/data.js"></script>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+	<script src="js/qrcode.min.js"></script>
 	<script>
 		document.addEventListener('DOMContentLoaded', () => {
 			// Language Toggle Logic

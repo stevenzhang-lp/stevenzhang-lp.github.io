@@ -20,10 +20,10 @@
 
         const promises = [];
         if (typeof QRCode === 'undefined') {
-            promises.push(loadScript('https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js'));
+            promises.push(loadScript('js/qrcode.min.js'));
         }
         if (typeof html2canvas === 'undefined') {
-            promises.push(loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js'));
+            promises.push(loadScript('js/html2canvas.min.js'));
         }
 
         librariesLoadingPromise = Promise.all(promises);
