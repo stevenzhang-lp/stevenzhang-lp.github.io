@@ -121,6 +121,13 @@ function closeDetail() {
     activePhoto = null;
     updateVoyageTitle(localStorage.getItem('voyage_lang') || 'zh');
 
+    // Clean URL query parameters to avoid re-triggering on reload
+    if (window.location.search) {
+        const url = new URL(window.location.href);
+        url.search = '';
+        window.history.replaceState({}, document.title, url.toString());
+    }
+
     document.getElementById('detail-view').classList.remove('active');
     setTimeout(() => {
         document.getElementById('detail-view').style.display = 'none';
