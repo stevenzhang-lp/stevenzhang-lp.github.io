@@ -57,7 +57,7 @@
 
     // Main share modal function
     // Helper to generate the premium poster card markup
-    function createPosterCardMarkup(item, type, lang, qrCodeId) {
+    function createPosterCardMarkup(item, type, lang, qrCodeId, style = 'classic') {
         let primaryCategory = "";
         let secondaryCategory = "";
         if (lang === 'en') {
@@ -107,7 +107,7 @@
         const contentEn = (type === 'voyage' ? item.storyEn : item.contentEn) || "";
 
         return `
-            <div class="share-poster-card">
+            <div class="share-poster-card style-${style}">
                 <div class="poster-inner-frame">
                     <div class="poster-category">
                         <div class="poster-category-primary">${primaryCategory}</div>
@@ -159,6 +159,7 @@
         // 1. Create loader or disable trigger while loading libraries
         const initialLang = document.body.classList.contains('lang-en') ? 'en' : 'zh';
         let currentModalLang = initialLang;
+        let currentPosterStyle = 'classic';
         
         // Show loading state toast
         showToast("正在载入分享组件...", "Loading share components...");
@@ -220,7 +221,7 @@
                     <!-- Left: Poster Preview (Responsive CSS) -->
                     <div class="share-preview-column">
                         <div class="share-card-preview" id="share-card-preview-node">
-                            ${createPosterCardMarkup(item, type, currentModalLang, 'preview-qrcode')}
+                            ${createPosterCardMarkup(item, type, currentModalLang, 'preview-qrcode', currentPosterStyle)}
                         </div>
                     </div>
 
@@ -236,7 +237,7 @@
                         </p>
 
                         <!-- Language Switcher Selector -->
-                        <div class="share-lang-selector" style="display: flex; align-items: center; gap: 12px; margin-bottom: 24px;">
+                        <div class="share-lang-selector" style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px;">
                             <span class="share-lang-label" style="font-size: 0.75rem; color: rgba(255, 255, 255, 0.4); text-transform: uppercase; letter-spacing: 0.1em; font-weight: 500;">
                                 <span class="lang-zh">分享语言</span>
                                 <span class="lang-en">Language</span>
@@ -244,6 +245,25 @@
                             <div class="share-lang-btn-group" style="display: flex; gap: 6px; background: rgba(255, 255, 255, 0.05); padding: 3px; border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.03);">
                                 <button class="share-lang-btn ${currentModalLang === 'zh' ? 'active' : ''}" data-lang="zh">中文</button>
                                 <button class="share-lang-btn ${currentModalLang === 'en' ? 'active' : ''}" data-lang="en">EN</button>
+                            </div>
+                        </div>
+
+                        <!-- Poster Style Selector -->
+                        <div class="share-style-selector" style="display: flex; align-items: center; gap: 12px; margin-bottom: 24px;">
+                            <span class="share-style-label" style="font-size: 0.75rem; color: rgba(255, 255, 255, 0.4); text-transform: uppercase; letter-spacing: 0.1em; font-weight: 500;">
+                                <span class="lang-zh">卡片风格</span>
+                                <span class="lang-en">Style</span>
+                            </span>
+                            <div class="share-style-btn-group" style="display: flex; gap: 6px; background: rgba(255, 255, 255, 0.05); padding: 3px; border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.03);">
+                                <button class="share-style-btn ${currentPosterStyle === 'classic' ? 'active' : ''}" data-style="classic">
+                                    <span class="lang-zh">经典</span><span class="lang-en">Classic</span>
+                                </button>
+                                <button class="share-style-btn ${currentPosterStyle === 'minimal' ? 'active' : ''}" data-style="minimal">
+                                    <span class="lang-zh">极简</span><span class="lang-en">Minimal</span>
+                                </button>
+                                <button class="share-style-btn ${currentPosterStyle === 'polaroid' ? 'active' : ''}" data-style="polaroid">
+                                    <span class="lang-zh">拍立得</span><span class="lang-en">Polaroid</span>
+                                </button>
                             </div>
                         </div>
 
@@ -265,7 +285,7 @@
 
             <!-- Off-screen High-Resolution Poster Card for Capture (Fixed 600px width) -->
             <div id="share-poster-capture" class="share-poster-capture">
-                ${createPosterCardMarkup(item, type, currentModalLang, 'capture-qrcode')}
+                ${createPosterCardMarkup(item, type, currentModalLang, 'capture-qrcode', currentPosterStyle)}
             </div>
         `;
 
@@ -333,10 +353,39 @@
                 const captureContainer = document.getElementById('share-poster-capture');
                 
                 if (previewContainer) {
-                    previewContainer.innerHTML = createPosterCardMarkup(item, type, currentModalLang, 'preview-qrcode');
+                    previewContainer.innerHTML = createPosterCardMarkup(item, type, currentModalLang, 'preview-qrcode', currentPosterStyle);
                 }
                 if (captureContainer) {
-                    captureContainer.innerHTML = createPosterCardMarkup(item, type, currentModalLang, 'capture-qrcode');
+                    captureContainer.innerHTML = createPosterCardMarkup(item, type, currentModalLang, 'capture-qrcode', currentPosterStyle);
+                }
+
+                // Regenerate QR Codes for the updated DOM nodes
+                generateQRCodes();
+            });
+        });
+
+        // Bind style switching event listeners
+        const styleBtns = modal.querySelectorAll('.share-style-btn');
+        styleBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const targetStyle = btn.getAttribute('data-style');
+                if (targetStyle === currentPosterStyle) return;
+
+                currentPosterStyle = targetStyle;
+
+                // Update active state of style switcher buttons
+                styleBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+
+                // Re-render poster nodes with new style
+                const previewContainer = document.getElementById('share-card-preview-node');
+                const captureContainer = document.getElementById('share-poster-capture');
+                
+                if (previewContainer) {
+                    previewContainer.innerHTML = createPosterCardMarkup(item, type, currentModalLang, 'preview-qrcode', currentPosterStyle);
+                }
+                if (captureContainer) {
+                    captureContainer.innerHTML = createPosterCardMarkup(item, type, currentModalLang, 'capture-qrcode', currentPosterStyle);
                 }
 
                 // Regenerate QR Codes for the updated DOM nodes

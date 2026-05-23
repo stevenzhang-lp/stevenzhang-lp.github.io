@@ -49,10 +49,261 @@ function initGallery(countryFilter = 'ALL', eraFilter = 'ALL') {
     });
 }
 
-function setupFilters() {
-    let currentCountry = 'ALL';
-    let currentEra = 'ALL';
+// Global State for Filters and Views
+let activePhoto = null;
+let currentCountry = 'ALL';
+let currentEra = 'ALL';
+let currentViewMode = 'grid';
 
+const locationCoords = {
+    'CHINA·XINJIANG': { x: 200, y: 180 },
+    'CHINA·YUNNAN': { x: 350, y: 380 },
+    'CHINA·JIANGXI': { x: 520, y: 360 },
+    'CHINA·HONG KONG': { x: 525, y: 410 },
+    'CHINA·TAIPEI': { x: 620, y: 380 },
+    'MALAYSIA·PENANG': { x: 440, y: 520 },
+    'MALAYSIA·KUALA LUMPUR': { x: 455, y: 555 },
+    'MALAYSIA·PUTRAJAYA': { x: 465, y: 565 },
+    'SINGAPORE': { x: 480, y: 590 }
+};
+
+const mapSvgContent = `
+<svg viewBox="0 0 800 600" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+    <!-- Grid Lines -->
+    <line class="map-grid-line" x1="100" y1="0" x2="100" y2="600" />
+    <line class="map-grid-line" x1="200" y1="0" x2="200" y2="600" />
+    <line class="map-grid-line" x1="300" y1="0" x2="300" y2="600" />
+    <line class="map-grid-line" x1="400" y1="0" x2="400" y2="600" />
+    <line class="map-grid-line" x1="500" y1="0" x2="500" y2="600" />
+    <line class="map-grid-line" x1="600" y1="0" x2="600" y2="600" />
+    <line class="map-grid-line" x1="700" y1="0" x2="700" y2="600" />
+    
+    <line class="map-grid-line" x1="0" y1="100" x2="800" y2="100" />
+    <line class="map-grid-line" x1="0" y1="200" x2="800" y2="200" />
+    <line class="map-grid-line" x1="0" y1="300" x2="800" y2="300" />
+    <line class="map-grid-line" x1="0" y1="400" x2="800" y2="400" />
+    <line class="map-grid-line" x1="0" y1="500" x2="800" y2="500" />
+
+    <!-- Landmass Outlines (East & Southeast Asia Schematic) -->
+    <!-- China Mainland -->
+    <path class="map-land" d="M160,140 L280,100 L420,90 L520,110 L600,130 L640,170 L610,230 L630,270 L580,300 L540,310 L510,360 L490,390 L430,370 L380,360 L330,350 L280,300 L180,290 Z" />
+    <!-- Taiwan Island -->
+    <path class="map-land" d="M605,360 L620,350 L630,370 L620,390 L610,385 Z" />
+    <!-- Hainan Island -->
+    <path class="map-land" d="M470,420 A15,10 0 1,0 500,420 A15,10 0 1,0 470,420" />
+    <!-- Indochina / Indochinese Peninsula -->
+    <path class="map-land" d="M430,370 L460,375 L480,420 L450,460 L430,500 L450,530 L430,530 L390,460 L380,410 L380,360 Z" />
+    <!-- West Malaysia -->
+    <path class="map-land" d="M430,530 L450,530 L470,555 L475,580 L465,585 L445,570 L430,545 Z" />
+    <!-- East Malaysia -->
+    <path class="map-land" d="M530,560 L570,545 L620,535 L640,540 L600,570 L550,580 Z" />
+
+    <!-- Travel Routes (Connecting arcs) -->
+    <g id="map-routes"></g>
+
+    <!-- Location Pins -->
+    <g id="map-pins"></g>
+</svg>
+`;
+
+function getCurvePath(x1, y1, x2, y2) {
+    const cx = (x1 + x2) / 2 - (y2 - y1) * 0.12;
+    const cy = (y1 + y2) / 2 + (x2 - x1) * 0.12;
+    return `M ${x1} ${y1} Q ${cx} ${cy} ${x2} ${y2}`;
+}
+
+let mapInitialized = false;
+
+function initMapView() {
+    if (mapInitialized) return;
+    mapInitialized = true;
+    
+    const container = document.getElementById('map-svg-container');
+    if (!container) return;
+    
+    container.innerHTML = mapSvgContent;
+    
+    const pinsGroup = document.getElementById('map-pins');
+    const routesGroup = document.getElementById('map-routes');
+    
+    // 1. Group photos by coordinates key
+    const coordsGroup = {};
+    photos.forEach(photo => {
+        const coords = locationCoords[photo.location];
+        if (coords) {
+            const key = `${coords.x},${coords.y}`;
+            if (!coordsGroup[key]) coordsGroup[key] = [];
+            coordsGroup[key].push(photo);
+        }
+    });
+    
+    // Save to global for filtering
+    window.locationCoordsGroup = coordsGroup;
+    
+    // 2. Render Pins
+    Object.keys(coordsGroup).forEach(key => {
+        const [x, y] = key.split(',').map(Number);
+        
+        const pinG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        pinG.setAttribute('class', 'map-pin-group');
+        pinG.setAttribute('data-coords', key);
+        
+        pinG.innerHTML = `
+            <circle class="map-pin-pulse" cx="${x}" cy="${y}" r="10" />
+            <circle class="map-pin-core" cx="${x}" cy="${y}" r="5" />
+            <circle cx="${x}" cy="${y}" r="16" fill="transparent" opacity="0" />
+        `;
+        
+        // Tooltip events
+        pinG.addEventListener('mouseenter', () => {
+            showMapTooltip(key, x, y);
+        });
+        
+        pinG.addEventListener('mouseleave', () => {
+            hideMapTooltip();
+        });
+        
+        pinG.addEventListener('click', () => {
+            // Open first active matching photo
+            const matchingPhoto = getFirstMatchingPhotoInGroup(key);
+            if (matchingPhoto) {
+                openDetail(matchingPhoto, true);
+            }
+        });
+        
+        pinsGroup.appendChild(pinG);
+    });
+    
+    // 3. Render Travel Routes (curves connecting locations chronologically)
+    const travelOrder = [
+        'CHINA·JIANGXI',
+        'CHINA·YUNNAN',
+        'CHINA·HONG KONG',
+        'CHINA·XINJIANG',
+        'MALAYSIA·PENANG',
+        'MALAYSIA·KUALA LUMPUR',
+        'MALAYSIA·PUTRAJAYA',
+        'SINGAPORE',
+        'CHINA·TAIPEI'
+    ];
+    
+    for (let i = 0; i < travelOrder.length - 1; i++) {
+        const locA = travelOrder[i];
+        const locB = travelOrder[i+1];
+        
+        const coordA = locationCoords[locA];
+        const coordB = locationCoords[locB];
+        
+        if (coordA && coordB) {
+            const pathD = getCurvePath(coordA.x, coordA.y, coordB.x, coordB.y);
+            const routePath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            routePath.setAttribute('class', 'travel-route');
+            routePath.setAttribute('d', pathD);
+            routePath.setAttribute('data-from-coords', `${coordA.x},${coordA.y}`);
+            routePath.setAttribute('data-to-coords', `${coordB.x},${coordB.y}`);
+            
+            routesGroup.appendChild(routePath);
+        }
+    }
+}
+
+function getFirstMatchingPhotoInGroup(coordsKey) {
+    const groupPhotos = window.locationCoordsGroup[coordsKey] || [];
+    return groupPhotos.find(photo => {
+        const loc = parseLocation(photo.location);
+        const matchCountry = currentCountry === 'ALL' || loc.enSub === currentCountry;
+        
+        const photoYear = photo.date.split(', ')[1] || '';
+        let matchEra = currentEra === 'ALL';
+        if (currentEra === '<2025') {
+            matchEra = parseInt(photoYear) < 2025;
+        } else if (currentEra !== 'ALL') {
+            matchEra = photoYear === currentEra;
+        }
+        return matchCountry && matchEra;
+    });
+}
+
+function showMapTooltip(coordsKey, x, y) {
+    const photo = getFirstMatchingPhotoInGroup(coordsKey);
+    if (!photo) return;
+    
+    const tooltip = document.getElementById('map-tooltip');
+    if (!tooltip) return;
+    
+    const loc = parseLocation(photo.location);
+    const dateLoc = parseDate(photo.date);
+    const title = document.body.classList.contains('lang-en') 
+        ? (photo.titleEn || photo.titleZh) 
+        : (photo.titleZh || photo.titleEn);
+    const locName = document.body.classList.contains('lang-en') ? loc.enTitle : loc.zhTitle;
+
+    tooltip.innerHTML = `
+        <img class="map-tooltip-image" src="${photo.image}" alt="Preview">
+        <h4 class="map-tooltip-title">${title}</h4>
+        <p class="map-tooltip-meta">${locName} &middot; ${photo.date.split(', ')[1] || ''}</p>
+    `;
+    
+    // Position percentage-based to be responsive
+    tooltip.style.left = `${(x / 800) * 100}%`;
+    tooltip.style.top = `${(y / 600) * 100}%`;
+    tooltip.classList.add('show');
+}
+
+function hideMapTooltip() {
+    const tooltip = document.getElementById('map-tooltip');
+    if (tooltip) {
+        tooltip.classList.remove('show');
+    }
+}
+
+function filterMapPins(country, era) {
+    const pins = document.querySelectorAll('.map-pin-group');
+    const routes = document.querySelectorAll('.travel-route');
+    
+    // 1. Filter Pins
+    pins.forEach(pin => {
+        const coordsKey = pin.getAttribute('data-coords');
+        const groupPhotos = window.locationCoordsGroup[coordsKey] || [];
+        
+        const hasMatch = groupPhotos.some(photo => {
+            const loc = parseLocation(photo.location);
+            const matchCountry = country === 'ALL' || loc.enSub === country;
+            
+            const photoYear = photo.date.split(', ')[1] || '';
+            let matchEra = era === 'ALL';
+            if (era === '<2025') {
+                matchEra = parseInt(photoYear) < 2025;
+            } else if (era !== 'ALL') {
+                matchEra = photoYear === era;
+            }
+            return matchCountry && matchEra;
+        });
+        
+        if (hasMatch) {
+            pin.classList.remove('filtered-out');
+        } else {
+            pin.classList.add('filtered-out');
+        }
+    });
+    
+    // 2. Filter Routes
+    routes.forEach(route => {
+        const fromCoords = route.getAttribute('data-from-coords');
+        const toCoords = route.getAttribute('data-to-coords');
+        
+        const fromPin = document.querySelector(`.map-pin-group[data-coords="${fromCoords}"]`);
+        const toPin = document.querySelector(`.map-pin-group[data-coords="${toCoords}"]`);
+        
+        if (fromPin && toPin && !fromPin.classList.contains('filtered-out') && !toPin.classList.contains('filtered-out')) {
+            route.classList.remove('filtered-out');
+        } else {
+            route.classList.add('filtered-out');
+        }
+    });
+}
+
+function setupFilters() {
     const countryItems = document.querySelectorAll('#country-filter li');
     const eraItems = document.querySelectorAll('#era-filter li');
 
@@ -61,7 +312,11 @@ function setupFilters() {
             countryItems.forEach(i => i.classList.remove('active'));
             item.classList.add('active');
             currentCountry = item.getAttribute('data-country');
-            initGallery(currentCountry, currentEra);
+            if (currentViewMode === 'grid') {
+                initGallery(currentCountry, currentEra);
+            } else {
+                filterMapPins(currentCountry, currentEra);
+            }
         });
     });
 
@@ -70,12 +325,38 @@ function setupFilters() {
             eraItems.forEach(i => i.classList.remove('active'));
             item.classList.add('active');
             currentEra = item.getAttribute('data-era');
-            initGallery(currentCountry, currentEra);
+            if (currentViewMode === 'grid') {
+                initGallery(currentCountry, currentEra);
+            } else {
+                filterMapPins(currentCountry, currentEra);
+            }
+        });
+    });
+
+    // Wire up View Toggle
+    const viewToggleItems = document.querySelectorAll('#view-toggle li');
+    viewToggleItems.forEach(item => {
+        item.addEventListener('click', () => {
+            viewToggleItems.forEach(i => i.classList.remove('active'));
+            item.classList.add('active');
+            currentViewMode = item.getAttribute('data-view');
+            
+            const gridView = document.getElementById('gallery-grid');
+            const mapView = document.getElementById('map-view-container');
+            
+            if (currentViewMode === 'grid') {
+                mapView.style.display = 'none';
+                gridView.style.display = 'grid';
+                initGallery(currentCountry, currentEra);
+            } else {
+                gridView.style.display = 'none';
+                mapView.style.display = 'flex';
+                initMapView();
+                filterMapPins(currentCountry, currentEra);
+            }
         });
     });
 }
-
-let activePhoto = null;
 
 function openDetail(photo, instant = false) {
     activePhoto = photo;

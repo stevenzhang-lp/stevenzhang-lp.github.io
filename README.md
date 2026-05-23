@@ -1,16 +1,43 @@
-# React + Vite
+# STEVEN ZHANG | Cinematic Archive & Portfolio
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A bespoke, highly aesthetic personal archive and creative portfolio designed with a modern dark-gold palette, smooth transitions, and cryptographic protection. 
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+### 🎬 The Hub (`index.html`)
+The gateway of the archive, featuring custom category sliders, dynamic transitions, and quick entry ports to all sub-archives.
 
-## React Compiler
+### 📷 The Voyage Archive (`voyage.html`)
+A visual photography journal capturing moments, landscapes, and stories across regions and eras. Features include:
+- **Cinematic Detail view**: Slide-to-immerse viewer with drag-to-pan high-res photos and responsive masonry galleries.
+- **View Modes**: Switch dynamically between a responsive **Grid View** and an interactive **Map View** showing travel paths and coordinates.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### ✍️ Daily Fragments (`diary.html`)
+A collection of personal diaries and reflections organized by categories. Features hover-responsive styling, tags, and detail view modals.
 
-## Expanding the ESLint configuration
+### 💡 Thought Fragments (`journal.html`)
+A minimalist stream of consciousness containing ideas, quotes, and research notes.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+### 🔐 The Vault (`vault.html`)
+A cryptographically secure private room protected by **WebCrypto API (AES-GCM)**. 
+- Fully client-side decryption using custom passcodes.
+- Automated session wiping to prevent leakage of private entries.
+
+### ✉️ Standalone Sharing (`share.html`)
+A premium landing page for shared archive entries.
+- Responsive, bilingual layouts (English and Chinese).
+- Custom client-side dynamic QR code generation pointing back to the specific entry coordinates.
+- Fully local library hosting (`qrcode.min.js`, `html2canvas.min.js`) for reliable load performance.
+
+## Technology Stack
+
+- **Core**: Vanilla HTML5, CSS3, ES6+ Javascript
+- **Dependencies**: 
+  - `qrcode.js` (Local copy for sharing coordinates)
+  - `html2canvas` (Local copy for rendering high-res posters)
+- **Deployment**: Static site hosted via GitHub Pages (deployed at `stevenzhangym.com`)
+
+## Performance and Usability Optimizations
+- **FOUT Prevention**: Integrated CSS `opacity` states synced with JavaScript `fonts.ready` checks to ensure typography loads without visual flash.
+- **Local Asset Hosting**: Eliminated dependency on external script CDNs to prevent blocking issues in restricted networks.
+- **Responsive Layouts**: Full viewport scaling and mobile-first gesture support for photography immersive viewers.

@@ -49,6 +49,21 @@
 		<aside class="sidebar">
 			<div class="filter-group">
 				<h4 class="filter-title">
+					<span class="lang-en">View Mode</span>
+					<span class="lang-zh">视图选择</span>
+				</h4>
+				<ul class="filter-list" id="view-toggle">
+					<li data-view="grid" class="active">
+						<span class="lang-en">Grid View</span><span class="lang-zh">照片墙</span>
+					</li>
+					<li data-view="map">
+						<span class="lang-en">Map View</span><span class="lang-zh">足迹地图</span>
+					</li>
+				</ul>
+			</div>
+
+			<div class="filter-group">
+				<h4 class="filter-title">
 					<span class="lang-en">By Country</span>
 					<span class="lang-zh">按国家</span>
 				</h4>
@@ -90,6 +105,14 @@
 
 		<section class="gallery-grid" id="gallery-grid">
 			<!-- Cards will be injected here via JS -->
+		</section>
+
+		<!-- Footstep Map View Container -->
+		<section class="map-view-container" id="map-view-container" style="display: none;">
+			<div class="map-wrapper">
+				<div class="map-svg-container" id="map-svg-container"></div>
+				<div class="map-tooltip" id="map-tooltip"></div>
+			</div>
 		</section>
 	</main>
 

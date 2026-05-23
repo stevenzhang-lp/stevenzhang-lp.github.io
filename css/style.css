@@ -3702,3 +3702,426 @@ body.math-body {
 .share-popup-modal.modal-lang-en .lang-en {
   display: block !important;
 }
+
+/* Share Modal Style Switcher Buttons */
+.share-style-btn {
+  background: none;
+  border: none;
+  padding: 4px 12px;
+  border-radius: 15px;
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.share-style-btn:hover {
+  color: #fff;
+}
+
+.share-style-btn.active {
+  background: var(--accent);
+  color: #121212;
+  font-weight: 600;
+}
+
+/* ==========================================================================
+   MINIMAL STYLE OVERRIDES
+   ========================================================================== */
+.share-poster-card.style-minimal {
+  background: #fcfbfa !important;
+  color: #2a2a2a !important;
+}
+
+.share-poster-card.style-minimal .poster-inner-frame {
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  outline: 1px solid rgba(0, 0, 0, 0.03) !important;
+  outline-offset: -8px;
+}
+
+.share-poster-card.style-minimal .poster-category-primary {
+  color: #8a7b62 !important;
+}
+
+.share-poster-card.style-minimal .poster-category-secondary {
+  color: rgba(0, 0, 0, 0.35) !important;
+}
+
+.share-poster-card.style-minimal .poster-image-container {
+  border: 1px solid rgba(0, 0, 0, 0.06) !important;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08) !important;
+}
+
+.share-poster-card.style-minimal .poster-text-art {
+  border: 1px dashed rgba(138, 123, 98, 0.2) !important;
+  background: radial-gradient(circle, rgba(138, 123, 98, 0.03) 0%, transparent 75%) !important;
+}
+
+.share-poster-card.style-minimal .poster-quote-mark {
+  color: rgba(138, 123, 98, 0.08) !important;
+}
+
+.share-poster-card.style-minimal .poster-art-title {
+  color: #2a2a2a !important;
+}
+
+.share-poster-card.style-minimal .poster-art-sub {
+  color: #8a7b62 !important;
+}
+
+.share-poster-card.style-minimal .poster-title-en {
+  color: #1a1a1a !important;
+}
+
+.share-poster-card.style-minimal .poster-title-zh {
+  color: #8a7b62 !important;
+}
+
+.share-poster-card.style-minimal .poster-meta-row {
+  color: #666 !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06) !important;
+}
+
+.share-poster-card.style-minimal .poster-content p {
+  color: #444 !important;
+}
+
+.share-poster-card.style-minimal .poster-exif {
+  background: rgba(0, 0, 0, 0.02) !important;
+  color: #666 !important;
+  border-left: 2px solid #8a7b62 !important;
+}
+
+.share-poster-card.style-minimal .poster-footer {
+  border-top: 1px solid rgba(0, 0, 0, 0.06) !important;
+}
+
+.share-poster-card.style-minimal .poster-brand-name {
+  color: #1a1a1a !important;
+}
+
+.share-poster-card.style-minimal .poster-brand-sub {
+  color: #777 !important;
+}
+
+.share-poster-card.style-minimal .poster-qrcode-box {
+  background: #ffffff !important;
+  border: 1px solid rgba(0, 0, 0, 0.06) !important;
+}
+
+/* ==========================================================================
+   POLAROID STYLE OVERRIDES (Handwritten Aesthetic)
+   ========================================================================== */
+.share-poster-card.style-polaroid {
+  background: #faf9f6 !important;
+  color: #222222 !important;
+}
+
+.share-poster-card.style-polaroid .poster-inner-frame {
+  border: 1px solid rgba(0, 0, 0, 0.06) !important;
+  outline: none !important;
+  padding: 24px 24px 30px 24px !important;
+  box-shadow: inset 0 0 100px rgba(0, 0, 0, 0.02) !important;
+}
+
+.share-poster-card.style-polaroid .poster-category {
+  display: none !important;
+}
+
+.share-poster-card.style-polaroid .poster-image-container {
+  width: 100% !important;
+  aspect-ratio: 1 / 1 !important;
+  background: #eae9e5 !important;
+  border: 12px solid #ffffff !important;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.06), inset 0 0 10px rgba(0,0,0,0.1) !important;
+  margin-bottom: 24px !important;
+  box-sizing: border-box;
+}
+
+.share-poster-card.style-polaroid .poster-image {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+}
+
+.share-poster-card.style-polaroid .poster-text-art {
+  width: 100% !important;
+  aspect-ratio: 1 / 1 !important;
+  background: #ffffff !important;
+  border: 12px solid #ffffff !important;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.06) !important;
+  margin-bottom: 24px !important;
+  border-radius: 0 !important;
+}
+
+.share-poster-card.style-polaroid .poster-quote-mark {
+  font-size: 5rem !important;
+  color: rgba(138, 123, 98, 0.04) !important;
+}
+
+.share-poster-card.style-polaroid .poster-art-title {
+  color: #333333 !important;
+  font-family: 'Kaiti', 'STKaiti', 'Songti SC', serif !important;
+}
+
+.share-poster-card.style-polaroid .poster-details {
+  margin-bottom: 12px !important;
+  text-align: center !important;
+}
+
+.share-poster-card.style-polaroid .poster-title-en,
+.share-poster-card.style-polaroid .poster-title-zh {
+  font-family: 'Kaiti', 'STKaiti', 'Brush Script MT', cursive, serif !important;
+  font-size: 18px !important;
+  font-weight: 500 !important;
+  color: #1a1a1a !important;
+  margin-bottom: 4px !important;
+}
+
+.share-poster-card.style-polaroid .poster-meta-row {
+  border-bottom: none !important;
+  color: #666 !important;
+  font-family: 'Kaiti', 'STKaiti', 'Brush Script MT', cursive, serif !important;
+  font-size: 12px !important;
+  margin-top: 4px !important;
+}
+
+.share-poster-card.style-polaroid .poster-content {
+  margin-bottom: 24px !important;
+  padding: 0 10px !important;
+}
+
+.share-poster-card.style-polaroid .poster-content p {
+  font-family: 'Kaiti', 'STKaiti', 'Brush Script MT', cursive, serif !important;
+  color: #333 !important;
+  font-size: 14px !important;
+  line-height: 1.6 !important;
+  text-align: center !important;
+}
+
+.share-poster-card.style-polaroid .poster-exif {
+  background: transparent !important;
+  border-left: none !important;
+  border-top: 1px dashed rgba(0,0,0,0.06) !important;
+  color: #888 !important;
+  font-family: monospace !important;
+  font-size: 10px !important;
+  margin-top: 10px !important;
+  text-align: center !important;
+}
+
+.share-poster-card.style-polaroid .poster-footer {
+  border-top: 1px dashed rgba(0, 0, 0, 0.08) !important;
+  padding-top: 15px !important;
+}
+
+.share-poster-card.style-polaroid .poster-brand-name {
+  color: #222 !important;
+  font-family: 'Kaiti', 'STKaiti', 'Brush Script MT', cursive, serif !important;
+  font-weight: 500 !important;
+  font-size: 13px !important;
+}
+
+.share-poster-card.style-polaroid .poster-brand-sub {
+  color: #777 !important;
+  font-size: 8px !important;
+}
+
+.share-poster-card.style-polaroid .poster-qrcode-box {
+  background: #ffffff !important;
+  border: 1px solid rgba(0, 0, 0, 0.04) !important;
+  padding: 3px !important;
+}
+
+/* ==========================================================================
+   FOOTSTEP MAP VIEW STYLES
+   ========================================================================== */
+.map-view-container {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.map-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 900px;
+  aspect-ratio: 4 / 3;
+  background: #161616;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+  padding: 1.5rem;
+  box-sizing: border-box;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.map-svg-container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Styled map land masses */
+.map-land {
+  fill: #1e1e1e;
+  stroke: rgba(255, 255, 255, 0.08);
+  stroke-width: 1.5;
+  transition: all 0.3s ease;
+}
+
+.map-land:hover {
+  fill: #222222;
+  stroke: rgba(229, 193, 88, 0.2);
+}
+
+.map-grid-line {
+  stroke: rgba(255, 255, 255, 0.03);
+  stroke-width: 1;
+  stroke-dasharray: 4, 6;
+}
+
+/* Travel nodes (Map Pins) */
+.map-pin-group {
+  cursor: pointer;
+}
+
+.map-pin-pulse {
+  fill: var(--accent, #d4c4a8);
+  opacity: 0.15;
+  transform-origin: center;
+  animation: pinPulse 2s infinite ease-out;
+}
+
+.map-pin-core {
+  fill: var(--accent, #d4c4a8);
+  stroke: #161616;
+  stroke-width: 1.5;
+  transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.map-pin-group:hover .map-pin-core {
+  fill: #ffffff;
+  stroke: var(--accent, #d4c4a8);
+  stroke-width: 2;
+  transform: scale(1.3) translate(-2px, -2px);
+}
+
+.map-pin-group.filtered-out {
+  opacity: 0.15;
+  pointer-events: none;
+}
+
+@keyframes pinPulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.4;
+  }
+  100% {
+    transform: scale(2.5);
+    opacity: 0;
+  }
+}
+
+/* Connecting travel curves */
+.travel-route {
+  fill: none;
+  stroke: var(--accent, #d4c4a8);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  opacity: 0.45;
+  stroke-dasharray: 6, 4;
+  animation: routeFlow 30s linear infinite;
+  transition: all 0.5s ease;
+}
+
+.travel-route.filtered-out {
+  opacity: 0.03;
+}
+
+.travel-route:hover {
+  stroke: #ffffff;
+  opacity: 0.8;
+  stroke-width: 2.2;
+}
+
+@keyframes routeFlow {
+  to {
+    stroke-dashoffset: -100;
+  }
+}
+
+/* Map hover tooltip */
+.map-tooltip {
+  position: absolute;
+  background: rgba(26, 26, 26, 0.85);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(229, 193, 88, 0.25);
+  border-radius: 8px;
+  padding: 12px;
+  width: 200px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  transform: translateY(10px);
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  box-sizing: border-box;
+}
+
+.map-tooltip.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.map-tooltip-image {
+  width: 100%;
+  aspect-ratio: 3 / 2;
+  object-fit: cover;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: #000;
+}
+
+.map-tooltip-title {
+  font-family: 'Playfair Display', 'Noto Serif SC', serif;
+  font-size: 0.85rem;
+  color: #fff;
+  margin: 0;
+  font-weight: 500;
+  line-height: 1.3;
+}
+
+.map-tooltip-meta {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.68rem;
+  color: rgba(255, 255, 255, 0.45);
+  margin: 0;
+  letter-spacing: 0.05em;
+}
+
+/* Responsiveness for Map */
+@media (max-width: 768px) {
+  .map-view-container {
+    padding: 1rem;
+  }
+  
+  .map-wrapper {
+    aspect-ratio: auto;
+    height: 500px;
+  }
+}
