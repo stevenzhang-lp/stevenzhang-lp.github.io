@@ -160,7 +160,7 @@ function initMapView() {
         pinG.setAttribute('data-coords', key);
         
         pinG.innerHTML = `
-            <circle class="map-pin-pulse" cx="${x}" cy="${y}" r="10" />
+            <circle class="map-pin-pulse" cx="${x}" cy="${y}" />
             <circle class="map-pin-core" cx="${x}" cy="${y}" r="5" />
             <circle cx="${x}" cy="${y}" r="16" fill="transparent" opacity="0" />
         `;

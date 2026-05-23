@@ -3974,25 +3974,25 @@ body.math-body {
 
 /* Styled map land masses (Dot-Matrix Grid) */
 .map-grid-dot {
-  fill: rgba(212, 196, 168, 0.15); /* Muted warm accent gold */
+  fill: rgba(212, 196, 168, 0.05); /* Highly muted warm accent gold */
   transition: fill 0.3s ease, r 0.3s ease;
 }
 
 .map-grid-dot:hover {
-  fill: rgba(255, 255, 255, 0.65); /* Highlighted white-gold */
-  r: 2.2; /* Slightly larger on hover */
+  fill: rgba(255, 255, 255, 0.45); /* Highlighted white-gold */
+  r: 2.0; /* Slightly larger on hover */
 }
 
 /* Coastline and Country Border Path styles */
 .map-coastline-path {
   fill: none;
-  stroke: rgba(212, 196, 168, 0.25); /* Thin elegant warm-gold coastline */
+  stroke: rgba(212, 196, 168, 0.4); /* Brighter elegant warm-gold coastline */
   stroke-width: 1.2;
 }
 
 .map-border-path {
   fill: none;
-  stroke: rgba(255, 255, 255, 0.12); /* Delicate dashed country border lines */
+  stroke: rgba(255, 255, 255, 0.35); /* Brighter country border lines */
   stroke-width: 0.8;
   stroke-dasharray: 3, 4;
 }
@@ -4010,9 +4010,7 @@ body.math-body {
 
 .map-pin-pulse {
   fill: var(--accent, #d4c4a8);
-  opacity: 0.15;
-  transform-origin: center;
-  animation: pinPulse 2s infinite ease-out;
+  animation: pinPulse 2.5s infinite ease-out;
 }
 
 .map-pin-core {
@@ -4036,11 +4034,11 @@ body.math-body {
 
 @keyframes pinPulse {
   0% {
-    transform: scale(1);
-    opacity: 0.4;
+    r: 4px;
+    opacity: 0.6;
   }
   100% {
-    transform: scale(2.5);
+    r: 20px;
     opacity: 0;
   }
 }
