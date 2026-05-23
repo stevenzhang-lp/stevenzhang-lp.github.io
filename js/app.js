@@ -55,17 +55,25 @@ let currentCountry = 'ALL';
 let currentEra = 'ALL';
 let currentViewMode = 'grid';
 
-const locationCoords = {
-    'CHINA·XINJIANG': { x: 200, y: 180 },
-    'CHINA·YUNNAN': { x: 350, y: 380 },
-    'CHINA·JIANGXI': { x: 520, y: 360 },
-    'CHINA·HONG KONG': { x: 525, y: 410 },
-    'CHINA·TAIPEI': { x: 620, y: 380 },
-    'MALAYSIA·PENANG': { x: 440, y: 520 },
-    'MALAYSIA·KUALA LUMPUR': { x: 455, y: 555 },
-    'MALAYSIA·PUTRAJAYA': { x: 465, y: 565 },
-    'SINGAPORE': { x: 480, y: 590 }
+const locationRawCoords = {
+    'CHINA·XINJIANG': { lon: 86.0, lat: 45.0 },
+    'CHINA·YUNNAN': { lon: 100.1, lat: 25.7 },
+    'CHINA·JIANGXI': { lon: 118.0, lat: 28.9 },
+    'CHINA·HONG KONG': { lon: 114.1, lat: 22.3 },
+    'CHINA·TAIPEI': { lon: 121.5, lat: 25.0 },
+    'MALAYSIA·PENANG': { lon: 100.3, lat: 5.4 },
+    'MALAYSIA·KUALA LUMPUR': { lon: 101.7, lat: 3.1 },
+    'MALAYSIA·PUTRAJAYA': { lon: 101.7, lat: 2.7 }, // Nudge slightly south of KL
+    'SINGAPORE': { lon: 103.8, lat: 1.3 }
 };
+
+const locationCoords = {};
+Object.keys(locationRawCoords).forEach(key => {
+    const { lon, lat } = locationRawCoords[key];
+    const x = 50 + ((lon - 70.0) / 70.0) * 700;
+    const y = 550 - ((lat - (-10.0)) / 65.0) * 500;
+    locationCoords[key] = { x: Math.round(x * 10) / 10, y: Math.round(y * 10) / 10 };
+});
 
 const mapSvgContent = `
 <svg viewBox="0 0 800 600" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
@@ -83,20 +91,6 @@ const mapSvgContent = `
     <line class="map-grid-line" x1="0" y1="300" x2="800" y2="300" />
     <line class="map-grid-line" x1="0" y1="400" x2="800" y2="400" />
     <line class="map-grid-line" x1="0" y1="500" x2="800" y2="500" />
-
-    <!-- Landmass Outlines (East & Southeast Asia Schematic) -->
-    <!-- China Mainland -->
-    <path class="map-land" d="M160,140 L280,100 L420,90 L520,110 L600,130 L640,170 L610,230 L630,270 L580,300 L540,310 L510,360 L490,390 L430,370 L380,360 L330,350 L280,300 L180,290 Z" />
-    <!-- Taiwan Island -->
-    <path class="map-land" d="M605,360 L620,350 L630,370 L620,390 L610,385 Z" />
-    <!-- Hainan Island -->
-    <path class="map-land" d="M470,420 A15,10 0 1,0 500,420 A15,10 0 1,0 470,420" />
-    <!-- Indochina / Indochinese Peninsula -->
-    <path class="map-land" d="M430,370 L460,375 L480,420 L450,460 L430,500 L450,530 L430,530 L390,460 L380,410 L380,360 Z" />
-    <!-- West Malaysia -->
-    <path class="map-land" d="M430,530 L450,530 L470,555 L475,580 L465,585 L445,570 L430,545 Z" />
-    <!-- East Malaysia -->
-    <path class="map-land" d="M530,560 L570,545 L620,535 L640,540 L600,570 L550,580 Z" />
 
     <!-- Travel Routes (Connecting arcs) -->
     <g id="map-routes"></g>
@@ -123,8 +117,25 @@ function initMapView() {
     
     container.innerHTML = mapSvgContent;
     
+    const svg = container.querySelector('svg');
     const pinsGroup = document.getElementById('map-pins');
     const routesGroup = document.getElementById('map-routes');
+    
+    // Render Dot-Matrix Landmass Points
+    const dotsGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    dotsGroup.setAttribute('id', 'map-land-dots');
+    
+    if (typeof mapGridPoints !== 'undefined') {
+        mapGridPoints.forEach(pt => {
+            const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            dot.setAttribute('cx', pt[0]);
+            dot.setAttribute('cy', pt[1]);
+            dot.setAttribute('r', '1.2');
+            dot.setAttribute('class', 'map-grid-dot');
+            dotsGroup.appendChild(dot);
+        });
+    }
+    svg.insertBefore(dotsGroup, routesGroup);
     
     // 1. Group photos by coordinates key
     const coordsGroup = {};
