@@ -3983,6 +3983,20 @@ body.math-body {
   r: 2.2; /* Slightly larger on hover */
 }
 
+/* Coastline and Country Border Path styles */
+.map-coastline-path {
+  fill: none;
+  stroke: rgba(212, 196, 168, 0.25); /* Thin elegant warm-gold coastline */
+  stroke-width: 1.2;
+}
+
+.map-border-path {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.12); /* Delicate dashed country border lines */
+  stroke-width: 0.8;
+  stroke-dasharray: 3, 4;
+}
+
 .map-grid-line {
   stroke: rgba(255, 255, 255, 0.03);
   stroke-width: 1;

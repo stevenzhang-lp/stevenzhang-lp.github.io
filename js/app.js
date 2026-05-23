@@ -185,36 +185,19 @@ function initMapView() {
         pinsGroup.appendChild(pinG);
     });
     
-    // 3. Render Travel Routes (curves connecting locations chronologically)
-    const travelOrder = [
-        'CHINA·JIANGXI',
-        'CHINA·YUNNAN',
-        'CHINA·HONG KONG',
-        'CHINA·XINJIANG',
-        'MALAYSIA·PENANG',
-        'MALAYSIA·KUALA LUMPUR',
-        'MALAYSIA·PUTRAJAYA',
-        'SINGAPORE',
-        'CHINA·TAIPEI'
-    ];
+    // Render Coastlines and Borders
+    if (typeof mapCoastlines !== 'undefined' && mapCoastlines) {
+        const coastlinePath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        coastlinePath.setAttribute('class', 'map-coastline-path');
+        coastlinePath.setAttribute('d', mapCoastlines);
+        svg.insertBefore(coastlinePath, routesGroup);
+    }
     
-    for (let i = 0; i < travelOrder.length - 1; i++) {
-        const locA = travelOrder[i];
-        const locB = travelOrder[i+1];
-        
-        const coordA = locationCoords[locA];
-        const coordB = locationCoords[locB];
-        
-        if (coordA && coordB) {
-            const pathD = getCurvePath(coordA.x, coordA.y, coordB.x, coordB.y);
-            const routePath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-            routePath.setAttribute('class', 'travel-route');
-            routePath.setAttribute('d', pathD);
-            routePath.setAttribute('data-from-coords', `${coordA.x},${coordA.y}`);
-            routePath.setAttribute('data-to-coords', `${coordB.x},${coordB.y}`);
-            
-            routesGroup.appendChild(routePath);
-        }
+    if (typeof mapBorders !== 'undefined' && mapBorders) {
+        const borderPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        borderPath.setAttribute('class', 'map-border-path');
+        borderPath.setAttribute('d', mapBorders);
+        svg.insertBefore(borderPath, routesGroup);
     }
 }
 
@@ -270,9 +253,8 @@ function hideMapTooltip() {
 
 function filterMapPins(country, era) {
     const pins = document.querySelectorAll('.map-pin-group');
-    const routes = document.querySelectorAll('.travel-route');
     
-    // 1. Filter Pins
+    // Filter Pins
     pins.forEach(pin => {
         const coordsKey = pin.getAttribute('data-coords');
         const groupPhotos = window.locationCoordsGroup[coordsKey] || [];
@@ -295,21 +277,6 @@ function filterMapPins(country, era) {
             pin.classList.remove('filtered-out');
         } else {
             pin.classList.add('filtered-out');
-        }
-    });
-    
-    // 2. Filter Routes
-    routes.forEach(route => {
-        const fromCoords = route.getAttribute('data-from-coords');
-        const toCoords = route.getAttribute('data-to-coords');
-        
-        const fromPin = document.querySelector(`.map-pin-group[data-coords="${fromCoords}"]`);
-        const toPin = document.querySelector(`.map-pin-group[data-coords="${toCoords}"]`);
-        
-        if (fromPin && toPin && !fromPin.classList.contains('filtered-out') && !toPin.classList.contains('filtered-out')) {
-            route.classList.remove('filtered-out');
-        } else {
-            route.classList.add('filtered-out');
         }
     });
 }
