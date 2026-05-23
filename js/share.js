@@ -411,14 +411,6 @@
             // Wait brief moment for any dynamic rendering
             setTimeout(async () => {
                 try {
-                    // Temporarily move the node to viewable coordinates but hide behind modal 
-                    // to ensure browser triggers image decodes and rendering properly
-                    captureTarget.style.position = 'fixed';
-                    captureTarget.style.left = '50%';
-                    captureTarget.style.top = '50%';
-                    captureTarget.style.transform = 'translate(-50%, -50%)';
-                    captureTarget.style.zIndex = '-999';
-
                     // Ensure all images are decoded and loaded
                     const images = captureTarget.querySelectorAll('img');
                     const loadPromises = Array.from(images).map(img => {
@@ -447,12 +439,6 @@
                         scale: 2, // 2x for Retina quality
                         backgroundColor: '#121212'
                     });
-
-                    // Restore capture element styles
-                    captureTarget.style.position = 'absolute';
-                    captureTarget.style.left = '-9999px';
-                    captureTarget.style.top = '-9999px';
-                    captureTarget.style.transform = 'none';
 
                     // Convert to image download
                     const imgData = canvas.toDataURL("image/png");
