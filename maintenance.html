@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>STEVEN ZHANG | Under Maintenance</title>
+	<meta name="description" content="This archive or page is temporarily under maintenance.">
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;500&family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+	<style>
+		:root {
+			--bg-color: #0b0b0b;
+			--text-main: #f4f1ea;
+			--text-muted: #888888;
+			--accent: #d4c4a8;
+			--accent-glow: rgba(212, 196, 168, 0.15);
+		}
+
+		* {
+			box-sizing: border-box;
+			margin: 0;
+			padding: 0;
+		}
+
+		body {
+			background-color: var(--bg-color);
+			color: var(--text-main);
+			font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+			min-height: 100vh;
+			display: flex;
+			flex-direction: column;
+			justify-content: center;
+			align-items: center;
+			overflow: hidden;
+			position: relative;
+			padding: 2rem;
+		}
+
+		/* Glowing ambient background */
+		body::before {
+			content: '';
+			position: absolute;
+			width: 600px;
+			height: 600px;
+			background: radial-gradient(circle, var(--accent-glow) 0%, rgba(11, 11, 11, 0) 70%);
+			top: 50%;
+			left: 50%;
+			transform: translate(-50%, -50%);
+			z-index: 0;
+			pointer-events: none;
+			animation: floatGlow 10s ease-in-out infinite alternate;
+		}
+
+		@keyframes floatGlow {
+			0% {
+				transform: translate(-50%, -50%) scale(1);
+				opacity: 0.8;
+			}
+			100% {
+				transform: translate(-45%, -55%) scale(1.1);
+				opacity: 1;
+			}
+		}
+
+		/* Language Controls */
+		body.lang-en .lang-zh {
+			display: none !important;
+		}
+
+		body.lang-zh .lang-en {
+			display: none !important;
+		}
+
+		/* Header Lang Toggle */
+		.header-nav {
+			position: absolute;
+			top: 2rem;
+			right: 4rem;
+			z-index: 10;
+		}
+
+		@media (max-width: 768px) {
+			.header-nav {
+				right: 2rem;
+			}
+		}
+
+		.lang-toggle-text {
+			color: var(--text-muted);
+			text-decoration: none;
+			font-size: 0.8rem;
+			letter-spacing: 0.15em;
+			transition: color 0.3s;
+			cursor: pointer;
+		}
+
+		.lang-toggle-text:hover {
+			color: var(--accent);
+		}
+
+		/* Main Card Container */
+		.maintenance-container {
+			max-width: 600px;
+			width: 100%;
+			background: rgba(25, 25, 25, 0.45);
+			backdrop-filter: blur(20px);
+			-webkit-backdrop-filter: blur(20px);
+			border: 1px solid rgba(255, 255, 255, 0.05);
+			border-radius: 8px;
+			padding: 4rem 3rem;
+			text-align: center;
+			z-index: 1;
+			box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4);
+			animation: cardFadeIn 1.2s cubic-bezier(0.25, 1, 0.5, 1);
+		}
+
+		@keyframes cardFadeIn {
+			from {
+				opacity: 0;
+				transform: translateY(20px);
+			}
+			to {
+				opacity: 1;
+				transform: translateY(0);
+			}
+		}
+
+		/* Decorative Icon / Visual */
+		.status-visual {
+			margin-bottom: 2.5rem;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+		}
+
+		.status-icon-outer {
+			width: 70px;
+			height: 70px;
+			border: 1px solid rgba(212, 196, 168, 0.2);
+			border-radius: 50%;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			position: relative;
+		}
+
+		.status-icon-inner {
+			width: 46px;
+			height: 46px;
+			border: 1px solid var(--accent);
+			border-radius: 50%;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			font-family: monospace;
+			color: var(--accent);
+			font-size: 1.2rem;
+			letter-spacing: 0.05em;
+			animation: pulseBorder 2.5s ease-in-out infinite;
+		}
+
+		@keyframes pulseBorder {
+			0% {
+				box-shadow: 0 0 0 0 rgba(212, 196, 168, 0.2);
+			}
+			70% {
+				box-shadow: 0 0 0 8px rgba(212, 196, 168, 0);
+			}
+			100% {
+				box-shadow: 0 0 0 0 rgba(212, 196, 168, 0);
+			}
+		}
+
+		/* Typography */
+		h1 {
+			font-family: 'Playfair Display', 'Noto Serif SC', 'Songti SC', 'STSong', serif;
+			font-size: clamp(1.6rem, 2.5vw, 2.2rem);
+			font-weight: 400;
+			letter-spacing: 0.1em;
+			margin-bottom: 1.5rem;
+			color: #ffffff;
+			line-height: 1.4;
+		}
+
+		body.lang-zh h1 {
+			letter-spacing: 0.15em;
+		}
+
+		p.description {
+			font-size: 0.95rem;
+			line-height: 1.8;
+			color: var(--text-muted);
+			margin-bottom: 3rem;
+			font-weight: 300;
+		}
+
+		body.lang-zh p.description {
+			letter-spacing: 0.05em;
+		}
+
+		/* Micro-animation: Loading Line */
+		.progress-bar-container {
+			width: 120px;
+			height: 1px;
+			background: rgba(255, 255, 255, 0.08);
+			margin: 0 auto 3rem auto;
+			position: relative;
+			overflow: hidden;
+		}
+
+		.progress-line {
+			width: 60px;
+			height: 100%;
+			background: var(--accent);
+			position: absolute;
+			animation: scanLine 2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+		}
+
+		@keyframes scanLine {
+			0% {
+				left: -60px;
+			}
+			100% {
+				left: 120px;
+			}
+		}
+
+		/* Navigation & Actions */
+		.actions {
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			gap: 1.5rem;
+		}
+
+		.btn-primary {
+			background: transparent;
+			color: var(--text-main);
+			border: 1px solid rgba(255, 255, 255, 0.2);
+			padding: 0.75rem 2rem;
+			border-radius: 4px;
+			font-size: 0.8rem;
+			letter-spacing: 0.15em;
+			text-transform: uppercase;
+			text-decoration: none;
+			transition: all 0.3s ease;
+			cursor: pointer;
+		}
+
+		.btn-primary:hover {
+			background: var(--text-main);
+			color: var(--bg-color);
+			border-color: var(--text-main);
+			box-shadow: 0 4px 20px rgba(244, 241, 234, 0.1);
+		}
+
+		.social-links {
+			display: flex;
+			gap: 2rem;
+			list-style: none;
+			justify-content: center;
+		}
+
+		.social-links a {
+			color: var(--text-muted);
+			text-decoration: none;
+			font-size: 0.8rem;
+			letter-spacing: 0.1em;
+			transition: color 0.3s;
+		}
+
+		.social-links a:hover {
+			color: var(--accent);
+		}
+
+		/* Footer */
+		footer {
+			margin-top: auto;
+			padding-top: 2rem;
+			font-size: 0.75rem;
+			color: rgba(255, 255, 255, 0.2);
+			letter-spacing: 0.05em;
+			z-index: 1;
+		}
+	</style>
+</head>
+
+<body class="lang-zh">
+
+	<!-- Top Lang Toggle -->
+	<div class="header-nav">
+		<a id="lang-toggle-maint" class="lang-toggle-text">
+			<span class="lang-en">中文</span>
+			<span class="lang-zh">ENGLISH</span>
+		</a>
+	</div>
+
+	<!-- Main Glass Card -->
+	<div class="maintenance-container">
+		<div class="status-visual">
+			<div class="status-icon-outer">
+				<div class="status-icon-inner">▢</div>
+			</div>
+		</div>
+
+		<!-- Dynamic Title -->
+		<h1 id="maint-title">
+			<span class="lang-zh">档案库整理中</span>
+			<span class="lang-en">Archive Under Curation</span>
+		</h1>
+
+		<!-- Subtle Progress Bar -->
+		<div class="progress-bar-container">
+			<div class="progress-line"></div>
+		</div>
+
+		<!-- Dynamic Description -->
+		<p class="description" id="maint-desc">
+			<span class="lang-zh">为了提供更好的阅读与视觉体验，该板块正在进行整理与修剪，请稍后再试。</span>
+			<span class="lang-en">To provide a better visual and reading experience, this section is currently being organized. Please try again later.</span>
+		</p>
+
+		<!-- Dynamic Actions -->
+		<div class="actions" id="maint-actions">
+			<!-- Defaults to Back to Hub if subpage is down -->
+			<a href="index.html" class="btn-primary" id="hub-btn">
+				<span class="lang-zh">返回主站</span>
+				<span class="lang-en">Return to Hub</span>
+			</a>
+			
+			<ul class="social-links" id="social-links-list" style="display: none;">
+				<li><a href="https://instagram.com/zhang.lp.28" target="_blank">Instagram</a></li>
+				<li><a href="https://v.douyin.com/WNPNUeIn-lg/" target="_blank">
+					<span class="lang-en">Douyin</span>
+					<span class="lang-zh">抖音</span>
+				</a></li>
+			</ul>
+		</div>
+	</div>
+
+	<footer>
+		<p>&copy; 2026 Steven Zhang. All Rights Reserved.</p>
+	</footer>
+
+	<script>
+		// Language Toggle Logic
+		const langToggle = document.getElementById('lang-toggle-maint');
+		let currentLang = localStorage.getItem('voyage_lang') || 'zh';
+		document.body.className = 'lang-' + currentLang;
+
+		if (langToggle) {
+			langToggle.addEventListener('click', (e) => {
+				e.preventDefault();
+				currentLang = document.body.classList.contains('lang-zh') ? 'en' : 'zh';
+				document.body.className = 'lang-' + currentLang;
+				localStorage.setItem('voyage_lang', currentLang);
+			});
+		}
+
+		// Dynamic page configuration based on URL query parameters
+		(function() {
+			const urlParams = new URLSearchParams(window.location.search);
+			const page = urlParams.get('page');
+			
+			const titleEl = document.getElementById('maint-title');
+			const descEl = document.getElementById('maint-desc');
+			const hubBtn = document.getElementById('hub-btn');
+			const socialLinks = document.getElementById('social-links-list');
+
+			// Custom content based on disabled target
+			if (!page) {
+				// No specific page specified -> Entire website domain maintenance
+				titleEl.innerHTML = `
+					<span class="lang-zh">总档案馆 · 维护中</span>
+					<span class="lang-en">Master Archive · Maintenance</span>
+				`;
+				descEl.innerHTML = `
+					<span class="lang-zh">为了提供更佳的浏览体验，总档案库正在进行系统升级与修剪维护。请稍后再度探访。</span>
+					<span class="lang-en">To ensure a better browsing experience, the Master Archive is currently undergoing system upgrades and pruning. Please visit again later.</span>
+				`;
+				// Hide home button since the hub itself is down; show social media instead
+				hubBtn.style.display = 'none';
+				socialLinks.style.display = 'flex';
+			} else if (page === 'diary.html') {
+				// Daily Fragments specifically disabled
+				titleEl.innerHTML = `
+					<span class="lang-zh">日常切片 · 整理中</span>
+					<span class="lang-en">Daily Fragments · Under Curation</span>
+				`;
+				descEl.innerHTML = `
+					<span class="lang-zh">那些转瞬即逝的瞬间、静谧的光影与日常的碎片，正处于内容整理与筹备中，暂不对外开放。</span>
+					<span class="lang-en">Fleeting moments, quiet shadows, and everyday fragments are currently under curation and organization. Access is temporarily suspended.</span>
+				`;
+			} else if (page === 'journal.html') {
+				// Thought Fragments specifically disabled
+				titleEl.innerHTML = `
+					<span class="lang-zh">思维碎片 · 闭馆中</span>
+					<span class="lang-en">Thought Fragments · Closed</span>
+				`;
+				descEl.innerHTML = `
+					<span class="lang-zh">思维的野地需要修剪与整理，沉淀完成后将重新开放。</span>
+					<span class="lang-en">The wilderness of thoughts is being pruned and organized. It will reopen once the reflections have settled.</span>
+				`;
+			} else {
+				// Generic page maintenance
+				titleEl.innerHTML = `
+					<span class="lang-zh">档案库整理中</span>
+					<span class="lang-en">Archive Under Curation</span>
+				`;
+				descEl.innerHTML = `
+					<span class="lang-zh">为了提供更佳的浏览体验，该板块内容正在修剪与升级中，请稍后再度探访。</span>
+					<span class="lang-en">This section is currently undergoing curation and system upgrades. Please visit again later.</span>
+				`;
+			}
+		})();
+	</script>
+</body>
+
+</html>

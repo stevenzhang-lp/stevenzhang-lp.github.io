@@ -1,5 +1,21 @@
 // locationMap, monthMap, parseDate, and parseLocation are loaded globally from data.js
 
+// Safe localStorage wrapper to prevent crashes in private modes or restricted iframe sandboxes
+const safeStorage = {
+    getItem(key) {
+        try {
+            return localStorage.getItem(key);
+        } catch (e) {
+            return null;
+        }
+    },
+    setItem(key, value) {
+        try {
+            localStorage.setItem(key, value);
+        } catch (e) {}
+    }
+};
+
 
 function initGallery(countryFilter = 'ALL', eraFilter = 'ALL') {
     const grid = document.getElementById('gallery-grid');
@@ -70,13 +86,16 @@ const locationRawCoords = {
 const locationCoords = {};
 Object.keys(locationRawCoords).forEach(key => {
     const { lon, lat } = locationRawCoords[key];
-    const x = 50 + ((lon - 70.0) / 70.0) * 700;
-    const y = 550 - ((lat - (-10.0)) / 65.0) * 500;
+    const x = 400.0 + lon * 2.0;
+    const y = 300.0 - lat * 2.0;
     locationCoords[key] = { x: Math.round(x * 10) / 10, y: Math.round(y * 10) / 10 };
 });
 
 const mapSvgContent = `
 <svg viewBox="0 0 800 600" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+    <!-- Background capture layer to ensure the entire SVG area responds to drag/zoom mouse inputs -->
+    <rect width="800" height="600" fill="transparent" style="pointer-events: all;" />
+
     <!-- Grid Lines -->
     <line class="map-grid-line" x1="100" y1="0" x2="100" y2="600" />
     <line class="map-grid-line" x1="200" y1="0" x2="200" y2="600" />
@@ -117,6 +136,15 @@ function initMapView() {
     
     container.innerHTML = mapSvgContent;
     
+    // Create map tooltip container programmatically inside scroll container
+    let tooltip = document.getElementById('map-tooltip');
+    if (!tooltip) {
+        tooltip = document.createElement('div');
+        tooltip.setAttribute('class', 'map-tooltip');
+        tooltip.setAttribute('id', 'map-tooltip');
+        container.appendChild(tooltip);
+    }
+    
     const svg = container.querySelector('svg');
     const pinsGroup = document.getElementById('map-pins');
     const routesGroup = document.getElementById('map-routes');
@@ -130,7 +158,7 @@ function initMapView() {
             const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
             dot.setAttribute('cx', pt[0]);
             dot.setAttribute('cy', pt[1]);
-            dot.setAttribute('r', '1.2');
+            dot.setAttribute('r', '0.05');
             dot.setAttribute('class', 'map-grid-dot');
             dotsGroup.appendChild(dot);
         });
@@ -199,6 +227,9 @@ function initMapView() {
         borderPath.setAttribute('d', mapBorders);
         svg.insertBefore(borderPath, routesGroup);
     }
+    
+    // Set up zoom and pan interactions
+    setupMapZoomPan();
 }
 
 function getFirstMatchingPhotoInGroup(coordsKey) {
@@ -222,8 +253,12 @@ function showMapTooltip(coordsKey, x, y) {
     const photo = getFirstMatchingPhotoInGroup(coordsKey);
     if (!photo) return;
     
+    const container = document.getElementById('map-svg-container');
     const tooltip = document.getElementById('map-tooltip');
-    if (!tooltip) return;
+    if (!tooltip || !container) return;
+    
+    const svg = container.querySelector('svg');
+    if (!svg) return;
     
     const loc = parseLocation(photo.location);
     const dateLoc = parseDate(photo.date);
@@ -238,9 +273,29 @@ function showMapTooltip(coordsKey, x, y) {
         <p class="map-tooltip-meta">${locName} &middot; ${photo.date.split(', ')[1] || ''}</p>
     `;
     
-    // Position percentage-based to be responsive
-    tooltip.style.left = `${(x / 800) * 100}%`;
-    tooltip.style.top = `${(y / 600) * 100}%`;
+    // Position tooltip dynamically in screen space relative to the pin's actual position
+    const pinGroup = document.querySelector(`.map-pin-group[data-coords="${coordsKey}"]`);
+    if (pinGroup) {
+        const pinCore = pinGroup.querySelector('.map-pin-core');
+        if (pinCore) {
+            const pinRect = pinCore.getBoundingClientRect();
+            const containerRect = container.getBoundingClientRect();
+            
+            const tooltipLeft = pinRect.left - containerRect.left + pinRect.width / 2;
+            const tooltipTop = pinRect.top - containerRect.top + pinRect.height / 2;
+            
+            tooltip.style.left = `${tooltipLeft}px`;
+            tooltip.style.top = `${tooltipTop}px`;
+        }
+    }
+    
+    // Flip tooltip to render below the pin if it is near the top edge (y < 180 out of 600)
+    if (y < 180) {
+        tooltip.classList.add('tooltip-bottom');
+    } else {
+        tooltip.classList.remove('tooltip-bottom');
+    }
+    
     tooltip.classList.add('show');
 }
 
@@ -279,6 +334,263 @@ function filterMapPins(country, era) {
             pin.classList.add('filtered-out');
         }
     });
+}
+
+function setupMapZoomPan() {
+    const wrapper = document.querySelector('.map-wrapper');
+    const svg = document.querySelector('#map-svg-container svg');
+    if (!wrapper || !svg) return;
+    
+    // Scoped Zoom/Pan State variables in SVG user units (0 to 800, 0 to 600)
+    let zoomScale = 1;
+    let panX = 0;
+    let panY = 0;
+    
+    // Wrap children in a zoom group to apply transforms
+    let zoomGroup = document.getElementById('map-zoom-group');
+    if (!zoomGroup) {
+        zoomGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        zoomGroup.setAttribute('id', 'map-zoom-group');
+        const children = Array.from(svg.children);
+        children.forEach(child => {
+            zoomGroup.appendChild(child);
+        });
+        svg.appendChild(zoomGroup);
+    }
+    
+    zoomGroup.style.transformOrigin = '0 0';
+    zoomGroup.style.transition = 'none';
+    
+    // Calculate initial scale
+    const isMobile = window.innerWidth <= 768;
+    const isTablet = window.innerWidth > 768 && window.innerWidth <= 1024;
+    
+    if (isMobile) {
+        zoomScale = 3.6;
+        panX = -1760; // Deep focus on the Southeast Asia / East Asia pin cluster
+        panY = -614;
+    } else if (isTablet) {
+        zoomScale = 3.0;
+        panX = -1400;
+        panY = -462;
+    } else {
+        zoomScale = 2.4;
+        panX = -1040;
+        panY = -310;
+    }
+    
+    function getSvgScaleRatio() {
+        const svgRect = svg.getBoundingClientRect();
+        return 800 / (svgRect.width || 800);
+    }
+    
+    function applyTransform() {
+        zoomScale = Math.max(1, Math.min(10, zoomScale));
+        
+        // Limits in SVG coordinate space
+        const minPanX = 800 * (1 - zoomScale);
+        const maxPanX = 0;
+        const minPanY = 600 * (1 - zoomScale);
+        const maxPanY = 0;
+        
+        panX = Math.max(minPanX, Math.min(maxPanX, panX));
+        panY = Math.max(minPanY, Math.min(maxPanY, panY));
+        
+        // Apply transform via standard SVG attribute (highly compatible)
+        zoomGroup.setAttribute('transform', `translate(${panX}, ${panY}) scale(${zoomScale})`);
+        zoomGroup.style.setProperty('--map-zoom', zoomScale);
+        
+        // Hide tooltip to avoid layout offsets during animation
+        hideMapTooltip();
+    }
+    
+    applyTransform();
+    
+    // Mouse Drag to Pan
+    let isPanning = false;
+    let lastClientX = 0;
+    let lastClientY = 0;
+    
+    wrapper.addEventListener('mousedown', (e) => {
+        if (e.button !== 0) return;
+        // If clicking on a pin, don't initiate drag panning
+        if (e.target.closest('.map-pin-group')) {
+            return;
+        }
+        isPanning = true;
+        lastClientX = e.clientX;
+        lastClientY = e.clientY;
+        wrapper.style.cursor = 'grabbing';
+    });
+    
+    // Prevent browser drag-and-drop actions on SVG background/dots during dragging
+    wrapper.addEventListener('dragstart', (e) => {
+        e.preventDefault();
+    });
+    
+    window.addEventListener('mousemove', (e) => {
+        if (!isPanning) return;
+        
+        const dx = e.clientX - lastClientX;
+        const dy = e.clientY - lastClientY;
+        const ratio = getSvgScaleRatio();
+        
+        // Translate delta into SVG coordinate units
+        panX += dx * ratio;
+        panY += dy * ratio;
+        
+        lastClientX = e.clientX;
+        lastClientY = e.clientY;
+        
+        applyTransform();
+    });
+    
+    window.addEventListener('mouseup', () => {
+        if (isPanning) {
+            isPanning = false;
+            wrapper.style.cursor = 'grab';
+        }
+    });
+    
+    wrapper.style.cursor = 'grab';
+    
+    // Mouse Wheel to Zoom (centered on cursor)
+    wrapper.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        
+        const zoomIntensity = 0.08;
+        const rect = wrapper.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left;
+        const mouseY = e.clientY - rect.top;
+        
+        // Calculate offset if SVG has padding or centering margins inside wrapper
+        const svgRect = svg.getBoundingClientRect();
+        const centerOffsetX = svgRect.left - rect.left;
+        const centerOffsetY = svgRect.top - rect.top;
+        
+        const ratio = getSvgScaleRatio();
+        const localX = (mouseX - centerOffsetX) * ratio;
+        const localY = (mouseY - centerOffsetY) * ratio;
+        
+        const svgX = (localX - panX) / zoomScale;
+        const svgY = (localY - panY) / zoomScale;
+        
+        if (e.deltaY < 0) {
+            zoomScale += zoomScale * zoomIntensity;
+        } else {
+            zoomScale -= zoomScale * zoomIntensity;
+        }
+        zoomScale = Math.max(1, Math.min(5, zoomScale));
+        
+        panX = localX - zoomScale * svgX;
+        panY = localY - zoomScale * svgY;
+        
+        applyTransform();
+    }, { passive: false });
+    
+    // Touch Gestures (Mobile/Tablet drag and pinch zoom)
+    let isPinching = false;
+    let initialPinchDist = 0;
+    let initialZoom = 1;
+    let initialPanX = 0;
+    let initialPanY = 0;
+    let touchStartX = 0;
+    let touchStartY = 0;
+    
+    wrapper.addEventListener('touchstart', (e) => {
+        if (e.target.closest('.map-pin-group')) {
+            return;
+        }
+        const rect = wrapper.getBoundingClientRect();
+        if (e.touches.length === 1) {
+            isPanning = true;
+            lastClientX = e.touches[0].clientX;
+            lastClientY = e.touches[0].clientY;
+        } else if (e.touches.length === 2) {
+            isPanning = false;
+            isPinching = true;
+            initialPinchDist = getTouchDist(e.touches[0], e.touches[1]);
+            initialZoom = zoomScale;
+            initialPanX = panX;
+            initialPanY = panY;
+            
+            const midX = (e.touches[0].clientX + e.touches[1].clientX) / 2 - rect.left;
+            const midY = (e.touches[0].clientY + e.touches[1].clientY) / 2 - rect.top;
+            
+            const svgRect = svg.getBoundingClientRect();
+            const centerOffsetX = svgRect.left - rect.left;
+            const centerOffsetY = svgRect.top - rect.top;
+            
+            const ratio = getSvgScaleRatio();
+            touchStartX = (midX - centerOffsetX) * ratio;
+            touchStartY = (midY - centerOffsetY) * ratio;
+        }
+    });
+    
+    wrapper.addEventListener('touchmove', (e) => {
+        const rect = wrapper.getBoundingClientRect();
+        if (isPanning && e.touches.length === 1) {
+            const touchX = e.touches[0].clientX;
+            const touchY = e.touches[0].clientY;
+            
+            const dx = touchX - lastClientX;
+            const dy = touchY - lastClientY;
+            const ratio = getSvgScaleRatio();
+            
+            panX += dx * ratio;
+            panY += dy * ratio;
+            
+            lastClientX = touchX;
+            lastClientY = touchY;
+            
+            applyTransform();
+            e.preventDefault();
+        } else if (isPinching && e.touches.length === 2) {
+            const dist = getTouchDist(e.touches[0], e.touches[1]);
+            const factor = dist / initialPinchDist;
+            
+            zoomScale = initialZoom * factor;
+            zoomScale = Math.max(1, Math.min(5, zoomScale));
+            
+            const midX = (e.touches[0].clientX + e.touches[1].clientX) / 2 - rect.left;
+            const midY = (e.touches[0].clientY + e.touches[1].clientY) / 2 - rect.top;
+            
+            const svgRect = svg.getBoundingClientRect();
+            const centerOffsetX = svgRect.left - rect.left;
+            const centerOffsetY = svgRect.top - rect.top;
+            
+            const ratio = getSvgScaleRatio();
+            const localX = (midX - centerOffsetX) * ratio;
+            const localY = (midY - centerOffsetY) * ratio;
+            
+            const svgX = (touchStartX - initialPanX) / initialZoom;
+            const svgY = (touchStartY - initialPanY) / initialZoom;
+            
+            panX = localX - zoomScale * svgX;
+            panY = localY - zoomScale * svgY;
+            
+            applyTransform();
+            e.preventDefault();
+        }
+    }, { passive: false });
+    
+    wrapper.addEventListener('touchend', (e) => {
+        if (e.touches.length === 0) {
+            isPanning = false;
+            isPinching = false;
+        } else if (e.touches.length === 1) {
+            isPinching = false;
+            isPanning = true;
+            lastClientX = e.touches[0].clientX;
+            lastClientY = e.touches[0].clientY;
+        }
+    });
+}
+
+function getTouchDist(t1, t2) {
+    const dx = t1.clientX - t2.clientX;
+    const dy = t1.clientY - t2.clientY;
+    return Math.sqrt(dx * dx + dy * dy);
 }
 
 function setupFilters() {
@@ -338,7 +650,7 @@ function setupFilters() {
 
 function openDetail(photo, instant = false) {
     activePhoto = photo;
-    updateVoyageTitle(localStorage.getItem('voyage_lang') || 'zh');
+    updateVoyageTitle(safeStorage.getItem('voyage_lang') || 'zh');
 
     const loc = parseLocation(photo.location);
     const dateLoc = parseDate(photo.date);
@@ -378,7 +690,7 @@ function openDetail(photo, instant = false) {
 
 function closeDetail() {
     activePhoto = null;
-    updateVoyageTitle(localStorage.getItem('voyage_lang') || 'zh');
+    updateVoyageTitle(safeStorage.getItem('voyage_lang') || 'zh');
 
     // Clean URL query parameters to avoid re-triggering on reload
     if (window.location.search) {
@@ -808,7 +1120,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Language setup
-    let currentLang = localStorage.getItem('voyage_lang') || 'zh';
+    let currentLang = safeStorage.getItem('voyage_lang') || 'zh';
     document.body.classList.remove('lang-zh', 'lang-en');
     document.body.classList.add(`lang-${currentLang}`);
     updateVoyageTitle(currentLang);
@@ -838,7 +1150,7 @@ if (langToggleBtn) {
         let newLang = document.body.classList.contains('lang-zh') ? 'en' : 'zh';
         document.body.classList.remove('lang-zh', 'lang-en');
         document.body.classList.add(`lang-${newLang}`);
-        localStorage.setItem('voyage_lang', newLang);
+        safeStorage.setItem('voyage_lang', newLang);
         updateVoyageTitle(newLang);
     });
 }

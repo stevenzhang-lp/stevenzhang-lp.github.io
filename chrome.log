@@ -1,0 +1,7 @@
+[74969:5765384:0523/201707.792628:ERROR:net/cert/internal/trust_store_mac.cc:807] Error parsing certificate:
+ERROR: Failed normalizing string
+  tag: 19
+ERROR: Failed normalizing subject
+
+[74969:5765324:0523/201707.801594:INFO:components/enterprise/browser/controller/chrome_browser_cloud_management_controller.cc:238] No machine level policy manager exists.
+[74969:5765370:0523/201707.856079:WARNING:chrome/browser/extensions/external_pref_loader.cc:294] You are using an old-style extension deployment method (external_extensions.json), which will soon be deprecated. (see http://developer.chrome.com/docs/extensions/how-to/distribute/install-extensions)

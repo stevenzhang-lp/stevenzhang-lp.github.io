@@ -3,6 +3,24 @@
 
 <head>
 	<meta charset="UTF-8">
+	<script src="js/maintenance-config.js"></script>
+	<script>
+		(function() {
+			const path = window.location.pathname;
+			let page = path.substring(path.lastIndexOf('/') + 1);
+			if (page === '' || page === 'index.html' || !page.includes('.')) {
+				page = 'index.html';
+			}
+			if (page === 'maintenance.html') return;
+			if (typeof MAINTENANCE_CONFIG !== 'undefined') {
+				if (MAINTENANCE_CONFIG.disableWholeDomain) {
+					window.location.replace('maintenance.html');
+				} else if (MAINTENANCE_CONFIG.disabledPages && MAINTENANCE_CONFIG.disabledPages[page]) {
+					window.location.replace('maintenance.html?page=' + encodeURIComponent(page));
+				}
+			}
+		})();
+	</script>
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>STEVEN ZHANG | 时空档案室</title>
 	<meta name="description" content="Steven Zhang's photography portfolio - The Voyage Archive. A visual diary exploring landscapes, streets, and human moments across eras.">
@@ -111,7 +129,10 @@
 		<section class="map-view-container" id="map-view-container" style="display: none;">
 			<div class="map-wrapper">
 				<div class="map-svg-container" id="map-svg-container"></div>
-				<div class="map-tooltip" id="map-tooltip"></div>
+			</div>
+			<div class="map-hint" id="map-hint">
+				<span class="lang-en">[ Drag to Pan | Pinch to Zoom ]</span>
+				<span class="lang-zh">[ 拖拽拖动地图 | 双指缩放 ]</span>
 			</div>
 		</section>
 	</main>

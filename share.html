@@ -3,6 +3,34 @@
 
 <head>
 	<meta charset="UTF-8">
+	<script src="js/maintenance-config.js"></script>
+	<script>
+		(function() {
+			const path = window.location.pathname;
+			let page = path.substring(path.lastIndexOf('/') + 1);
+			if (page === '' || page === 'index.html' || !page.includes('.')) {
+				page = 'index.html';
+			}
+			if (page === 'maintenance.html') return;
+			if (typeof MAINTENANCE_CONFIG !== 'undefined') {
+				if (MAINTENANCE_CONFIG.disableWholeDomain) {
+					window.location.replace('maintenance.html');
+				} else {
+					let targetToCheck = page;
+					if (page === 'share.html') {
+						const urlParams = new URLSearchParams(window.location.search);
+						const type = urlParams.get('type');
+						if (type) {
+							targetToCheck = type + '.html';
+						}
+					}
+					if (MAINTENANCE_CONFIG.disabledPages && MAINTENANCE_CONFIG.disabledPages[targetToCheck]) {
+						window.location.replace('maintenance.html?page=' + encodeURIComponent(targetToCheck));
+					}
+				}
+			}
+		})();
+	</script>
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>STEVEN ZHANG | ARCHIVE SHARE</title>
 	<meta name="description" content="Steven Zhang's shared archive. View photos, diaries, and thoughts.">

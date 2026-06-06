@@ -3,6 +3,24 @@
 
 <head>
 	<meta charset="UTF-8">
+	<script src="js/maintenance-config.js"></script>
+	<script>
+		(function() {
+			const path = window.location.pathname;
+			let page = path.substring(path.lastIndexOf('/') + 1);
+			if (page === '' || page === 'index.html' || !page.includes('.')) {
+				page = 'index.html';
+			}
+			if (page === 'maintenance.html') return;
+			if (typeof MAINTENANCE_CONFIG !== 'undefined') {
+				if (MAINTENANCE_CONFIG.disableWholeDomain) {
+					window.location.replace('maintenance.html');
+				} else if (MAINTENANCE_CONFIG.disabledPages && MAINTENANCE_CONFIG.disabledPages[page]) {
+					window.location.replace('maintenance.html?page=' + encodeURIComponent(page));
+				}
+			}
+		})();
+	</script>
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>STEVEN ZHANG | 思维碎片</title>
 	<meta name="description"

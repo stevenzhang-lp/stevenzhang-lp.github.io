@@ -3,6 +3,24 @@
 
 <head>
 	<meta charset="UTF-8">
+	<script src="js/maintenance-config.js"></script>
+	<script>
+		(function() {
+			const path = window.location.pathname;
+			let page = path.substring(path.lastIndexOf('/') + 1);
+			if (page === '' || page === 'index.html' || !page.includes('.')) {
+				page = 'index.html';
+			}
+			if (page === 'maintenance.html') return;
+			if (typeof MAINTENANCE_CONFIG !== 'undefined') {
+				if (MAINTENANCE_CONFIG.disableWholeDomain) {
+					window.location.replace('maintenance.html');
+				} else if (MAINTENANCE_CONFIG.disabledPages && MAINTENANCE_CONFIG.disabledPages[page]) {
+					window.location.replace('maintenance.html?page=' + encodeURIComponent(page));
+				}
+			}
+		})();
+	</script>
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>STEVEN ZHANG | The Master Archive</title>
 	<meta name="description"
@@ -275,6 +293,31 @@
 				});
 			}
 		});
+
+		// Dynamically deactivate page cards based on maintenance config
+		if (typeof MAINTENANCE_CONFIG !== 'undefined' && !MAINTENANCE_CONFIG.disableWholeDomain) {
+			const pageCards = {
+				'diary.html': { id: 'card-diary', zh: '内容筹备中', en: 'UNDER CURATION' },
+				'journal.html': { id: 'card-journal', zh: '内容筹备中', en: 'UNDER CURATION' },
+				'voyage.html': { id: 'card-voyage', zh: '维护中', en: 'MAINTENANCE' }
+			};
+
+			Object.keys(pageCards).forEach(pageKey => {
+				if (MAINTENANCE_CONFIG.disabledPages && MAINTENANCE_CONFIG.disabledPages[pageKey]) {
+					const cardConf = pageCards[pageKey];
+					const cardEl = document.getElementById(cardConf.id);
+					if (cardEl) {
+						cardEl.classList.add('card-disabled');
+						cardEl.setAttribute('data-status-zh', cardConf.zh);
+						cardEl.setAttribute('data-status-en', cardConf.en);
+						cardEl.addEventListener('click', (e) => {
+							e.preventDefault();
+							window.location.href = 'maintenance.html?page=' + encodeURIComponent(pageKey);
+						});
+					}
+				}
+			});
+		}
 
 		// Anti-Save Protections
 		document.addEventListener('contextmenu', event => event.preventDefault());
