@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<script src="js/maintenance-config.js"></script>
+	<script>
+		(function() {
+			const path = window.location.pathname;
+			let page = path.substring(path.lastIndexOf('/') + 1);
+			if (page === '' || page === 'index.html' || !page.includes('.')) {
+				page = 'index.html';
+			}
+			if (page === 'maintenance.html') return;
+			if (typeof MAINTENANCE_CONFIG !== 'undefined') {
+				if (MAINTENANCE_CONFIG.disableWholeDomain) {
+					window.location.replace('maintenance.html');
+				} else if (MAINTENANCE_CONFIG.disabledPages && MAINTENANCE_CONFIG.disabledPages[page]) {
+					window.location.replace('maintenance.html?page=' + encodeURIComponent(page));
+				}
+			}
+		})();
+	</script>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>STEVEN ZHANG | The Master Archive</title>
+	<meta name="description"
+		content="Steven Zhang's personal portfolio website - The Voyage Archive, Studio, and Journal. Exploring photography, design, and code.">
+	<meta property="og:title" content="STEVEN ZHANG | The Master Archive">
+	<meta property="og:description"
+		content="Steven Zhang's personal portfolio website. Exploring photography, design, and code.">
+	<meta property="og:type" content="website">
+	<meta name="twitter:card" content="summary_large_image">
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link
+		href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;500&family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500&family=Long+Cang&family=La+Belle+Aurore&display=swap"
+		rel="stylesheet">
+	<link rel="stylesheet" href="css/style.css">
+</head>
+
+<body class="lang-zh home-body">
+
+	<!-- Top Header (Black Background) -->
+	<header class="site-header">
+		<h1 class="logo">
+			<a href="index.html" style="color: inherit; text-decoration: none;">STEVEN ZHANG</a>
+			<span class="site-subtitle">
+				<span class="lang-en">| THE MASTER ARCHIVE</span>
+				<span class="lang-zh">| 总档案库</span>
+			</span>
+		</h1>
+		<nav class="main-nav">
+			<a href="#" id="lang-toggle-home" class="lang-toggle-text">
+				<span class="lang-en">中文</span>
+				<span class="lang-zh">ENGLISH</span>
+			</a>
+		</nav>
+	</header>
+
+	<div class="home-main-wrapper">
+		<!-- Left Sidebar (for visual balance) -->
+		<aside class="home-sidebar">
+			<div class="intro-text">
+				<span class="lang-en">Walking through the wilderness of time, recording the starlight and dust along the
+					way.</span>
+				<span class="lang-zh">在时间的荒野中行走，记录沿途的星光与尘埃。</span>
+			</div>
+			<div class="home-sidebar-footer">
+				<nav class="home-nav">
+					<a href="#" id="open-about">
+						<span class="lang-en">ABOUT</span>
+						<span class="lang-zh">关于我</span>
+					</a>
+					<a href="#" id="open-contact">
+						<span class="lang-en">SOCIAL MEDIA</span>
+						<span class="lang-zh">社交媒体</span>
+					</a>
+				</nav>
+				<div class="home-copyright">
+					<p>&copy; 2026 Steven Zhang. All Rights Reserved.</p>
+				</div>
+			</div>
+		</aside>
+
+		<!-- Master Archive Cards -->
+		<main class="master-grid">
+			<!-- Card 1: Voyage -->
+			<a href="voyage.html" class="master-card" id="card-voyage">
+				<div class="master-card-bg"></div>
+				<div class="master-card-content">
+					<h2 class="master-card-title">
+						<span class="lang-en">THE VOYAGE ARCHIVE</span>
+						<span class="lang-zh">时空档案室</span>
+					</h2>
+					<p class="master-card-subtitle">
+						<span class="lang-en">Photography & Journeys</span>
+						<span class="lang-zh">摄影与旅程</span>
+					</p>
+				</div>
+			</a>
+
+			<!-- Card 2: Diary -->
+			<a href="diary.html" class="master-card" id="card-diary">
+				<div class="master-card-bg"></div>
+				<div class="master-card-content">
+					<h2 class="master-card-title">
+						<span class="lang-en">DAILY FRAGMENTS</span>
+						<span class="lang-zh">日常切片</span>
+					</h2>
+					<p class="master-card-subtitle">
+						<span class="lang-en">Daily Moments & Shadows</span>
+						<span class="lang-zh">瞬时记录与光影</span>
+					</p>
+				</div>
+			</a>
+
+			<!-- Card 3: Journal -->
+			<a href="journal.html" class="master-card" id="card-journal">
+				<div class="master-card-bg"></div>
+				<div class="master-card-content">
+					<h2 class="master-card-title">
+						<span class="lang-en">THOUGHT FRAGMENTS</span>
+						<span class="lang-zh">思维碎片</span>
+					</h2>
+					<p class="master-card-subtitle">
+						<span class="lang-en">Thoughts & Reflections</span>
+						<span class="lang-zh">思考与沉淀</span>
+					</p>
+				</div>
+			</a>
+		</main>
+
+		<!-- Mobile Footer -->
+		<footer class="home-footer">
+			<p>&copy; 2026 Steven Zhang. All Rights Reserved.</p>
+		</footer>
+	</div>
+
+	<!-- About Modal -->
+	<div id="about-modal" class="home-modal">
+		<div class="home-modal-content">
+			<button class="close-modal" id="close-about">&times;</button>
+			<h2 class="modal-title">
+				<span class="lang-en">About me</span>
+				<span class="lang-zh">关于我</span>
+			</h2>
+			<div class="modal-body">
+				<p>
+					<span class="lang-zh">欢迎来到我的主页。我是 Steven Zhang，一名来自中国的 XMUM（厦门大学马来西亚分校）学生。</span>
+					<span class="lang-en">Welcome to my archive. I'm Steven Zhang, a student from China currently
+						studying at XMUM (Xiamen University Malaysia).</span>
+				</p>
+				<p>
+					<span
+						class="lang-zh">建立这个网站的初衷，是希望能有一个纯粹的角落，去安放我在旅途中捕获的光影切片。对我而言，相机不仅是一台记录仪，更是一台能够让时间倒流、空间重构的时光机。它帮我定格住那些稍纵即逝的瞬间，成为我凝视世界的方式。</span>
+					<span class="lang-en">The original intention of building this website was to create a dedicated
+						sanctuary for the slices of light and shadow captured during my journeys. For me, a camera is
+						not just a recording device; it is a time machine that allows time to reverse and space to
+						reconstruct, freezing fleeting moments as my unique way of gazing at the world.</span>
+				</p>
+				<p>
+					<span class="lang-zh">除了行旅的光影，我也会在这里分享日常的碎屑与一些随笔。如果你在这些影像与文字中找到了共鸣，非常欢迎通过社交媒体与我取得联系，期待与你相遇。</span>
+					<span class="lang-en">Beyond travel photography, I also share daily life fragments and occasional
+						essays here. If you find resonance in my content, please feel free to connect with me via social
+						media. I look forward to hearing from you.</span>
+				</p>
+			</div>
+		</div>
+	</div>
+
+	<!-- Contact Modal -->
+	<div id="contact-modal" class="home-modal">
+		<div class="home-modal-content contact-modal-content">
+			<button class="close-modal" id="close-contact">&times;</button>
+			<div class="contact-header">
+				<h2 class="modal-title">
+					<span class="lang-en">SOCIAL MEDIA</span>
+					<span class="lang-zh">社交媒体</span>
+				</h2>
+				<p class="contact-intro">
+					<span class="lang-en">Walking through the wilderness of time together. Follow my journey and updates
+						here.</span>
+					<span class="lang-zh">在时间的洪流中同行。在这里关注我的日常创作与光影记录。</span>
+				</p>
+			</div>
+			<div class="modal-body">
+				<div class="contact-grid">
+					<a href="https://instagram.com/zhang.lp.28" target="_blank" class="contact-card">
+						<div class="contact-card-info">
+							<span class="contact-platform">Instagram</span>
+							<span class="contact-handle">@zhang.lp.28</span>
+						</div>
+						<div class="contact-arrow">&rarr;</div>
+					</a>
+					<a href="https://v.douyin.com/WNPNUeIn-lg/" target="_blank" class="contact-card">
+						<div class="contact-card-info">
+							<span class="contact-platform"><span class="lang-en">Douyin</span><span
+									class="lang-zh">抖音</span></span>
+							<span class="contact-handle">Little pig</span>
+						</div>
+						<div class="contact-arrow">&rarr;</div>
+					</a>
+				</div>
+			</div>
+		</div>
+	</div>
+
+
+
+	<script src="js/data.js"></script>
+	<script src="js/search.js"></script>
+	<script src="js/share.js"></script>
+	<script>
+
+		// Language Toggle Logic for Home
+		const langToggle = document.getElementById('lang-toggle-home');
+		let currentLang = localStorage.getItem('voyage_lang') || 'zh';
+		document.body.classList.remove('lang-zh', 'lang-en');
+		document.body.classList.add(`lang-${currentLang}`);
+
+		function updateHomeTitle(lang) {
+			if (lang === 'en') {
+				document.title = "STEVEN ZHANG | The Master Archive";
+			} else {
+				document.title = "STEVEN ZHANG | 总档案库";
+			}
+		}
+		updateHomeTitle(currentLang);
+
+		if (langToggle) {
+			langToggle.addEventListener('click', (e) => {
+				e.preventDefault();
+				let newLang = document.body.classList.contains('lang-zh') ? 'en' : 'zh';
+				document.body.classList.remove('lang-zh', 'lang-en');
+				document.body.classList.add(`lang-${newLang}`);
+				localStorage.setItem('voyage_lang', newLang);
+				updateHomeTitle(newLang);
+			});
+		}
+
+		// Prevent Flash of Unstyled Text (FOUT) and ensure transition starts from opacity: 0
+		setTimeout(() => {
+			if (document.fonts) {
+				document.fonts.ready.then(() => {
+					document.body.classList.add('fonts-loaded');
+				});
+				// Fallback in case loading is extremely slow
+				setTimeout(() => {
+					document.body.classList.add('fonts-loaded');
+				}, 1000);
+			} else {
+				document.body.classList.add('fonts-loaded');
+			}
+		}, 80);
+
+		// Modal Toggle Logic
+		const openAbout = document.getElementById('open-about');
+		const openContact = document.getElementById('open-contact');
+		const closeAbout = document.getElementById('close-about');
+		const closeContact = document.getElementById('close-contact');
+		const aboutModal = document.getElementById('about-modal');
+		const contactModal = document.getElementById('contact-modal');
+		const cardDiary = document.getElementById('card-diary');
+		const cardJournal = document.getElementById('card-journal');
+
+		if (openAbout && aboutModal && closeAbout) {
+			openAbout.addEventListener('click', (e) => {
+				e.preventDefault();
+				aboutModal.classList.add('show');
+			});
+			closeAbout.addEventListener('click', () => {
+				aboutModal.classList.remove('show');
+			});
+		}
+
+		if (openContact && contactModal && closeContact) {
+			openContact.addEventListener('click', (e) => {
+				e.preventDefault();
+				contactModal.classList.add('show');
+			});
+			closeContact.addEventListener('click', () => {
+				contactModal.classList.remove('show');
+			});
+		}
+
+		// Close modal if clicking outside content
+		[aboutModal, contactModal].forEach(modal => {
+			if (modal) {
+				modal.addEventListener('click', (e) => {
+					if (e.target === modal) {
+						modal.classList.remove('show');
+					}
+				});
+			}
+		});
+
+		// Dynamically deactivate page cards based on maintenance config
+		if (typeof MAINTENANCE_CONFIG !== 'undefined' && !MAINTENANCE_CONFIG.disableWholeDomain) {
+			const pageCards = {
+				'diary.html': { id: 'card-diary', zh: '内容筹备中', en: 'UNDER CURATION' },
+				'journal.html': { id: 'card-journal', zh: '内容筹备中', en: 'UNDER CURATION' },
+				'voyage.html': { id: 'card-voyage', zh: '维护中', en: 'MAINTENANCE' }
+			};
+
+			Object.keys(pageCards).forEach(pageKey => {
+				if (MAINTENANCE_CONFIG.disabledPages && MAINTENANCE_CONFIG.disabledPages[pageKey]) {
+					const cardConf = pageCards[pageKey];
+					const cardEl = document.getElementById(cardConf.id);
+					if (cardEl) {
+						cardEl.classList.add('card-disabled');
+						cardEl.setAttribute('data-status-zh', cardConf.zh);
+						cardEl.setAttribute('data-status-en', cardConf.en);
+						cardEl.addEventListener('click', (e) => {
+							e.preventDefault();
+							window.location.href = 'maintenance.html?page=' + encodeURIComponent(pageKey);
+						});
+					}
+				}
+			});
+		}
+
+		// Anti-Save Protections
+		document.addEventListener('contextmenu', event => event.preventDefault());
+		document.addEventListener('dragstart', event => {
+			if (event.target.tagName.toLowerCase() === 'img') {
+				event.preventDefault();
+			}
+		});
+		document.addEventListener('keydown', event => {
+			if (event.key === 'F12' ||
+				(event.ctrlKey && event.shiftKey && event.key === 'I') ||
+				(event.metaKey && event.altKey && event.key === 'I') ||
+				(event.ctrlKey && event.key === 'U') ||
+				(event.metaKey && event.key === 'u')) {
+				event.preventDefault();
+			}
+		});
+	</script>
+</body>
+
+</html>
