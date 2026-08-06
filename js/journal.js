@@ -1,7 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     // 1. Language Toggle Logic
-    const langToggle = document.getElementById('lang-toggle');
-    let currentLang = localStorage.getItem('voyage_lang') || 'zh';
+    let currentLang = document.body.classList.contains('lang-en') ? 'en' : 'zh';
     
     // Set initial language class
     document.body.classList.remove('lang-zh', 'lang-en');
@@ -16,20 +15,15 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    if (langToggle) {
-        langToggle.addEventListener('click', (e) => {
-            e.preventDefault();
-            let newLang = document.body.classList.contains('lang-zh') ? 'en' : 'zh';
-            document.body.classList.remove('lang-zh', 'lang-en');
-            document.body.classList.add(`lang-${newLang}`);
-            localStorage.setItem('voyage_lang', newLang);
-            updateJournalTitle(newLang);
-        });
-    }
+    window.addEventListener('site:languagechange', event => {
+        updateJournalTitle(event.detail.lang);
+        renderJournals();
+    });
 
     // 2. Dynamic Content Rendering & Filters
     const journalGrid = document.getElementById('journal-grid');
     const emptyContainer = document.getElementById('journal-empty-container');
+    const filtersPanel = document.querySelector('.journal-sidebar');
     const categoryFilterList = document.getElementById('category-filter');
     const yearFilterList = document.getElementById('year-filter');
 
@@ -40,6 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Hide empty state, show grid
         if (emptyContainer) emptyContainer.style.display = 'none';
         if (journalGrid) journalGrid.style.display = 'grid';
+        if (filtersPanel) filtersPanel.hidden = false;
 
         initFilters();
         renderJournals();
@@ -47,6 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Keep empty state
         if (emptyContainer) emptyContainer.style.display = 'flex';
         if (journalGrid) journalGrid.style.display = 'none';
+        if (filtersPanel) filtersPanel.hidden = true;
     }
 
     function initFilters() {
@@ -79,21 +75,45 @@ document.addEventListener('DOMContentLoaded', () => {
         // Add Event Listeners
         const catItems = categoryFilterList.querySelectorAll('li');
         catItems.forEach(item => {
-            item.addEventListener('click', () => {
+            item.setAttribute('role', 'button');
+            item.tabIndex = 0;
+            item.setAttribute('aria-pressed', item.classList.contains('active') ? 'true' : 'false');
+            const activate = () => {
                 catItems.forEach(i => i.classList.remove('active'));
+                catItems.forEach(i => i.setAttribute('aria-pressed', 'false'));
                 item.classList.add('active');
+                item.setAttribute('aria-pressed', 'true');
                 currentCategory = item.getAttribute('data-category');
                 renderJournals();
+            };
+            item.addEventListener('click', activate);
+            item.addEventListener('keydown', event => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    activate();
+                }
             });
         });
 
         const yearItems = yearFilterList.querySelectorAll('li');
         yearItems.forEach(item => {
-            item.addEventListener('click', () => {
+            item.setAttribute('role', 'button');
+            item.tabIndex = 0;
+            item.setAttribute('aria-pressed', item.classList.contains('active') ? 'true' : 'false');
+            const activate = () => {
                 yearItems.forEach(i => i.classList.remove('active'));
+                yearItems.forEach(i => i.setAttribute('aria-pressed', 'false'));
                 item.classList.add('active');
+                item.setAttribute('aria-pressed', 'true');
                 currentYear = item.getAttribute('data-year');
                 renderJournals();
+            };
+            item.addEventListener('click', activate);
+            item.addEventListener('keydown', event => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    activate();
+                }
             });
         });
     }
@@ -109,6 +129,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         if (filtered.length === 0) {
+            journalGrid.classList.remove('is-single');
             journalGrid.innerHTML = `
                 <div style="grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: 4rem 0;">
                     <span class="lang-zh">暂无相关碎片</span>
@@ -118,35 +139,89 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
+        journalGrid.classList.toggle('is-single', filtered.length === 1);
+
         filtered.forEach((item, index) => {
-            const card = document.createElement('div');
-            card.className = 'analog-card';
+            const card = document.createElement(item.link ? 'a' : 'div');
+            card.className = 'journal-card';
+            if (item.link) {
+                card.href = item.link;
+                card.target = '_blank';
+                card.rel = 'noopener noreferrer';
+                card.setAttribute('aria-label', document.body.classList.contains('lang-en')
+                    ? `Open ${item.titleEn} in a new tab`
+                    : `在新标签页打开${item.titleZh}`);
+            } else {
+                card.setAttribute('role', 'button');
+                card.tabIndex = 0;
+                card.setAttribute('aria-label', document.body.classList.contains('lang-en') ? `Open ${item.titleEn}` : `打开${item.titleZh}`);
+            }
             card.style.animationDelay = `${index * 0.1}s`;
             card.innerHTML = `
-                <div class="card-header" style="text-align: left; border-bottom: 1px solid rgba(0,0,0,0.05); padding-bottom: 0.5rem; margin-bottom: 0.5rem;">
-                    <h3 class="card-title" style="color: var(--card-text); text-align: left; font-size: 1.15rem;">
-                        <span class="lang-zh">${item.titleZh}</span>
+                <div class="journal-card-content">
+                    <p class="journal-card-eyebrow">
+                        <span class="lang-zh">${item.eyebrowZh || item.categoryZh}</span>
+                        <span class="lang-en">${item.eyebrowEn || item.categoryEn}</span>
+                    </p>
+                    <h3 class="journal-card-title">
+                        <span class="lang-zh">${item.titleZhHtml || item.titleZh}</span>
                         <span class="lang-en">${item.titleEn}</span>
                     </h3>
-                    <p class="card-subtitle" style="text-align: left; font-size: 0.75rem;">
-                        <span class="lang-zh">${item.categoryZh} | ${item.date}</span>
-                        <span class="lang-en">${item.categoryEn} | ${item.date}</span>
+                    <p class="journal-card-meta">
+                        <span class="lang-zh">${item.categoryZh}</span>
+                        <span class="lang-en">${item.categoryEn}</span>
+                        <span aria-hidden="true">·</span>
+                        <span>${item.date}</span>
                     </p>
+                    <p class="journal-card-excerpt">
+                        <span class="lang-zh">${item.contentZh}</span>
+                        <span class="lang-en">${item.contentEn}</span>
+                    </p>
+                    <span class="journal-card-action">
+                        <span class="lang-zh">阅读完整文章</span>
+                        <span class="lang-en">READ THE FULL ESSAY</span>
+                        <span class="journal-card-action-arrow" aria-hidden="true">↗</span>
+                    </span>
                 </div>
-                <div class="card-text-excerpt" style="color: var(--card-text-muted); font-size: 0.9rem; line-height: 1.7; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; flex: 1; margin-bottom: 0.5rem; text-align: justify;">
-                    <span class="lang-zh">${item.contentZh}</span>
-                    <span class="lang-en">${item.contentEn}</span>
-                </div>
-                <div class="card-footer" style="margin-top: auto; border-top: 1px solid rgba(0,0,0,0.05); text-align: right; color: var(--card-text-muted); font-family: monospace; font-size: 0.7rem; padding-top: 0.5rem;">
-                    ${item.year}
+                <div class="journal-project-visual" aria-hidden="true">
+                    <span class="project-visual-label">EULER–POISSON INTEGRAL</span>
+                    <div class="project-equation">∫ from −∞ to ∞ e^(−x²) dx = √π</div>
+                    <span class="project-visual-note">
+                        <span class="lang-zh">${item.highlightsZh || ''}</span>
+                        <span class="lang-en">${item.highlightsEn || ''}</span>
+                    </span>
                 </div>
             `;
 
-            card.addEventListener('click', () => {
-                if (typeof window.openEntryDetailModal === 'function') {
-                    window.openEntryDetailModal(item, 'journal');
+            const renderTex = (element, tex, displayMode = false) => {
+                if (!element || !tex || typeof window.katex === 'undefined') return;
+                try {
+                    window.katex.render(tex, element, {
+                        displayMode,
+                        throwOnError: false,
+                        output: 'htmlAndMathml'
+                    });
+                } catch (error) {
+                    // Keep the readable fallback text if KaTeX cannot render.
                 }
-            });
+            };
+
+            renderTex(card.querySelector('.journal-inline-math'), item.titleMathTex, false);
+            renderTex(card.querySelector('.project-equation'), item.formulaTex, true);
+
+            if (!item.link) {
+                card.addEventListener('click', () => {
+                    if (typeof window.openEntryDetailModal === 'function') {
+                        window.openEntryDetailModal(item, 'journal');
+                    }
+                });
+                card.addEventListener('keydown', event => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault();
+                        card.click();
+                    }
+                });
+            }
 
             journalGrid.appendChild(card);
         });
@@ -167,18 +242,4 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }, 80);
 
-    // 4. Anti-Save Protections
-    document.addEventListener('contextmenu', event => event.preventDefault());
-    document.addEventListener('dragstart', event => {
-        if (event.target.tagName.toLowerCase() === 'img') {
-            event.preventDefault();
-        }
-    });
-    document.addEventListener('keydown', event => {
-        if (event.key === 'F12' || 
-           (event.ctrlKey && event.shiftKey && event.key === 'I') || 
-           (event.ctrlKey && event.key === 'u')) {
-            event.preventDefault();
-        }
-    });
 });

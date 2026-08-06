@@ -1,423 +1,150 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html lang="zh-CN">
 <head>
 	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>STEVEN ZHANG | Under Maintenance</title>
-	<meta name="description" content="This archive or page is temporarily under maintenance.">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+	<meta name="theme-color" content="#050509">
+	<meta name="description" content="Steven Zhang 的摄影、旅程、日常与思考档案。">
+	<title>STEVEN ZHANG | The Master Archive</title>
+	
+	<!-- Fonts for premium typography -->
 	<link rel="preconnect" href="https://fonts.googleapis.com">
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-	<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;500&family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
-	<style>
-		:root {
-			--bg-color: #0b0b0b;
-			--text-main: #f4f1ea;
-			--text-muted: #888888;
-			--accent: #d4c4a8;
-			--accent-glow: rgba(212, 196, 168, 0.15);
-		}
-
-		* {
-			box-sizing: border-box;
-			margin: 0;
-			padding: 0;
-		}
-
-		body {
-			background-color: var(--bg-color);
-			color: var(--text-main);
-			font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-			min-height: 100vh;
-			display: flex;
-			flex-direction: column;
-			justify-content: center;
-			align-items: center;
-			overflow: hidden;
-			position: relative;
-			padding: 2rem;
-		}
-
-		/* Glowing ambient background */
-		body::before {
-			content: '';
-			position: absolute;
-			width: 600px;
-			height: 600px;
-			background: radial-gradient(circle, var(--accent-glow) 0%, rgba(11, 11, 11, 0) 70%);
-			top: 50%;
-			left: 50%;
-			transform: translate(-50%, -50%);
-			z-index: 0;
-			pointer-events: none;
-			animation: floatGlow 10s ease-in-out infinite alternate;
-		}
-
-		@keyframes floatGlow {
-			0% {
-				transform: translate(-50%, -50%) scale(1);
-				opacity: 0.8;
-			}
-			100% {
-				transform: translate(-45%, -55%) scale(1.1);
-				opacity: 1;
-			}
-		}
-
-		/* Language Controls */
-		body.lang-en .lang-zh {
-			display: none !important;
-		}
-
-		body.lang-zh .lang-en {
-			display: none !important;
-		}
-
-		/* Header Lang Toggle */
-		.header-nav {
-			position: absolute;
-			top: 2rem;
-			right: 4rem;
-			z-index: 10;
-		}
-
-		@media (max-width: 768px) {
-			.header-nav {
-				right: 2rem;
-			}
-		}
-
-		.lang-toggle-text {
-			color: var(--text-muted);
-			text-decoration: none;
-			font-size: 0.8rem;
-			letter-spacing: 0.15em;
-			transition: color 0.3s;
-			cursor: pointer;
-		}
-
-		.lang-toggle-text:hover {
-			color: var(--accent);
-		}
-
-		/* Main Card Container */
-		.maintenance-container {
-			max-width: 600px;
-			width: 100%;
-			background: rgba(25, 25, 25, 0.45);
-			backdrop-filter: blur(20px);
-			-webkit-backdrop-filter: blur(20px);
-			border: 1px solid rgba(255, 255, 255, 0.05);
-			border-radius: 8px;
-			padding: 4rem 3rem;
-			text-align: center;
-			z-index: 1;
-			box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4);
-			animation: cardFadeIn 1.2s cubic-bezier(0.25, 1, 0.5, 1);
-		}
-
-		@keyframes cardFadeIn {
-			from {
-				opacity: 0;
-				transform: translateY(20px);
-			}
-			to {
-				opacity: 1;
-				transform: translateY(0);
-			}
-		}
-
-		/* Decorative Icon / Visual */
-		.status-visual {
-			margin-bottom: 2.5rem;
-			display: flex;
-			justify-content: center;
-			align-items: center;
-		}
-
-		.status-icon-outer {
-			width: 70px;
-			height: 70px;
-			border: 1px solid rgba(212, 196, 168, 0.2);
-			border-radius: 50%;
-			display: flex;
-			justify-content: center;
-			align-items: center;
-			position: relative;
-		}
-
-		.status-icon-inner {
-			width: 46px;
-			height: 46px;
-			border: 1px solid var(--accent);
-			border-radius: 50%;
-			display: flex;
-			justify-content: center;
-			align-items: center;
-			font-family: monospace;
-			color: var(--accent);
-			font-size: 1.2rem;
-			letter-spacing: 0.05em;
-			animation: pulseBorder 2.5s ease-in-out infinite;
-		}
-
-		@keyframes pulseBorder {
-			0% {
-				box-shadow: 0 0 0 0 rgba(212, 196, 168, 0.2);
-			}
-			70% {
-				box-shadow: 0 0 0 8px rgba(212, 196, 168, 0);
-			}
-			100% {
-				box-shadow: 0 0 0 0 rgba(212, 196, 168, 0);
-			}
-		}
-
-		/* Typography */
-		h1 {
-			font-family: 'Playfair Display', 'Noto Serif SC', 'Songti SC', 'STSong', serif;
-			font-size: clamp(1.6rem, 2.5vw, 2.2rem);
-			font-weight: 400;
-			letter-spacing: 0.1em;
-			margin-bottom: 1.5rem;
-			color: #ffffff;
-			line-height: 1.4;
-		}
-
-		body.lang-zh h1 {
-			letter-spacing: 0.15em;
-		}
-
-		p.description {
-			font-size: 0.95rem;
-			line-height: 1.8;
-			color: var(--text-muted);
-			margin-bottom: 3rem;
-			font-weight: 300;
-		}
-
-		body.lang-zh p.description {
-			letter-spacing: 0.05em;
-		}
-
-		/* Micro-animation: Loading Line */
-		.progress-bar-container {
-			width: 120px;
-			height: 1px;
-			background: rgba(255, 255, 255, 0.08);
-			margin: 0 auto 3rem auto;
-			position: relative;
-			overflow: hidden;
-		}
-
-		.progress-line {
-			width: 60px;
-			height: 100%;
-			background: var(--accent);
-			position: absolute;
-			animation: scanLine 2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
-		}
-
-		@keyframes scanLine {
-			0% {
-				left: -60px;
-			}
-			100% {
-				left: 120px;
-			}
-		}
-
-		/* Navigation & Actions */
-		.actions {
-			display: flex;
-			flex-direction: column;
-			align-items: center;
-			gap: 1.5rem;
-		}
-
-		.btn-primary {
-			background: transparent;
-			color: var(--text-main);
-			border: 1px solid rgba(255, 255, 255, 0.2);
-			padding: 0.75rem 2rem;
-			border-radius: 4px;
-			font-size: 0.8rem;
-			letter-spacing: 0.15em;
-			text-transform: uppercase;
-			text-decoration: none;
-			transition: all 0.3s ease;
-			cursor: pointer;
-		}
-
-		.btn-primary:hover {
-			background: var(--text-main);
-			color: var(--bg-color);
-			border-color: var(--text-main);
-			box-shadow: 0 4px 20px rgba(244, 241, 234, 0.1);
-		}
-
-		.social-links {
-			display: flex;
-			gap: 2rem;
-			list-style: none;
-			justify-content: center;
-		}
-
-		.social-links a {
-			color: var(--text-muted);
-			text-decoration: none;
-			font-size: 0.8rem;
-			letter-spacing: 0.1em;
-			transition: color 0.3s;
-		}
-
-		.social-links a:hover {
-			color: var(--accent);
-		}
-
-		footer {
-			position: absolute;
-			bottom: 2rem;
-			left: 0;
-			right: 0;
-			text-align: center;
-			font-size: 0.75rem;
-			color: rgba(255, 255, 255, 0.2);
-			letter-spacing: 0.05em;
-			z-index: 1;
-		}
-	</style>
+	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&amp;family=Playfair+Display:ital,wght@0,400;0,600;1,400&amp;family=Noto+Serif+SC:wght@300;400;500;600&amp;display=swap" rel="stylesheet">
+	
+	<link rel="stylesheet" href="css/main.css">
 </head>
+<body class="lang-zh single-page">
+	
+	<!-- Header & Navigation -->
+	<header class="main-header">
+		<a class="header-logo" href="index.html" aria-label="Steven Zhang 首页">STEVEN ZHANG</a>
+		<nav class="header-nav">
+			<button id="lang-toggle" class="lang-btn magnetic-btn" type="button" aria-label="Switch to English">
+				<span class="lang-en">中文</span>
+				<span class="lang-zh">ENGLISH</span>
+			</button>
+		</nav>
+	</header>
 
-<body class="lang-zh">
+	<!-- Main Fullscreen Container -->
+	<main class="hub-container">
+		
+		<!-- Background Breathing Orb & Deep Space -->
+		<div class="hero-bg-container">
+			<!-- Deep Space Stars -->
+			<div class="stars-container">
+				<div id="stars"></div>
+				<div id="stars2"></div>
+				<div id="stars3"></div>
+				<div id="stars4"></div>
+				<div id="stars5"></div>
+			</div>
+			<!-- Nebula Orb -->
+			<div class="hero-bg-orb"></div>
+			<div class="hero-bg-overlay"></div>
+		</div>
 
-	<!-- Top Lang Toggle -->
-	<div class="header-nav">
-		<a id="lang-toggle-maint" class="lang-toggle-text">
-			<span class="lang-en">中文</span>
-			<span class="lang-zh">ENGLISH</span>
-		</a>
-	</div>
-
-	<!-- Main Glass Card -->
-	<div class="maintenance-container">
-		<div class="status-visual">
-			<div class="status-icon-outer">
-				<div class="status-icon-inner">▢</div>
+		<!-- Center Content -->
+		<div class="hub-content">
+			<h1 class="hero-title">
+				<span class="title-line title-line-1">THE MASTER</span>
+				<span class="title-line title-line-2">ARCHIVE.</span>
+			</h1>
+			<p class="hero-subtitle">
+				<span class="lang-en">Photography, Design, and Code</span>
+				<span class="lang-zh">摄影 · 设计 · 编程</span>
+			</p>
+			
+			<!-- Fast Navigation Cards -->
+			<div class="nav-cards">
+				<a href="voyage.html" class="nav-card magnetic-card" aria-label="进入时空档案室：摄影与旅程">
+					<div class="card-glow"></div>
+					<h3 class="nav-card-title">
+						<span class="lang-en">THE VOYAGE ARCHIVE</span>
+						<span class="lang-zh">时空档案室</span>
+					</h3>
+					<p class="nav-card-desc">
+						<span class="lang-en">Photography &amp; Journeys</span>
+						<span class="lang-zh">摄影与旅程</span>
+					</p>
+					<div class="nav-card-arrow">↗</div>
+				</a>
+				<a href="diary.html" class="nav-card magnetic-card" aria-label="进入日常切片：瞬时记录与光影">
+					<div class="card-glow"></div>
+					<h3 class="nav-card-title">
+						<span class="lang-en">DAILY FRAGMENTS</span>
+						<span class="lang-zh">日常切片</span>
+					</h3>
+					<p class="nav-card-desc">
+						<span class="lang-en">Daily Moments &amp; Shadows</span>
+						<span class="lang-zh">瞬时记录与光影</span>
+					</p>
+					<div class="nav-card-arrow">↗</div>
+				</a>
+				<a href="journal.html" class="nav-card magnetic-card" aria-label="进入思维碎片：思考与沉淀">
+					<div class="card-glow"></div>
+					<h3 class="nav-card-title">
+						<span class="lang-en">THOUGHT FRAGMENTS</span>
+						<span class="lang-zh">思维碎片</span>
+					</h3>
+					<p class="nav-card-desc">
+						<span class="lang-en">Thoughts &amp; Reflections</span>
+						<span class="lang-zh">思考与沉淀</span>
+					</p>
+					<div class="nav-card-arrow">↗</div>
+				</a>
 			</div>
 		</div>
 
-		<!-- Dynamic Title -->
-		<h1 id="maint-title">
-			<span class="lang-zh">档案库整理中</span>
-			<span class="lang-en">Archive Under Curation</span>
-		</h1>
-
-		<!-- Subtle Progress Bar -->
-		<div class="progress-bar-container">
-			<div class="progress-line"></div>
-		</div>
-
-		<!-- Dynamic Description -->
-		<p class="description" id="maint-desc">
-			<span class="lang-zh">为了提供更好的阅读与视觉体验，该板块正在进行整理与修剪，请稍后再试。</span>
-			<span class="lang-en">To provide a better visual and reading experience, this section is currently being organized. Please try again later.</span>
-		</p>
-
-		<!-- Dynamic Actions -->
-		<div class="actions" id="maint-actions">
-			<!-- Defaults to Back to Hub if subpage is down -->
-			<a href="index.html" class="btn-primary" id="hub-btn">
-				<span class="lang-zh">返回主站</span>
-				<span class="lang-en">Return to Hub</span>
-			</a>
-			
-			<ul class="social-links" id="social-links-list" style="display: none;">
-				<li><a href="https://instagram.com/zhang.lp.28" target="_blank">Instagram</a></li>
-				<li><a href="https://v.douyin.com/WNPNUeIn-lg/" target="_blank">
-					<span class="lang-en">Douyin</span>
+		<!-- Absolute Footer -->
+		<footer class="hub-footer">
+			<div class="social-links">
+				<button id="about-toggle" class="social-btn magnetic-btn" type="button" aria-haspopup="dialog" aria-controls="about-modal" aria-expanded="false">
+					<span class="lang-en">ABOUT</span>
+					<span class="lang-zh">关于我</span>
+				</button>
+				<a href="https://instagram.com/zhang.lp.28" target="_blank" rel="noopener noreferrer" class="social-btn magnetic-btn">INSTAGRAM</a>
+				<a href="https://v.douyin.com/WNPNUeIn-lg/" target="_blank" rel="noopener noreferrer" class="social-btn magnetic-btn">
+					<span class="lang-en">DOUYIN</span>
 					<span class="lang-zh">抖音</span>
-				</a></li>
-			</ul>
+				</a>
+			</div>
+			<div class="footer-copyright">
+				<p>&copy; 2026 Steven Zhang. All Rights Reserved.</p>
+			</div>
+		</footer>
+
+	</main>
+
+	<!-- About Modal -->
+	<div id="about-modal" class="home-modal" role="dialog" aria-modal="true" aria-labelledby="about-title" aria-hidden="true" hidden>
+		<div class="home-modal-content" tabindex="-1">
+			<button class="close-modal" id="close-about" type="button" aria-label="关闭关于我弹窗">&times;</button>
+			<h2 class="modal-title" id="about-title">
+				<span class="lang-en">About Me</span>
+				<span class="lang-zh">关于我</span>
+			</h2>
+			<div class="modal-body">
+				<p>
+					<span class="lang-zh">欢迎来到我的主页。我是 Steven Zhang，一名来自中国的 XMUM（厦门大学马来西亚分校）学生。</span>
+					<span class="lang-en">Welcome to my archive. I'm Steven Zhang, a student from China currently studying at XMUM (Xiamen University Malaysia).</span>
+				</p>
+				<p>
+					<span class="lang-zh">建立这个网站的初衷，是希望能有一个纯粹的角落，去安放我在旅途中捕获的光影切片。对我而言，相机不仅是一台记录仪，更是一台能够让时间倒流、空间重构的时光机。它帮我定格住那些稍纵即逝的瞬间，成为我凝视世界的方式。</span>
+					<span class="lang-en">The original intention of building this website was to create a dedicated sanctuary for the slices of light and shadow captured during my journeys. For me, a camera is not just a recording device; it is a time machine that allows time to reverse and space to reconstruct, freezing fleeting moments as my unique way of gazing at the world.</span>
+				</p>
+				<p>
+					<span class="lang-zh">除了行旅的光影，我也会在这里分享日常的碎屑与一些随笔。如果你在这些影像与文字中找到了共鸣，非常欢迎通过社交媒体与我取得联系，期待与你相遇。</span>
+					<span class="lang-en">Beyond travel photography, I also share daily life fragments and occasional essays here. If you find resonance in my content, please feel free to connect with me via social media. I look forward to hearing from you.</span>
+				</p>
+			</div>
 		</div>
 	</div>
 
-	<footer>
-		<p>&copy; 2026 Steven Zhang. All Rights Reserved.</p>
-	</footer>
-
-	<script>
-		// Language Toggle Logic
-		const langToggle = document.getElementById('lang-toggle-maint');
-		let currentLang = localStorage.getItem('voyage_lang') || 'zh';
-		document.body.className = 'lang-' + currentLang;
-
-		if (langToggle) {
-			langToggle.addEventListener('click', (e) => {
-				e.preventDefault();
-				currentLang = document.body.classList.contains('lang-zh') ? 'en' : 'zh';
-				document.body.className = 'lang-' + currentLang;
-				localStorage.setItem('voyage_lang', currentLang);
-			});
-		}
-
-		// Dynamic page configuration based on URL query parameters
-		(function() {
-			const urlParams = new URLSearchParams(window.location.search);
-			const page = urlParams.get('page');
-			
-			const titleEl = document.getElementById('maint-title');
-			const descEl = document.getElementById('maint-desc');
-			const hubBtn = document.getElementById('hub-btn');
-			const socialLinks = document.getElementById('social-links-list');
-
-			// Custom content based on disabled target
-			if (!page) {
-				// No specific page specified -> Entire website domain maintenance
-				titleEl.innerHTML = `
-					<span class="lang-zh">总档案馆 · 维护中</span>
-					<span class="lang-en">Master Archive · Maintenance</span>
-				`;
-				descEl.innerHTML = `
-					<span class="lang-zh">为了提供更佳的浏览体验，总档案库正在进行系统升级与修剪维护。请稍后再度探访。</span>
-					<span class="lang-en">To ensure a better browsing experience, the Master Archive is currently undergoing system upgrades and pruning. Please visit again later.</span>
-				`;
-				// Hide home button since the hub itself is down; show social media instead
-				hubBtn.style.display = 'none';
-				socialLinks.style.display = 'flex';
-			} else if (page === 'diary.html') {
-				// Daily Fragments specifically disabled
-				titleEl.innerHTML = `
-					<span class="lang-zh">日常切片 · 整理中</span>
-					<span class="lang-en">Daily Fragments · Under Curation</span>
-				`;
-				descEl.innerHTML = `
-					<span class="lang-zh">那些转瞬即逝的瞬间、静谧的光影与日常的碎片，正处于内容整理与筹备中，暂不对外开放。</span>
-					<span class="lang-en">Fleeting moments, quiet shadows, and everyday fragments are currently under curation and organization. Access is temporarily suspended.</span>
-				`;
-			} else if (page === 'journal.html') {
-				// Thought Fragments specifically disabled
-				titleEl.innerHTML = `
-					<span class="lang-zh">思维碎片 · 闭馆中</span>
-					<span class="lang-en">Thought Fragments · Closed</span>
-				`;
-				descEl.innerHTML = `
-					<span class="lang-zh">思维的野地需要修剪与整理，沉淀完成后将重新开放。</span>
-					<span class="lang-en">The wilderness of thoughts is being pruned and organized. It will reopen once the reflections have settled.</span>
-				`;
-			} else {
-				// Generic page maintenance
-				titleEl.innerHTML = `
-					<span class="lang-zh">档案库整理中</span>
-					<span class="lang-en">Archive Under Curation</span>
-				`;
-				descEl.innerHTML = `
-					<span class="lang-zh">为了提供更佳的浏览体验，该板块内容正在修剪与升级中，请稍后再度探访。</span>
-					<span class="lang-en">This section is currently undergoing curation and system upgrades. Please visit again later.</span>
-				`;
-			}
-		})();
-	</script>
+	<!-- Core Libraries -->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+	<!-- Custom Animations -->
+	<script src="js/main.js"></script>
 </body>
-
 </html>

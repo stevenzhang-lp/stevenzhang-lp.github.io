@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+	<title>STEVEN ZHANG | 日常切片 (Daily Fragments)</title>
+	
+	<!-- Fonts -->
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&amp;family=Playfair+Display:ital,wght@0,400;0,600;1,400&amp;family=Noto+Serif+SC:wght@300;400;500;600&amp;display=swap" rel="stylesheet">
+	
+	<link rel="stylesheet" href="css/main.css">
+	
+	<style>
+		/* Specific Overrides for Diary Filters */
+		.filter-group h4 {
+			font-size: 0.85rem;
+			text-transform: uppercase;
+			letter-spacing: 0.1em;
+			color: var(--secondary-text-light);
+			margin-bottom: 0.5rem;
+		}
+		.filter-list {
+			list-style: none;
+			display: flex;
+			gap: 1rem;
+			flex-wrap: wrap;
+		}
+		.filter-list li {
+			cursor: pointer;
+			opacity: 0.5;
+			transition: opacity 0.3s;
+			font-size: 0.9rem;
+		}
+		.filter-list li.active, .filter-list li:hover {
+			opacity: 1;
+			font-weight: 500;
+		}
+		
+		/* Analog Card Style overrides for text-based diary */
+		.analog-card {
+			background: rgba(255, 255, 255, 0.05);
+			border: 1px solid rgba(255, 255, 255, 0.1);
+			border-radius: 16px;
+			padding: 2rem;
+			backdrop-filter: blur(10px);
+			cursor: pointer;
+			transition: transform 0.4s ease, border-color 0.4s ease;
+			display: flex;
+			flex-direction: column;
+		}
+		.analog-card:hover {
+			transform: translateY(-5px);
+			border-color: rgba(255,255,255,0.3);
+		}
+		.card-header {
+			margin-bottom: 1rem;
+			display: flex;
+			justify-content: space-between;
+			align-items: flex-start;
+		}
+		.card-title {
+			font-size: 1.2rem;
+			font-weight: 600;
+		}
+		.card-subtitle {
+			font-size: 0.8rem;
+			color: var(--secondary-text-light);
+			margin-top: 0.2rem;
+		}
+		.diary-excerpt {
+			font-size: 0.95rem;
+			line-height: 1.6;
+			color: var(--text-light);
+			margin-top: 1rem;
+			opacity: 0.9;
+		}
+
+		.diary-sidebar {
+			display: flex;
+			flex-direction: column;
+			gap: 2rem;
+			margin-bottom: 3rem;
+		}
+		@media(min-width: 768px) {
+			.diary-sidebar {
+				flex-direction: row;
+				justify-content: center;
+				gap: 4rem;
+			}
+		}
+
+		.empty-container {
+			display: none;
+			flex-direction: column;
+			align-items: center;
+			justify-content: center;
+			padding: 5rem 0;
+			text-align: center;
+			opacity: 0.5;
+		}
+	</style>
+</head>
+<body class="lang-zh">
+	
+	<!-- Header -->
+	<header class="main-header">
+		<div class="header-logo">
+			<a href="index.html">STEVEN ZHANG</a>
+			<span style="opacity: 0.5; margin-left: 1rem; font-size: 0.8rem;">
+				<span class="lang-en">| DAILY FRAGMENTS</span>
+				<span class="lang-zh">| 日常切片</span>
+			</span>
+		</div>
+		<nav class="header-nav">
+			<button id="lang-toggle" class="lang-btn magnetic-btn">
+				<span class="lang-en">中文</span>
+				<span class="lang-zh">ENGLISH</span>
+			</button>
+		</nav>
+	</header>
+
+	<!-- Deep Space Background (Fixed) -->
+	<div class="hero-bg-container">
+		<div class="stars-container">
+			<div id="stars"></div>
+			<div id="stars2"></div>
+			<div id="stars3"></div>
+			<div id="stars4"></div>
+			<div id="stars5"></div>
+		</div>
+		<div class="hero-bg-orb"></div>
+		<div class="hero-bg-overlay"></div>
+	</div>
+
+	<!-- Content -->
+	<main class="subpage-container">
+		
+		<div class="subpage-header">
+			<h1 class="subpage-title">
+				<span class="lang-en">Daily Fragments</span>
+				<span class="lang-zh">日常切片</span>
+			</h1>
+			<p style="color: var(--secondary-text-light); letter-spacing: 0.1em;">
+				<span class="lang-en">Fleeting moments and everyday visual diaries.</span>
+				<span class="lang-zh">瞬时记录与光影碎屑。</span>
+			</p>
+		</div>
+
+		<!-- Filters -->
+		<aside class="diary-sidebar glass-panel">
+			<div class="filter-group">
+				<h4>
+					<span class="lang-en">Category</span>
+					<span class="lang-zh">分类</span>
+				</h4>
+				<ul class="filter-list" id="category-filter">
+					<!-- Dynamically populated, or hardcoded for now -->
+					<li data-category="ALL" class="active"><span class="lang-en">All</span><span class="lang-zh">全部</span></li>
+					<li data-category="LIFE"><span class="lang-en">Life</span><span class="lang-zh">生活</span></li>
+					<li data-category="CODE"><span class="lang-en">Code</span><span class="lang-zh">代码</span></li>
+					<li data-category="DESIGN"><span class="lang-en">Design</span><span class="lang-zh">设计</span></li>
+				</ul>
+			</div>
+			<div class="filter-group">
+				<h4>
+					<span class="lang-en">Year</span>
+					<span class="lang-zh">年份</span>
+				</h4>
+				<ul class="filter-list" id="year-filter">
+					<li data-year="ALL" class="active"><span class="lang-en">All</span><span class="lang-zh">全部</span></li>
+					<li data-year="2026"><span class="lang-en">2026</span><span class="lang-zh">2026</span></li>
+				</ul>
+			</div>
+		</aside>
+
+		<!-- Empty State -->
+		<div class="empty-container" id="diary-empty-container">
+			<p>
+				<span class="lang-en">No fragments collected yet.</span>
+				<span class="lang-zh">碎片整理中，暂无内容。</span>
+			</p>
+		</div>
+
+		<!-- Grid -->
+		<section class="gallery-grid" id="diary-grid" aria-live="polite" aria-label="日常切片列表" style="grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));"></section>
+
+	</main>
+
+	<!-- Global Footer -->
+	<footer class="site-global-footer">
+		<p>&copy; 2026 STEVEN ZHANG. ALL RIGHTS RESERVED.</p>
+	</footer>
+
+	<!-- Core Libraries -->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+	<!-- Data & App Logic -->
+	<script src="js/data.js"></script>
+	<script src="js/diary.js"></script>
+	<!-- Starfield Parallax -->
+	<script src="js/main.js"></script>
+</body>
+</html>

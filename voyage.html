@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+	<title>STEVEN ZHANG | 时空档案室 (Voyage)</title>
+	
+	<!-- Fonts -->
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&amp;family=Playfair+Display:ital,wght@0,400;0,600;1,400&amp;family=Noto+Serif+SC:wght@300;400;500;600&amp;display=swap" rel="stylesheet">
+	
+	<link rel="stylesheet" href="css/main.css">
+	
+	<!-- Custom styles for subpages specific layout (map, filters, etc) -->
+	<style>
+		/* Voyage Specific Glass Overrides */
+		.filter-group h4 {
+			font-size: 0.85rem;
+			text-transform: uppercase;
+			letter-spacing: 0.1em;
+			color: var(--secondary-text-light);
+			margin-bottom: 0.5rem;
+		}
+		.filter-list {
+			list-style: none;
+			display: flex;
+			gap: 1rem;
+			flex-wrap: wrap;
+		}
+		.filter-list li {
+			cursor: pointer;
+			opacity: 0.5;
+			transition: opacity 0.3s;
+			font-size: 0.9rem;
+		}
+		.filter-list li.active, .filter-list li:hover {
+			opacity: 1;
+			font-weight: 500;
+		}
+		
+		/* Analog Card (from app.js) -> Glassmorphic */
+		.analog-card {
+			background: rgba(255, 255, 255, 0.05);
+			border: 1px solid rgba(255, 255, 255, 0.1);
+			border-radius: 16px;
+			padding: 1rem;
+			backdrop-filter: blur(10px);
+			cursor: pointer;
+			transition: transform 0.4s ease, border-color 0.4s ease;
+		}
+		.analog-card:hover {
+			transform: translateY(-5px);
+			border-color: rgba(255,255,255,0.3);
+		}
+		.card-header {
+			margin-bottom: 1rem;
+		}
+		.card-title {
+			font-size: 1.1rem;
+			font-weight: 500;
+		}
+		.card-subtitle {
+			font-size: 0.8rem;
+			color: var(--secondary-text-light);
+			margin-top: 0.2rem;
+		}
+		.card-image-container {
+			width: 100%;
+			aspect-ratio: 4/3;
+			border-radius: 8px;
+			overflow: hidden;
+			background: #000;
+		}
+		.card-image {
+			width: 100%;
+			height: 100%;
+			object-fit: cover;
+			transition: transform 0.8s ease;
+		}
+		.analog-card:hover .card-image {
+			transform: scale(1.05);
+		}
+		.card-footer {
+			margin-top: 1rem;
+			font-size: 0.75rem;
+			color: var(--secondary-text-light);
+			text-align: right;
+		}
+
+		/* Sidebar / Filters */
+		.voyage-sidebar {
+			display: flex;
+			flex-direction: column;
+			gap: 2rem;
+			margin-bottom: 3rem;
+		}
+		@media(min-width: 768px) {
+			.voyage-sidebar {
+				flex-direction: row;
+				justify-content: center;
+				gap: 4rem;
+			}
+		}
+
+
+		.detail-title {
+			font-size: 1.5rem;
+			font-weight: 600;
+			margin-bottom: 0.5rem;
+		}
+		.detail-story {
+			font-size: 0.95rem;
+			color: #ccc;
+			line-height: 1.6;
+		}
+	</style>
+</head>
+<body class="lang-zh">
+	
+	<!-- Header & Navigation -->
+	<header class="main-header">
+		<div class="header-logo">
+			<a href="index.html">STEVEN ZHANG</a>
+			<span style="opacity: 0.5; margin-left: 1rem; font-size: 0.8rem;">
+				<span class="lang-en">| THE VOYAGE ARCHIVE</span>
+				<span class="lang-zh">| 时空档案室</span>
+			</span>
+		</div>
+		<nav class="header-nav">
+			<button id="lang-toggle" class="lang-btn">
+				<span class="lang-en">中文</span>
+				<span class="lang-zh">ENGLISH</span>
+			</button>
+		</nav>
+	</header>
+
+	<!-- Background Breathing Orb & Deep Space (Fixed) -->
+	<div class="hero-bg-container">
+		<div class="stars-container">
+			<div id="stars"></div>
+			<div id="stars2"></div>
+			<div id="stars3"></div>
+			<div id="stars4"></div>
+			<div id="stars5"></div>
+		</div>
+		<div class="hero-bg-orb"></div>
+		<div class="hero-bg-overlay"></div>
+	</div>
+
+	<!-- Scrollable Content -->
+	<main id="gallery-view" class="subpage-container active">
+		
+		<div class="subpage-header">
+			<h1 class="subpage-title">
+				<span class="lang-en">The Voyage Archive</span>
+				<span class="lang-zh">时空档案室</span>
+			</h1>
+			<p style="color: var(--secondary-text-light); letter-spacing: 0.1em;">
+				<span class="lang-en">Photography &amp; Journeys</span>
+				<span class="lang-zh">摄影与旅程</span>
+			</p>
+		</div>
+
+		<!-- Filters (From original backup) -->
+		<aside class="voyage-sidebar glass-panel">
+			<div class="filter-group">
+				<h4>
+					<span class="lang-en">By Country</span>
+					<span class="lang-zh">按国家</span>
+				</h4>
+				<ul class="filter-list" id="country-filter">
+					<li data-country="ALL" class="active"><span class="lang-en">All</span><span class="lang-zh">全部</span></li>
+					<li data-country="CHINA"><span class="lang-en">China</span><span class="lang-zh">中国</span></li>
+					<li data-country="MALAYSIA"><span class="lang-en">Malaysia</span><span class="lang-zh">马来西亚</span></li>
+					<li data-country="SINGAPORE"><span class="lang-en">Singapore</span><span class="lang-zh">新加坡</span></li>
+				</ul>
+			</div>
+			<div class="filter-group">
+				<h4>
+					<span class="lang-en">Era</span>
+					<span class="lang-zh">年份</span>
+				</h4>
+				<ul class="filter-list" id="era-filter">
+					<li data-era="ALL" class="active"><span class="lang-en">All</span><span class="lang-zh">全部</span></li>
+					<li data-era="2026"><span class="lang-en">2026</span><span class="lang-zh">2026</span></li>
+					<li data-era="2025"><span class="lang-en">2025</span><span class="lang-zh">2025</span></li>
+					<li data-era="<2025"><span class="lang-en">Before 2025</span><span class="lang-zh">2025之前</span></li>
+				</ul>
+			</div>
+		</aside>
+
+		<!-- Gallery Grid (populated by app.js) -->
+		<section class="gallery-grid" id="gallery-grid" aria-live="polite" aria-label="摄影档案列表"></section>
+
+	</main>
+
+	<!-- Detail View (Cinematic Screen) -->
+	<main id="detail-view" class="subpage-container" style="display: none;">
+		
+		<!-- Breadcrumb & Control Bar -->
+		<div class="detail-nav-bar glass-panel" style="display: flex; align-items: center; justify-content: space-between; padding: 0.8rem 1.5rem; border-radius: 16px; margin-bottom: 1.5rem; gap: 0.75rem; flex-wrap: nowrap;">
+			<nav class="breadcrumb-trail" style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; color: rgba(255,255,255,0.7);">
+				<a href="index.html" class="breadcrumb-link" style="color: rgba(255,255,255,0.8); text-decoration: none; display: flex; align-items: center; gap: 0.3rem;">
+					<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+					<span class="lang-en">Home</span><span class="lang-zh">首页</span>
+				</a>
+				<span class="breadcrumb-separator" style="opacity: 0.4;">/</span>
+				<button id="back-btn" class="breadcrumb-link-btn" style="background: none; border: none; color: rgba(255,255,255,0.8); font-size: 0.85rem; cursor: pointer; padding: 0; display: flex; align-items: center; gap: 0.3rem;">
+					<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+					<span class="lang-en">Voyage Archive</span><span class="lang-zh">时空档案室</span>
+				</button>
+				<span class="breadcrumb-separator hide-mobile" style="opacity: 0.4;">/</span>
+				<span id="breadcrumb-current-title" class="breadcrumb-current" style="color: var(--accent, #d4c4a8); font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 260px;"></span>
+			</nav>
+			
+			<div class="detail-actions" style="display: flex; align-items: center; gap: 0.75rem;">
+				<button class="share-btn glass-btn-prominent" id="voyage-share-btn" style="padding: 0.55rem 1.25rem; border-radius: 12px; cursor: pointer; color: white; display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; font-weight: 500; background: rgba(255, 255, 255, 0.12); border: 1px solid rgba(255, 255, 255, 0.25); transition: all 0.3s ease;">
+					<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+						<path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path>
+						<polyline points="16 6 12 2 8 6"></polyline>
+						<line x1="12" y1="2" x2="12" y2="15"></line>
+					</svg>
+					<span class="lang-en">SHARE</span><span class="lang-zh">分享档案</span>
+				</button>
+			</div>
+		</div>
+
+		<div class="hero-section" id="detail-hero" style="position: relative; width: 100%; height: 550px; max-height: 70vh; border-radius: 24px; overflow: hidden; margin-bottom: 2rem;">
+			<div class="hero-bg-image" id="detail-hero-bg" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-size: cover; background-position: center;"></div>
+			
+			<div class="hero-overlay" style="position: absolute; bottom: 0; left: 0; width: 100%; padding: 2rem; background: linear-gradient(to top, rgba(0,0,0,0.8), transparent); color: white;">
+				<h1 class="hero-title subpage-title" id="detail-title">TITLE</h1>
+				<p class="hero-subtitle" id="detail-subtitle">DATE</p>
+			</div>
+		</div>
+
+		<div class="detail-content glass-panel">
+			<div class="story-section" style="margin-bottom: 3rem;">
+				<h2 class="story-heading" style="color: var(--secondary-text-light); font-size: 0.9rem; letter-spacing: 0.1em; margin-bottom: 1rem;">
+					<span class="lang-en">THE NARRATIVE</span>
+					<span class="lang-zh">背后的故事</span>
+				</h2>
+				<h3 class="story-title-display" id="detail-story-title" style="font-size: 1.5rem; margin-bottom: 1rem;"></h3>
+				<p class="story-text" id="detail-story" style="line-height: 1.8; color: #ddd;"></p>
+			</div>
+
+			<section class="location-section" aria-labelledby="location-section-title">
+				<h3 class="section-eyebrow" id="location-section-title">
+					<span class="lang-en">LOCATION</span>
+					<span class="lang-zh">地点信息</span>
+				</h3>
+				<div class="location-card">
+					<div class="location-identity">
+						<div class="location-pin-icon" aria-hidden="true">
+							<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+								<path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"></path>
+								<circle cx="12" cy="10" r="2.5"></circle>
+							</svg>
+						</div>
+						<div>
+							<p class="location-kicker">
+								<span class="lang-en">APPROXIMATE SHOOTING AREA</span>
+								<span class="lang-zh">大致拍摄区域</span>
+							</p>
+							<h4 class="location-name" id="detail-location-name"></h4>
+							<p class="location-country" id="detail-location-country"></p>
+						</div>
+					</div>
+
+					<div class="location-coordinates">
+						<span class="coordinate-label">
+							<span class="lang-en">REGIONAL COORDINATES</span>
+							<span class="lang-zh">区域坐标</span>
+						</span>
+						<strong id="detail-location-coordinates">—</strong>
+					</div>
+
+					<div class="location-plot" aria-hidden="true">
+						<span class="location-plot-axis axis-horizontal"></span>
+						<span class="location-plot-axis axis-vertical"></span>
+						<span class="location-plot-pin" id="detail-location-pin"></span>
+					</div>
+				</div>
+				<p class="location-disclaimer">
+					<span class="lang-en">Location is shown at regional level to preserve privacy and may not represent the exact camera position.</span>
+					<span class="lang-zh">为保护隐私，仅展示区域级位置，不代表相机的精确拍摄点。</span>
+				</p>
+			</section>
+
+			<h3 class="other-perspectives-title" style="color: var(--secondary-text-light); font-size: 0.9rem; letter-spacing: 0.1em; margin-bottom: 1.2rem;">
+				<span class="lang-en">THE COMPLETE SERIES</span>
+				<span class="lang-zh">完整影集</span>
+			</h3>
+			<div class="masonry-grid" id="detail-masonry" style="display: flex; gap: 1rem; overflow-x: auto; padding-bottom: 0.5rem;">
+			</div>
+			<div class="scroll-hint-container" style="text-align: center; margin-top: 0.8rem;">
+				<span class="scroll-hint" style="font-size: 0.75rem; color: rgba(255,255,255,0.4); font-weight: normal; letter-spacing: 0.05em; text-transform: none;">
+					<span class="lang-en">← Swipe or drag to view more →</span>
+					<span class="lang-zh">← 左右滑动查看更多 →</span>
+				</span>
+			</div>
+		</div>
+	</main>
+
+	<!-- Global Footer -->
+	<footer class="site-global-footer">
+		<p>&copy; 2026 STEVEN ZHANG. ALL RIGHTS RESERVED.</p>
+	</footer>
+
+	<!-- Lightbox for clicking images in masonry -->
+	<div id="lightbox" class="lightbox" role="dialog" aria-modal="true" aria-label="图片预览" aria-hidden="true" hidden>
+		<button class="close-lightbox" id="close-lightbox" type="button" aria-label="关闭图片预览">&times;</button>
+		<img class="lightbox-content" id="lightbox-img" alt="">
+	</div>
+
+	<!-- Core Libraries -->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+	<!-- Data & App Logic -->
+	<script src="js/data.js"></script>
+	<script src="js/app.js"></script>
+	<!-- Share Feature -->
+	<script src="js/share.js"></script>
+	<!-- Starfield Parallax -->
+	<script src="js/main.js"></script>
+</body>
+</html>

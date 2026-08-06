@@ -14,7 +14,27 @@ const photos = [
 
 const diaries = [];
 
-const journals = [];
+const journals = [
+    {
+        id: 1,
+        eyebrowZh: 'MAT103 · 微积分故事',
+        eyebrowEn: 'MAT103 · CALCULUS STORIES',
+        titleZh: '高斯积分：三种通往 √π 的路径',
+        titleZhHtml: '高斯积分：三种通往 <span class="journal-inline-math">√π</span> 的路径',
+        titleEn: 'The Gaussian Integral',
+        titleMathTex: '\\sqrt{\\pi}',
+        categoryZh: '数学',
+        categoryEn: 'MATHEMATICS',
+        date: '2026',
+        year: '2026',
+        contentZh: '从高斯分布与数学史出发，沿极坐标、费曼参数法和伽马函数三条路径推导经典欧拉–泊松积分，并进一步讨论菲涅尔积分、多维推广，以及它在统计学和物理学中的应用。',
+        contentEn: 'Beginning with the Gaussian distribution and its history, this essay follows three paths—polar coordinates, Feynman’s parameter method, and the Gamma function—before exploring Fresnel integrals, multidimensional generalizations, statistics, and physics.',
+        highlightsZh: '三种证明 · 推广 · 统计与物理应用',
+        highlightsEn: 'THREE PROOFS · GENERALIZATIONS · APPLICATIONS',
+        formulaTex: '\\int_{-\\infty}^{\\infty} e^{-x^2}\\,dx = \\sqrt{\\pi}',
+        link: 'https://stevenzhangym.com/calculus-project/'
+    }
+];
 
 const locationMap = {
     'CHINA·TAIPEI': { enTitle: 'TAIPEI', zhTitle: '台北', enSub: 'CHINA', zhSub: '中国' },

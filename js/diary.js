@@ -1,7 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     // 1. Language Toggle Logic
-    const langToggle = document.getElementById('lang-toggle');
-    let currentLang = localStorage.getItem('voyage_lang') || 'zh';
+    let currentLang = document.body.classList.contains('lang-en') ? 'en' : 'zh';
     
     // Set initial language class
     document.body.classList.remove('lang-zh', 'lang-en');
@@ -16,16 +15,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    if (langToggle) {
-        langToggle.addEventListener('click', (e) => {
-            e.preventDefault();
-            let newLang = document.body.classList.contains('lang-zh') ? 'en' : 'zh';
-            document.body.classList.remove('lang-zh', 'lang-en');
-            document.body.classList.add(`lang-${newLang}`);
-            localStorage.setItem('voyage_lang', newLang);
-            updateDiaryTitle(newLang);
-        });
-    }
+    window.addEventListener('site:languagechange', event => {
+        updateDiaryTitle(event.detail.lang);
+        renderDiaries();
+    });
 
     // 2. Dynamic Content Rendering & Filters
     const diaryGrid = document.getElementById('diary-grid');
@@ -79,21 +72,45 @@ document.addEventListener('DOMContentLoaded', () => {
         // Add Event Listeners
         const catItems = categoryFilterList.querySelectorAll('li');
         catItems.forEach(item => {
-            item.addEventListener('click', () => {
+            item.setAttribute('role', 'button');
+            item.tabIndex = 0;
+            item.setAttribute('aria-pressed', item.classList.contains('active') ? 'true' : 'false');
+            const activate = () => {
                 catItems.forEach(i => i.classList.remove('active'));
+                catItems.forEach(i => i.setAttribute('aria-pressed', 'false'));
                 item.classList.add('active');
+                item.setAttribute('aria-pressed', 'true');
                 currentCategory = item.getAttribute('data-category');
                 renderDiaries();
+            };
+            item.addEventListener('click', activate);
+            item.addEventListener('keydown', event => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    activate();
+                }
             });
         });
 
         const yearItems = yearFilterList.querySelectorAll('li');
         yearItems.forEach(item => {
-            item.addEventListener('click', () => {
+            item.setAttribute('role', 'button');
+            item.tabIndex = 0;
+            item.setAttribute('aria-pressed', item.classList.contains('active') ? 'true' : 'false');
+            const activate = () => {
                 yearItems.forEach(i => i.classList.remove('active'));
+                yearItems.forEach(i => i.setAttribute('aria-pressed', 'false'));
                 item.classList.add('active');
+                item.setAttribute('aria-pressed', 'true');
                 currentYear = item.getAttribute('data-year');
                 renderDiaries();
+            };
+            item.addEventListener('click', activate);
+            item.addEventListener('keydown', event => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    activate();
+                }
             });
         });
     }
@@ -121,6 +138,9 @@ document.addEventListener('DOMContentLoaded', () => {
         filtered.forEach((item, index) => {
             const card = document.createElement('div');
             card.className = 'analog-card';
+            card.setAttribute('role', 'button');
+            card.tabIndex = 0;
+            card.setAttribute('aria-label', document.body.classList.contains('lang-en') ? `Open ${item.titleEn}` : `打开${item.titleZh}`);
             card.style.animationDelay = `${index * 0.1}s`;
             card.innerHTML = `
                 <div class="card-header">
@@ -144,6 +164,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     window.openEntryDetailModal(item, 'diary');
                 }
             });
+            card.addEventListener('keydown', event => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    card.click();
+                }
+            });
 
             diaryGrid.appendChild(card);
         });
@@ -164,18 +190,4 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }, 80);
 
-    // 4. Anti-Save Protections
-    document.addEventListener('contextmenu', event => event.preventDefault());
-    document.addEventListener('dragstart', event => {
-        if (event.target.tagName.toLowerCase() === 'img') {
-            event.preventDefault();
-        }
-    });
-    document.addEventListener('keydown', event => {
-        if (event.key === 'F12' || 
-           (event.ctrlKey && event.shiftKey && event.key === 'I') || 
-           (event.ctrlKey && event.key === 'u')) {
-            event.preventDefault();
-        }
-    });
 });

@@ -44,6 +44,8 @@
             toast = document.createElement('div');
             toast.id = 'share-toast';
             toast.className = 'share-toast';
+            toast.setAttribute('role', 'status');
+            toast.setAttribute('aria-live', 'polite');
             document.body.appendChild(toast);
         }
 
@@ -53,6 +55,12 @@
         setTimeout(() => {
             toast.classList.remove('show');
         }, 2500);
+    }
+
+    function truncateText(text, maxLength) {
+        const normalized = String(text || '').replace(/\s+/g, ' ').trim();
+        if (normalized.length <= maxLength) return normalized;
+        return `${normalized.slice(0, maxLength).trim()}…`;
     }
 
     // Main share modal function
@@ -90,8 +98,8 @@
             if (typeof parseLocation === 'function' && typeof parseDate === 'function') {
                 const loc = parseLocation(item.location);
                 const dateLoc = parseDate(item.date);
-                locationZh = `${loc.zhSub} | ${dateLoc.zh}`;
-                locationEn = `${loc.enSub} | ${dateLoc.en}`;
+                locationZh = `${loc.zhSub} · ${loc.zhTitle} | ${dateLoc.zh}`;
+                locationEn = `${loc.enSub} · ${loc.enTitle} | ${dateLoc.en}`;
             } else {
                 locationZh = item.location || "";
                 locationEn = item.location || "";
@@ -103,8 +111,8 @@
             locationEn = `${catEn}${item.date || ""}`;
         }
 
-        const contentZh = (type === 'voyage' ? item.storyZh : item.contentZh) || "";
-        const contentEn = (type === 'voyage' ? item.storyEn : item.contentEn) || "";
+        const contentZh = truncateText((type === 'voyage' ? item.storyZh : item.contentZh) || "", 180);
+        const contentEn = truncateText((type === 'voyage' ? item.storyEn : item.contentEn) || "", 260);
 
         return `
             <div class="share-poster-card style-${style}">
@@ -115,7 +123,7 @@
                     
                     ${item.image ? `
                         <div class="poster-image-container">
-                            <img src="${item.image}" class="poster-image" alt="Poster Image">
+                            <img src="${item.image}" class="poster-image" alt="">
                         </div>
                     ` : `
                         <div class="poster-text-art">
@@ -139,6 +147,8 @@
                             : `<p class="poster-text-zh">${contentZh || contentEn || ''}</p>`
                         }
                     </div>
+
+                    ${type === 'voyage' && item.exif ? `<div class="poster-exif">${item.exif}</div>` : ''}
                     
                     <div class="poster-footer">
                         <div class="poster-footer-branding">
@@ -160,6 +170,7 @@
         const initialLang = document.body.classList.contains('lang-en') ? 'en' : 'zh';
         let currentModalLang = initialLang;
         let currentPosterStyle = 'classic';
+        const returnFocus = document.activeElement;
         
         // Show loading state toast
         showToast("正在载入分享组件...", "Loading share components...");
@@ -178,9 +189,14 @@
             // Fallback for file:// or offline mode
             baseUrl = 'https://stevenzhangym.com';
         }
-        const shareUrl = item.isPage 
+        const pageByType = {
+            voyage: 'voyage.html',
+            diary: 'diary.html',
+            journal: 'journal.html'
+        };
+        const shareUrl = item.isPage
             ? `${baseUrl}/${item.pagePath}`
-            : `${baseUrl}/share.html?type=${type}&id=${item.id}`;
+            : `${baseUrl}/${pageByType[type] || 'index.html'}?id=${encodeURIComponent(item.id)}`;
 
         // 3. Inject share modal markup if not present
         let modal = document.getElementById('share-popup-modal');
@@ -189,6 +205,12 @@
             modal.id = 'share-popup-modal';
             document.body.appendChild(modal);
         }
+        window.clearTimeout(modal._shareCloseTimer);
+        modal.hidden = false;
+        modal.setAttribute('role', 'dialog');
+        modal.setAttribute('aria-modal', 'true');
+        modal.setAttribute('aria-labelledby', 'share-modal-title');
+        modal.setAttribute('aria-hidden', 'false');
         // Set the active class on modal
         modal.className = `share-popup-modal modal-lang-${currentModalLang}`;
 
@@ -214,72 +236,81 @@
 
         // Render modal UI
         modal.innerHTML = `
-            <div class="share-popup-content">
-                <button class="share-close-btn" id="share-modal-close">&times;</button>
-                
-                <div class="share-layout">
-                    <!-- Left: Poster Preview (Responsive CSS) -->
-                    <div class="share-preview-column">
-                        <div class="share-card-preview" id="share-card-preview-node">
-                            ${createPosterCardMarkup(item, type, currentModalLang, 'preview-qrcode', currentPosterStyle)}
-                        </div>
-                    </div>
-
-                    <!-- Right: Share Controls -->
-                    <div class="share-controls-column">
-                        <h2 class="share-modal-title">
+            <div class="share-popup-content glass-panel" tabindex="-1">
+                <header class="share-modal-header">
+                    <div>
+                        <p class="share-modal-eyebrow">
+                            <span class="lang-zh">创建分享</span><span class="lang-en">CREATE &amp; SHARE</span>
+                        </p>
+                        <h2 class="share-modal-title" id="share-modal-title">
                             <span class="lang-zh">${labels.titleZh}</span>
                             <span class="lang-en">${labels.titleEn}</span>
                         </h2>
                         <p class="share-modal-desc">
-                            <span class="lang-zh">${labels.descZh}</span>
-                            <span class="lang-en">${labels.descEn}</span>
+                            <span class="lang-zh">预览并定制你的档案海报。</span>
+                            <span class="lang-en">Preview and customize your archive poster.</span>
                         </p>
+                    </div>
+                    <button class="share-close-btn" id="share-modal-close" type="button" aria-label="${currentModalLang === 'en' ? labels.closeEn : labels.closeZh}">&times;</button>
+                </header>
 
-                        <!-- Language Switcher Selector -->
-                        <div class="share-lang-selector" style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px;">
-                            <span class="share-lang-label" style="font-size: 0.75rem; color: rgba(255, 255, 255, 0.4); text-transform: uppercase; letter-spacing: 0.1em; font-weight: 500;">
-                                <span class="lang-zh">分享语言</span>
-                                <span class="lang-en">Language</span>
-                            </span>
-                            <div class="share-lang-btn-group" style="display: flex; gap: 6px; background: rgba(255, 255, 255, 0.05); padding: 3px; border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.03);">
-                                <button class="share-lang-btn ${currentModalLang === 'zh' ? 'active' : ''}" data-lang="zh">中文</button>
-                                <button class="share-lang-btn ${currentModalLang === 'en' ? 'active' : ''}" data-lang="en">EN</button>
+                <div class="share-layout">
+                    <section class="share-preview-column" aria-label="Poster preview">
+                        <div class="share-preview-toolbar">
+                            <span><span class="lang-zh">海报预览</span><span class="lang-en">POSTER PREVIEW</span></span>
+                            <span>PNG · 1200 PX</span>
+                        </div>
+                        <div class="share-preview-container">
+                            <div class="share-card-preview" id="share-card-preview-node">
+                                ${createPosterCardMarkup(item, type, currentModalLang, 'preview-qrcode', currentPosterStyle)}
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="share-controls-column">
+                        <div class="share-control-section">
+                            <span class="share-control-label"><span class="lang-zh">海报语言</span><span class="lang-en">POSTER LANGUAGE</span></span>
+                            <div class="share-lang-btn-group glass-pill-group" role="group" aria-label="Poster language">
+                                <button type="button" class="share-lang-btn glass-pill-btn ${currentModalLang === 'zh' ? 'active' : ''}" data-lang="zh" aria-pressed="${currentModalLang === 'zh'}">中文</button>
+                                <button type="button" class="share-lang-btn glass-pill-btn ${currentModalLang === 'en' ? 'active' : ''}" data-lang="en" aria-pressed="${currentModalLang === 'en'}">ENGLISH</button>
                             </div>
                         </div>
 
-                        <!-- Poster Style Selector -->
-                        <div class="share-style-selector" style="display: flex; align-items: center; gap: 12px; margin-bottom: 24px;">
-                            <span class="share-style-label" style="font-size: 0.75rem; color: rgba(255, 255, 255, 0.4); text-transform: uppercase; letter-spacing: 0.1em; font-weight: 500;">
-                                <span class="lang-zh">卡片风格</span>
-                                <span class="lang-en">Style</span>
-                            </span>
-                            <div class="share-style-btn-group" style="display: flex; gap: 6px; background: rgba(255, 255, 255, 0.05); padding: 3px; border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.03);">
-                                <button class="share-style-btn ${currentPosterStyle === 'classic' ? 'active' : ''}" data-style="classic">
-                                    <span class="lang-zh">经典</span><span class="lang-en">Classic</span>
+                        <div class="share-control-section">
+                            <span class="share-control-label"><span class="lang-zh">视觉风格</span><span class="lang-en">VISUAL STYLE</span></span>
+                            <div class="share-style-btn-group glass-pill-group" role="group" aria-label="Poster style">
+                                <button type="button" class="share-style-btn glass-pill-btn ${currentPosterStyle === 'classic' ? 'active' : ''}" data-style="classic" aria-pressed="${currentPosterStyle === 'classic'}">
+                                    <span class="lang-zh">深色经典</span><span class="lang-en">Dark Classic</span>
                                 </button>
-                                <button class="share-style-btn ${currentPosterStyle === 'minimal' ? 'active' : ''}" data-style="minimal">
-                                    <span class="lang-zh">极简</span><span class="lang-en">Minimal</span>
-                                </button>
-                                <button class="share-style-btn ${currentPosterStyle === 'polaroid' ? 'active' : ''}" data-style="polaroid">
-                                    <span class="lang-zh">拍立得</span><span class="lang-en">Polaroid</span>
+                                <button type="button" class="share-style-btn glass-pill-btn ${currentPosterStyle === 'minimal' ? 'active' : ''}" data-style="minimal" aria-pressed="${currentPosterStyle === 'minimal'}">
+                                    <span class="lang-zh">纸张极简</span><span class="lang-en">Paper Minimal</span>
                                 </button>
                             </div>
+                        </div>
+
+                        <div class="share-link-preview" title="${shareUrl}">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+                            <span>${shareUrl}</span>
                         </div>
 
                         <div class="share-action-buttons">
-                            <button class="share-action-btn copy-btn" id="share-copy-btn">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="btn-icon"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                            <button type="button" class="share-action-btn copy-btn glass-btn" id="share-copy-btn">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
                                 <span class="lang-zh">${labels.copyZh}</span>
                                 <span class="lang-en">${labels.copyEn}</span>
                             </button>
-                            <button class="share-action-btn image-btn" id="share-image-btn">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="btn-icon"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                            <button type="button" class="share-action-btn image-btn glass-btn glass-btn-primary" id="share-image-btn">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
                                 <span class="lang-zh">${labels.imageZh}</span>
                                 <span class="lang-en">${labels.imageEn}</span>
                             </button>
                         </div>
-                    </div>
+
+                        <p class="share-privacy-note">
+                            <span class="lang-zh">二维码仅包含当前档案链接，不包含精确拍摄位置。</span>
+                            <span class="lang-en">The QR code contains only the archive link, never the exact shooting location.</span>
+                        </p>
+                    </section>
                 </div>
             </div>
 
@@ -328,9 +359,16 @@
         // Initial generation of QR Codes
         generateQRCodes();
 
-        // Show Modal
-        modal.classList.add('show');
-        document.body.style.overflow = 'hidden';
+        // Show modal from a painted initial state so the transition is visible.
+        const scrollbarWidth = Math.max(0, window.innerWidth - document.documentElement.clientWidth);
+        document.documentElement.style.setProperty('--scrollbar-compensation', `${scrollbarWidth}px`);
+        document.body.classList.add('modal-open');
+        window.requestAnimationFrame(() => {
+            window.requestAnimationFrame(() => {
+                modal.classList.add('show');
+                modal.querySelector('#share-modal-close')?.focus({ preventScroll: true });
+            });
+        });
 
         // Bind language switching event listeners
         const langBtns = modal.querySelectorAll('.share-lang-btn');
@@ -342,8 +380,12 @@
                 currentModalLang = targetLang;
 
                 // Update active state of language switcher buttons
-                langBtns.forEach(b => b.classList.remove('active'));
+                langBtns.forEach(b => {
+                    b.classList.remove('active');
+                    b.setAttribute('aria-pressed', 'false');
+                });
                 btn.classList.add('active');
+                btn.setAttribute('aria-pressed', 'true');
 
                 // Update modal wrapper classes to toggle language
                 modal.className = `share-popup-modal modal-lang-${currentModalLang} show`;
@@ -374,8 +416,12 @@
                 currentPosterStyle = targetStyle;
 
                 // Update active state of style switcher buttons
-                styleBtns.forEach(b => b.classList.remove('active'));
+                styleBtns.forEach(b => {
+                    b.classList.remove('active');
+                    b.setAttribute('aria-pressed', 'false');
+                });
                 btn.classList.add('active');
+                btn.setAttribute('aria-pressed', 'true');
 
                 // Re-render poster nodes with new style
                 const previewContainer = document.getElementById('share-card-preview-node');
@@ -396,17 +442,45 @@
         // Close handlers
         const closeBtn = document.getElementById('share-modal-close');
         const closeModal = () => {
+            if (modal.hidden) return;
+            window.clearTimeout(modal._shareCloseTimer);
             modal.classList.remove('show');
-            document.body.style.overflow = '';
-            // Remove the poster capture node from DOM to keep it clean
-            const captureNode = document.getElementById('share-poster-capture');
-            if (captureNode) captureNode.remove();
+            modal.setAttribute('aria-hidden', 'true');
+            modal._shareCloseTimer = window.setTimeout(() => {
+                modal.hidden = true;
+                document.body.classList.remove('modal-open');
+                document.documentElement.style.removeProperty('--scrollbar-compensation');
+                document.removeEventListener('keydown', handleModalKeydown);
+                if (returnFocus instanceof HTMLElement) returnFocus.focus({ preventScroll: true });
+            }, 320);
+        };
+
+        const handleModalKeydown = (event) => {
+            if (event.key === 'Escape') {
+                event.preventDefault();
+                closeModal();
+                return;
+            }
+            if (event.key !== 'Tab') return;
+
+            const focusable = [...modal.querySelectorAll('button:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])')];
+            if (!focusable.length) return;
+            const first = focusable[0];
+            const last = focusable[focusable.length - 1];
+            if (event.shiftKey && document.activeElement === first) {
+                event.preventDefault();
+                last.focus();
+            } else if (!event.shiftKey && document.activeElement === last) {
+                event.preventDefault();
+                first.focus();
+            }
         };
 
         closeBtn.addEventListener('click', closeModal);
         modal.addEventListener('click', (e) => {
             if (e.target === modal) closeModal();
         });
+        document.addEventListener('keydown', handleModalKeydown);
 
         // Copy Link Action
         document.getElementById('share-copy-btn').addEventListener('click', async () => {

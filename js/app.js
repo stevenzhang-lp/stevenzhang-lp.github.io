@@ -41,6 +41,9 @@ function initGallery(countryFilter = 'ALL', eraFilter = 'ALL') {
         const dateLoc = parseDate(photo.date);
         const card = document.createElement('div');
         card.className = 'analog-card';
+        card.setAttribute('role', 'button');
+        card.tabIndex = 0;
+        card.setAttribute('aria-label', document.body.classList.contains('lang-en') ? `Open ${loc.enTitle}` : `打开${loc.zhTitle}`);
         card.style.animationDelay = `${index * 0.1}s`;
 
         card.innerHTML = `
@@ -61,6 +64,12 @@ function initGallery(countryFilter = 'ALL', eraFilter = 'ALL') {
         `;
 
         card.addEventListener('click', () => openDetail(photo));
+        card.addEventListener('keydown', event => {
+            if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                openDetail(photo);
+            }
+        });
         grid.appendChild(card);
     });
 }
@@ -186,6 +195,9 @@ function initMapView() {
         const pinG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
         pinG.setAttribute('class', 'map-pin-group');
         pinG.setAttribute('data-coords', key);
+        pinG.setAttribute('role', 'button');
+        pinG.setAttribute('tabindex', '0');
+        pinG.setAttribute('aria-label', 'Open location archive');
         
         pinG.innerHTML = `
             <circle class="map-pin-pulse" cx="${x}" cy="${y}" />
@@ -207,6 +219,12 @@ function initMapView() {
             const matchingPhoto = getFirstMatchingPhotoInGroup(key);
             if (matchingPhoto) {
                 openDetail(matchingPhoto, true);
+            }
+        });
+        pinG.addEventListener('keydown', event => {
+            if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                pinG.dispatchEvent(new MouseEvent('click', { bubbles: true }));
             }
         });
         
@@ -597,10 +615,30 @@ function setupFilters() {
     const countryItems = document.querySelectorAll('#country-filter li');
     const eraItems = document.querySelectorAll('#era-filter li');
 
-    countryItems.forEach(item => {
-        item.addEventListener('click', () => {
-            countryItems.forEach(i => i.classList.remove('active'));
+    const prepareFilter = (item, items, activate) => {
+        item.setAttribute('role', 'button');
+        item.tabIndex = 0;
+        item.setAttribute('aria-pressed', item.classList.contains('active') ? 'true' : 'false');
+        const run = () => {
+            items.forEach(option => {
+                option.classList.remove('active');
+                option.setAttribute('aria-pressed', 'false');
+            });
             item.classList.add('active');
+            item.setAttribute('aria-pressed', 'true');
+            activate();
+        };
+        item.addEventListener('click', run);
+        item.addEventListener('keydown', event => {
+            if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                run();
+            }
+        });
+    };
+
+    countryItems.forEach(item => {
+        prepareFilter(item, countryItems, () => {
             currentCountry = item.getAttribute('data-country');
             if (currentViewMode === 'grid') {
                 initGallery(currentCountry, currentEra);
@@ -611,9 +649,7 @@ function setupFilters() {
     });
 
     eraItems.forEach(item => {
-        item.addEventListener('click', () => {
-            eraItems.forEach(i => i.classList.remove('active'));
-            item.classList.add('active');
+        prepareFilter(item, eraItems, () => {
             currentEra = item.getAttribute('data-era');
             if (currentViewMode === 'grid') {
                 initGallery(currentCountry, currentEra);
@@ -626,9 +662,7 @@ function setupFilters() {
     // Wire up View Toggle
     const viewToggleItems = document.querySelectorAll('#view-toggle li');
     viewToggleItems.forEach(item => {
-        item.addEventListener('click', () => {
-            viewToggleItems.forEach(i => i.classList.remove('active'));
-            item.classList.add('active');
+        prepareFilter(item, viewToggleItems, () => {
             currentViewMode = item.getAttribute('data-view');
             
             const gridView = document.getElementById('gallery-grid');
@@ -649,6 +683,12 @@ function setupFilters() {
 }
 
 function openDetail(photo, instant = false) {
+    // Update browser URL in-place without page reload
+    const targetSearch = `?id=${photo.id}`;
+    if (window.location.search !== targetSearch) {
+        history.pushState({ id: photo.id }, '', `voyage.html${targetSearch}`);
+    }
+    
     activePhoto = photo;
     updateVoyageTitle(safeStorage.getItem('voyage_lang') || 'zh');
 
@@ -665,6 +705,35 @@ function openDetail(photo, instant = false) {
     document.getElementById('detail-story-title').innerHTML = `<span class="lang-en">${photo.titleEn}</span><span class="lang-zh">${photo.titleZh}</span>`;
     document.getElementById('detail-story').innerHTML = `<span class="lang-zh">${photo.storyZh}</span><span class="lang-en"><i>${photo.storyEn}</i></span>`;
 
+    // Regional location information. Coordinates intentionally point to the
+    // wider area rather than the exact camera position.
+    const regionalCoords = locationRawCoords[photo.location];
+    const locationName = document.getElementById('detail-location-name');
+    const locationCountry = document.getElementById('detail-location-country');
+    const locationCoordinates = document.getElementById('detail-location-coordinates');
+    const locationPin = document.getElementById('detail-location-pin');
+
+    if (locationName) {
+        locationName.innerHTML = `<span class="lang-en">${loc.enTitle}</span><span class="lang-zh">${loc.zhTitle}</span>`;
+    }
+    if (locationCountry) {
+        locationCountry.innerHTML = `<span class="lang-en">${loc.enSub}</span><span class="lang-zh">${loc.zhSub}</span>`;
+    }
+    if (regionalCoords && locationCoordinates && locationPin) {
+        const latitude = `${Math.abs(regionalCoords.lat).toFixed(1)}° ${regionalCoords.lat >= 0 ? 'N' : 'S'}`;
+        const longitude = `${Math.abs(regionalCoords.lon).toFixed(1)}° ${regionalCoords.lon >= 0 ? 'E' : 'W'}`;
+        locationCoordinates.textContent = `${latitude} · ${longitude}`;
+        locationPin.style.left = `${((regionalCoords.lon + 180) / 360) * 100}%`;
+        locationPin.style.top = `${((90 - regionalCoords.lat) / 180) * 100}%`;
+    } else if (locationCoordinates) {
+        locationCoordinates.textContent = '—';
+    }
+
+    const breadcrumbCurrent = document.getElementById('breadcrumb-current-title');
+    if (breadcrumbCurrent) {
+        breadcrumbCurrent.innerHTML = `<span class="lang-en">${photo.titleEn}</span><span class="lang-zh">${photo.titleZh}</span>`;
+    }
+
     if (instant) {
         document.getElementById('gallery-view').classList.remove('active');
         document.getElementById('gallery-view').style.display = 'none';
@@ -674,12 +743,11 @@ function openDetail(photo, instant = false) {
         window.scrollTo(0, 0);
         loadMasonry(photo);
     } else {
-        // Switch views
+        // Switch views smoothly
         document.getElementById('gallery-view').classList.remove('active');
         setTimeout(() => {
             document.getElementById('gallery-view').style.display = 'none';
             document.getElementById('detail-view').style.display = 'flex';
-            // Small delay for fade in
             setTimeout(() => document.getElementById('detail-view').classList.add('active'), 50);
 
             window.scrollTo(0, 0);
@@ -689,38 +757,50 @@ function openDetail(photo, instant = false) {
 }
 
 function closeDetail() {
-    activePhoto = null;
-    updateVoyageTitle(safeStorage.getItem('voyage_lang') || 'zh');
-
-    // Clean URL query parameters to avoid re-triggering on reload
     if (window.location.search) {
-        const url = new URL(window.location.href);
-        url.search = '';
-        window.history.replaceState({}, document.title, url.toString());
+        history.pushState(null, '', 'voyage.html');
     }
-
+    
     document.getElementById('detail-view').classList.remove('active');
     setTimeout(() => {
         document.getElementById('detail-view').style.display = 'none';
         document.getElementById('gallery-view').style.display = 'flex';
         setTimeout(() => document.getElementById('gallery-view').classList.add('active'), 50);
-    }, 500);
+    }, 400);
 }
 
 function loadMasonry(photo) {
     const masonry = document.getElementById('detail-masonry');
     masonry.innerHTML = '';
 
-    const pics = photo.morePics || [];
+    // The cover is the opening frame of the complete series. Set removes it
+    // when the same source is already present in morePics.
+    const pics = [...new Set([photo.image, ...(photo.morePics || [])].filter(Boolean))];
+    const hintContainer = document.querySelector('.scroll-hint-container');
     if (pics.length === 0) {
         document.querySelector('.other-perspectives-title').style.display = 'none';
+        if (hintContainer) hintContainer.style.display = 'none';
     } else {
         document.querySelector('.other-perspectives-title').style.display = 'block';
-        pics.forEach(src => {
+        if (hintContainer) hintContainer.style.display = 'block';
+        pics.forEach((src, index) => {
             const item = document.createElement('div');
             item.className = 'masonry-item';
-            item.innerHTML = `<img src="${src}" loading="lazy">`;
+            if (index === 0) item.classList.add('is-cover');
+            item.setAttribute('role', 'button');
+            item.tabIndex = 0;
+            const isEnglish = document.body.classList.contains('lang-en');
+            item.setAttribute('aria-label', index === 0
+                ? (isEnglish ? 'Open cover image preview' : '打开封面图片预览')
+                : (isEnglish ? 'Open image preview' : '打开图片预览'));
+            item.innerHTML = `<img src="${src}" alt="" loading="lazy"${index === 0 ? ' fetchpriority="high"' : ''}>`;
             item.addEventListener('click', () => openLightbox(src));
+            item.addEventListener('keydown', event => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    openLightbox(src);
+                }
+            });
             masonry.appendChild(item);
         });
     }
@@ -729,18 +809,81 @@ function loadMasonry(photo) {
 // Lightbox
 const lightbox = document.getElementById('lightbox');
 const lightboxImg = document.getElementById('lightbox-img');
+const closeLightboxBtn = document.getElementById('close-lightbox');
 const lightboxImmerseBtn = document.getElementById('lightbox-immerse-btn');
 let currentLightboxSrc = '';
+let lightboxReturnFocus = null;
+let lightboxAnimationTimer = null;
 
 function openLightbox(src) {
+    window.clearTimeout(lightboxAnimationTimer);
     currentLightboxSrc = src;
+    lightboxReturnFocus = document.activeElement;
+    lightbox.classList.remove('show', 'image-ready');
     lightboxImg.src = src;
-    lightbox.classList.add('show');
+    lightboxImg.alt = activePhoto
+        ? (document.body.classList.contains('lang-en') ? activePhoto.titleEn : activePhoto.titleZh)
+        : '';
+    lightbox.hidden = false;
+    lightbox.setAttribute('aria-hidden', 'false');
+    const scrollbarWidth = Math.max(0, window.innerWidth - document.documentElement.clientWidth);
+    document.documentElement.style.setProperty('--scrollbar-compensation', `${scrollbarWidth}px`);
+    document.body.classList.add('modal-open');
+
+    const revealImage = () => {
+        if (currentLightboxSrc === src && !lightbox.hidden) {
+            window.requestAnimationFrame(() => lightbox.classList.add('image-ready'));
+        }
+    };
+    if (lightboxImg.complete) revealImage();
+    else {
+        lightboxImg.addEventListener('load', revealImage, { once: true });
+        lightboxImg.addEventListener('error', revealImage, { once: true });
+    }
+
+    // Let the browser paint the initial state before starting the transition.
+    window.requestAnimationFrame(() => {
+        window.requestAnimationFrame(() => {
+            lightbox.classList.add('show');
+            closeLightboxBtn?.focus({ preventScroll: true });
+        });
+    });
+}
+
+function closeLightbox() {
+    if (!lightbox || lightbox.hidden) return;
+    window.clearTimeout(lightboxAnimationTimer);
+    lightbox.classList.remove('show', 'image-ready');
+    lightbox.setAttribute('aria-hidden', 'true');
+
+    lightboxAnimationTimer = window.setTimeout(() => {
+        if (lightbox.classList.contains('show')) return;
+        lightbox.hidden = true;
+        lightboxImg.removeAttribute('src');
+        document.body.classList.remove('modal-open');
+        document.documentElement.style.removeProperty('--scrollbar-compensation');
+        if (lightboxReturnFocus instanceof HTMLElement) {
+            lightboxReturnFocus.focus({ preventScroll: true });
+        }
+    }, 320);
 }
 
 lightbox.addEventListener('click', (e) => {
-    if (e.target !== lightboxImg && e.target !== lightboxImmerseBtn && !lightboxImmerseBtn.contains(e.target)) {
-        lightbox.classList.remove('show');
+    const clickedImmerse = lightboxImmerseBtn && (e.target === lightboxImmerseBtn || lightboxImmerseBtn.contains(e.target));
+    if (e.target !== lightboxImg && !clickedImmerse) {
+        closeLightbox();
+    }
+});
+
+closeLightboxBtn?.addEventListener('click', event => {
+    event.stopPropagation();
+    closeLightbox();
+});
+
+document.addEventListener('keydown', event => {
+    if (event.key === 'Escape' && lightbox && !lightbox.hidden) {
+        event.preventDefault();
+        closeLightbox();
     }
 });
 
@@ -1026,10 +1169,12 @@ function enterZenMode(isLightbox) {
     heroSection.classList.remove('has-panned');
 }
 
-immerseBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    enterZenMode(false);
-});
+if (immerseBtn) {
+    immerseBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        enterZenMode(false);
+    });
+}
 
 // Lightbox Immerse Button Event
 if (lightboxImmerseBtn) {
@@ -1115,8 +1260,12 @@ function updateVoyageTitle(lang) {
 
 // Init
 document.addEventListener('DOMContentLoaded', () => {
-    if (!new URLSearchParams(window.location.search).has('id')) {
+    const urlParams = new URLSearchParams(window.location.search);
+    const hasId = urlParams.has('id');
+    
+    if (!hasId) {
         document.getElementById('gallery-view').style.display = 'flex';
+        document.getElementById('gallery-view').classList.add('active');
     }
 
     // Language setup
@@ -1127,6 +1276,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
     setupFilters();
     initGallery();
+    preloadAllImages();
+
+    if (hasId) {
+        const targetId = parseInt(urlParams.get('id'), 10);
+        const targetPhoto = photos.find(p => p.id === targetId);
+        if (targetPhoto) {
+            document.getElementById('gallery-view').classList.remove('active');
+            document.getElementById('gallery-view').style.display = 'none';
+            document.getElementById('detail-view').style.display = 'flex';
+            openDetail(targetPhoto, true);
+        } else {
+            document.getElementById('gallery-view').style.display = 'flex';
+            document.getElementById('gallery-view').classList.add('active');
+        }
+    }
 
     // Prevent Flash of Unstyled Text (FOUT) and ensure transition starts from opacity: 0
     setTimeout(() => {
@@ -1143,34 +1307,37 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 80);
 });
 
-const langToggleBtn = document.getElementById('lang-toggle');
-if (langToggleBtn) {
-    langToggleBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        let newLang = document.body.classList.contains('lang-zh') ? 'en' : 'zh';
-        document.body.classList.remove('lang-zh', 'lang-en');
-        document.body.classList.add(`lang-${newLang}`);
-        safeStorage.setItem('voyage_lang', newLang);
-        updateVoyageTitle(newLang);
+// Preload all vault images into browser memory cache
+function preloadAllImages() {
+    photos.forEach(photo => {
+        if (photo.image) {
+            const img = new Image();
+            img.src = photo.image;
+        }
+        if (photo.morePics && Array.isArray(photo.morePics)) {
+            photo.morePics.forEach(src => {
+                const img = new Image();
+                img.src = src;
+            });
+        }
     });
 }
 
-// Anti-Save Protections (Deterrents)
-document.addEventListener('contextmenu', event => event.preventDefault()); // Block right-click globally
-
-document.addEventListener('dragstart', event => {
-    if (event.target.tagName.toLowerCase() === 'img') {
-        event.preventDefault(); // Block dragging images
+// Handle Browser Back / Forward buttons without page reloads
+window.addEventListener('popstate', () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('id')) {
+        const targetId = parseInt(urlParams.get('id'), 10);
+        const targetPhoto = photos.find(p => p.id === targetId);
+        if (targetPhoto) {
+            openDetail(targetPhoto, true);
+        }
+    } else {
+        closeDetail();
     }
 });
 
-document.addEventListener('keydown', event => {
-    // Block F12, Ctrl+Shift+I, Cmd+Opt+I (Mac), Ctrl+U (View Source)
-    if (event.key === 'F12' ||
-        (event.ctrlKey && event.shiftKey && event.key === 'I') ||
-        (event.metaKey && event.altKey && event.key === 'I') ||
-        (event.ctrlKey && event.key === 'U') ||
-        (event.metaKey && event.key === 'u')) {
-        event.preventDefault();
-    }
+window.addEventListener('site:languagechange', event => {
+    updateVoyageTitle(event.detail.lang);
+    if (currentViewMode === 'grid') initGallery(currentCountry, currentEra);
 });
