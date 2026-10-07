@@ -1,193 +1,94 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // 1. Language Toggle Logic
-    let currentLang = document.body.classList.contains('lang-en') ? 'en' : 'zh';
-    
-    // Set initial language class
-    document.body.classList.remove('lang-zh', 'lang-en');
-    document.body.classList.add(`lang-${currentLang}`);
-    updateDiaryTitle(currentLang);
-
-    function updateDiaryTitle(lang) {
-        if (lang === 'en') {
-            document.title = "STEVEN ZHANG | Daily Fragments";
-        } else {
-            document.title = "STEVEN ZHANG | 日常切片";
-        }
-    }
-
-    window.addEventListener('site:languagechange', event => {
-        updateDiaryTitle(event.detail.lang);
-        renderDiaries();
-    });
-
-    // 2. Dynamic Content Rendering & Filters
+    const { escapeHtml, renderStats, setupFilters, renderResult, noResult, showMaintenance } = window.ArchiveList;
+    if (showMaintenance('diary.html')) return;
+    const page = document.querySelector('.archive-page');
     const diaryGrid = document.getElementById('diary-grid');
     const emptyContainer = document.getElementById('diary-empty-container');
-    const categoryFilterList = document.getElementById('category-filter');
-    const yearFilterList = document.getElementById('year-filter');
+    const toolbar = document.querySelector('.archive-toolbar');
+    const resultNode = document.getElementById('diary-result');
+    const items = typeof diaries !== 'undefined' ? diaries : [];
+    const isEnglish = () => document.body.classList.contains('lang-en');
 
-    let currentCategory = 'ALL';
-    let currentYear = 'ALL';
-
-    if (typeof diaries !== 'undefined' && diaries.length > 0) {
-        // Hide empty state, show grid
-        if (emptyContainer) emptyContainer.style.display = 'none';
-        if (diaryGrid) diaryGrid.style.display = 'grid';
-
-        initFilters();
-        renderDiaries();
-    } else {
-        // Keep empty state
-        if (emptyContainer) emptyContainer.style.display = 'flex';
-        if (diaryGrid) diaryGrid.style.display = 'none';
+    function updateDiaryTitle(lang) {
+        document.title = lang === 'en' ? 'STEVEN ZHANG | Daily Fragments' : 'STEVEN ZHANG | 日常切片';
     }
 
-    function initFilters() {
-        if (!categoryFilterList || !yearFilterList) return;
+    updateDiaryTitle(isEnglish() ? 'en' : 'zh');
+    renderStats(page, items);
 
-        // Categories
-        const categories = [...new Set(diaries.map(d => JSON.stringify({ zh: d.categoryZh, en: d.categoryEn })))].map(c => JSON.parse(c));
-        categoryFilterList.innerHTML = `
-            <li data-category="ALL" class="active">
-                <span class="lang-en">All</span><span class="lang-zh">全部</span>
-            </li>
-            ${categories.map(c => `
-                <li data-category="${c.en}">
-                    <span class="lang-en">${c.en}</span><span class="lang-zh">${c.zh}</span>
-                </li>
-            `).join('')}
-        `;
-
-        // Years
-        const years = [...new Set(diaries.map(d => d.year))].sort((a, b) => b - a);
-        yearFilterList.innerHTML = `
-            <li data-year="ALL" class="active">
-                <span class="lang-en">All</span><span class="lang-zh">全部</span>
-            </li>
-            ${years.map(y => `
-                <li data-year="${y}">${y}</li>
-            `).join('')}
-        `;
-
-        // Add Event Listeners
-        const catItems = categoryFilterList.querySelectorAll('li');
-        catItems.forEach(item => {
-            item.setAttribute('role', 'button');
-            item.tabIndex = 0;
-            item.setAttribute('aria-pressed', item.classList.contains('active') ? 'true' : 'false');
-            const activate = () => {
-                catItems.forEach(i => i.classList.remove('active'));
-                catItems.forEach(i => i.setAttribute('aria-pressed', 'false'));
-                item.classList.add('active');
-                item.setAttribute('aria-pressed', 'true');
-                currentCategory = item.getAttribute('data-category');
-                renderDiaries();
-            };
-            item.addEventListener('click', activate);
-            item.addEventListener('keydown', event => {
-                if (event.key === 'Enter' || event.key === ' ') {
-                    event.preventDefault();
-                    activate();
-                }
-            });
-        });
-
-        const yearItems = yearFilterList.querySelectorAll('li');
-        yearItems.forEach(item => {
-            item.setAttribute('role', 'button');
-            item.tabIndex = 0;
-            item.setAttribute('aria-pressed', item.classList.contains('active') ? 'true' : 'false');
-            const activate = () => {
-                yearItems.forEach(i => i.classList.remove('active'));
-                yearItems.forEach(i => i.setAttribute('aria-pressed', 'false'));
-                item.classList.add('active');
-                item.setAttribute('aria-pressed', 'true');
-                currentYear = item.getAttribute('data-year');
-                renderDiaries();
-            };
-            item.addEventListener('click', activate);
-            item.addEventListener('keydown', event => {
-                if (event.key === 'Enter' || event.key === ' ') {
-                    event.preventDefault();
-                    activate();
-                }
-            });
-        });
+    if (!items.length) {
+        if (toolbar) toolbar.hidden = true;
+        if (diaryGrid) diaryGrid.hidden = true;
+        if (emptyContainer) emptyContainer.hidden = false;
+        window.addEventListener('site:languagechange', event => updateDiaryTitle(event.detail.lang));
+        return;
     }
 
-    function renderDiaries() {
+    if (emptyContainer) emptyContainer.hidden = true;
+
+    // Diary entry shape: { titleZh, titleEn, categoryZh, categoryEn, date, year, image?, contentZh?, contentEn?, exif? }
+    function renderDiaries(filtered) {
         if (!diaryGrid) return;
-        diaryGrid.innerHTML = '';
+        renderResult(resultNode, filtered.length, items.length, 'fragments', '条切片');
 
-        const filtered = diaries.filter(d => {
-            const matchCategory = currentCategory === 'ALL' || d.categoryEn === currentCategory;
-            const matchYear = currentYear === 'ALL' || d.year === currentYear;
-            return matchCategory && matchYear;
-        });
-
-        if (filtered.length === 0) {
-            diaryGrid.innerHTML = `
-                <div style="grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: 4rem 0;">
-                    <span class="lang-zh">暂无相关切片</span>
-                    <span class="lang-en">No daily fragments found</span>
-                </div>
-            `;
+        if (!filtered.length) {
+            diaryGrid.innerHTML = noResult('No daily fragments found.', '暂无相关切片。');
             return;
         }
 
+        diaryGrid.innerHTML = '';
         filtered.forEach((item, index) => {
-            const card = document.createElement('div');
-            card.className = 'analog-card';
-            card.setAttribute('role', 'button');
-            card.tabIndex = 0;
-            card.setAttribute('aria-label', document.body.classList.contains('lang-en') ? `Open ${item.titleEn}` : `打开${item.titleZh}`);
-            card.style.animationDelay = `${index * 0.1}s`;
+            const card = document.createElement('article');
+            card.className = item.image ? 'frame-card' : 'frame-card frame-card-text';
+            card.style.animationDelay = `${Math.min(index, 8) * 0.07}s`;
             card.innerHTML = `
-                <div class="card-header">
-                    <h3 class="card-title">
-                        <span class="lang-zh">${item.titleZh}</span>
-                        <span class="lang-en">${item.titleEn}</span>
-                    </h3>
-                    <p class="card-subtitle">
-                        <span class="lang-zh">${item.categoryZh} | ${item.date}</span>
-                        <span class="lang-en">${item.categoryEn} | ${item.date}</span>
-                    </p>
+                ${item.image ? `
+                <div class="frame-media">
+                    <img src="${escapeHtml(item.image)}" alt="${escapeHtml(isEnglish() ? item.titleEn : item.titleZh)}" loading="lazy" decoding="async">
+                    <span class="frame-index">${String(index + 1).padStart(2, '0')}</span>
+                </div>` : ''}
+                <div class="frame-caption">
+                    <div class="frame-heading">
+                        <h3 class="frame-title">
+                            <span class="lang-zh">${escapeHtml(item.titleZh)}</span>
+                            <span class="lang-en">${escapeHtml(item.titleEn)}</span>
+                        </h3>
+                        <span class="frame-country">
+                            <span class="lang-zh">${escapeHtml(item.categoryZh)}</span>
+                            <span class="lang-en">${escapeHtml(item.categoryEn)}</span>
+                        </span>
+                    </div>
+                    ${item.contentZh || item.contentEn ? `
+                    <p class="frame-story">
+                        <span class="lang-zh">${escapeHtml(item.contentZh)}</span>
+                        <span class="lang-en">${escapeHtml(item.contentEn)}</span>
+                    </p>` : ''}
+                    <p class="frame-meta"><time>${escapeHtml(item.date)}</time>${item.exif ? `<span>${escapeHtml(item.exif)}</span>` : ''}</p>
                 </div>
-                <div class="card-image-container">
-                    <img src="${item.image}" alt="${item.titleEn}" class="card-image" loading="lazy">
-                </div>
-                <div class="card-footer">${item.exif}</div>
             `;
 
-            card.addEventListener('click', () => {
-                if (typeof window.openEntryDetailModal === 'function') {
-                    window.openEntryDetailModal(item, 'diary');
-                }
-            });
-            card.addEventListener('keydown', event => {
-                if (event.key === 'Enter' || event.key === ' ') {
-                    event.preventDefault();
-                    card.click();
-                }
-            });
+            // The entry detail modal lives in search.js; only make cards interactive when it is available.
+            if (typeof window.openEntryDetailModal === 'function') {
+                card.setAttribute('role', 'button');
+                card.tabIndex = 0;
+                card.setAttribute('aria-label', isEnglish() ? `Open ${item.titleEn}` : `打开${item.titleZh}`);
+                card.addEventListener('click', () => window.openEntryDetailModal(item, 'diary'));
+                card.addEventListener('keydown', event => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault();
+                        card.click();
+                    }
+                });
+            }
 
             diaryGrid.appendChild(card);
         });
     }
 
+    const rerender = setupFilters({ items, toolbar, render: renderDiaries });
 
-    // 3. Prevent Flash of Unstyled Text (FOUT) and ensure transition starts from opacity: 0
-    setTimeout(() => {
-        if (document.fonts) {
-            document.fonts.ready.then(() => {
-                document.body.classList.add('fonts-loaded');
-            });
-            setTimeout(() => {
-                document.body.classList.add('fonts-loaded');
-            }, 1000);
-        } else {
-            document.body.classList.add('fonts-loaded');
-        }
-    }, 80);
-
+    window.addEventListener('site:languagechange', event => {
+        updateDiaryTitle(event.detail.lang);
+        rerender();
+    });
 });

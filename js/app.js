@@ -17,57 +17,126 @@ const safeStorage = {
 };
 
 
+// View switches must jump, not animate: html has scroll-behavior: smooth, which would turn
+// window.scrollTo(0, 0) into a visible slide from the card up to the top.
+function jumpTo(y) {
+    window.scrollTo({ top: y, left: 0, behavior: 'instant' });
+}
+
+function escapeHtml(value) {
+    return String(value ?? '').replace(/[&<>"']/g, char => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    })[char]);
+}
+
+function getPhotoYear(photo) {
+    return parseInt(photo.date.split(', ')[1], 10);
+}
+
+// Fill the hero summary (stories / frames / countries / year span)
+function renderArchiveStats() {
+    const years = photos.map(getPhotoYear).filter(Number.isFinite);
+    const countries = new Set(photos.map(photo => parseLocation(photo.location).enSub));
+    const frames = photos.reduce((total, photo) => total + 1 + (photo.morePics?.length || 0), 0);
+    const values = {
+        stories: String(photos.length).padStart(2, '0'),
+        frames: String(frames).padStart(2, '0'),
+        countries: String(countries.size).padStart(2, '0'),
+        span: years.length ? `${Math.min(...years)}—${String(Math.max(...years)).slice(-2)}` : '—'
+    };
+    document.querySelectorAll('#gallery-view [data-stat]').forEach(node => {
+        node.textContent = values[node.dataset.stat] ?? '—';
+    });
+}
+
 function initGallery(countryFilter = 'ALL', eraFilter = 'ALL') {
     const grid = document.getElementById('gallery-grid');
+    const result = document.getElementById('gallery-result');
     grid.innerHTML = '';
 
     const filteredPhotos = photos.filter(photo => {
         const loc = parseLocation(photo.location);
         const matchCountry = countryFilter === 'ALL' || loc.enSub === countryFilter;
 
-        const photoYear = photo.date.split(', ')[1];
+        const photoYear = getPhotoYear(photo);
         let matchEra = eraFilter === 'ALL';
         if (eraFilter === '<2025') {
-            matchEra = parseInt(photoYear) < 2025;
+            matchEra = photoYear < 2025;
         } else if (eraFilter !== 'ALL') {
-            const validYears = eraFilter.split(',');
-            matchEra = validYears.includes(photoYear);
+            matchEra = eraFilter.split(',').map(Number).includes(photoYear);
         }
         return matchCountry && matchEra;
     });
 
+    if (result) {
+        const count = String(filteredPhotos.length).padStart(2, '0');
+        result.innerHTML = `<span class="lang-en">${count} / ${photos.length} stories</span><span class="lang-zh">${count} / ${photos.length} 个故事</span>`;
+    }
+
+    if (!filteredPhotos.length) {
+        grid.innerHTML = `
+            <p class="archive-no-result">
+                <span class="lang-en">No journeys match this combination yet.</span>
+                <span class="lang-zh">这个组合下还没有旅程。</span>
+            </p>`;
+        return;
+    }
+
+    const isEnglish = document.body.classList.contains('lang-en');
+
     filteredPhotos.forEach((photo, index) => {
         const loc = parseLocation(photo.location);
         const dateLoc = parseDate(photo.date);
-        const card = document.createElement('div');
-        card.className = 'analog-card';
+        const frameCount = 1 + (photo.morePics?.length || 0);
+        const archiveIndex = String(photos.indexOf(photo) + 1).padStart(2, '0');
+        const card = document.createElement('article');
+        card.className = 'frame-card';
+        card.dataset.photoId = String(photo.id);
         card.setAttribute('role', 'button');
         card.tabIndex = 0;
-        card.setAttribute('aria-label', document.body.classList.contains('lang-en') ? `Open ${loc.enTitle}` : `打开${loc.zhTitle}`);
-        card.style.animationDelay = `${index * 0.1}s`;
+        card.setAttribute('aria-label', isEnglish ? `Open ${loc.enTitle}` : `打开${loc.zhTitle}`);
+        card.style.animationDelay = `${Math.min(index, 8) * 0.07}s`;
 
         card.innerHTML = `
-            <div class="card-header">
-                <h3 class="card-title">
-                    <span class="lang-en">${loc.enTitle}</span>
-                    <span class="lang-zh">${loc.zhTitle}</span>
-                </h3>
-                <p class="card-subtitle">
-                    <span class="lang-en">${loc.enSub} | ${dateLoc.en}</span>
-                    <span class="lang-zh">${loc.zhSub} | ${dateLoc.zh}</span>
+            <div class="frame-media">
+                <img src="${imageVariant(photo.image, 'card')}" alt="${escapeHtml(isEnglish ? photo.titleEn : photo.titleZh)}" loading="lazy" decoding="async">
+                <span class="frame-index">${archiveIndex}</span>
+                <span class="frame-count">
+                    <span class="lang-en">${frameCount} ${frameCount > 1 ? 'FRAMES' : 'FRAME'}</span>
+                    <span class="lang-zh">${frameCount} 帧</span>
+                </span>
+                <span class="frame-open" aria-hidden="true">↗</span>
+            </div>
+            <div class="frame-caption">
+                <div class="frame-heading">
+                    <h3 class="frame-title">
+                        <span class="lang-en">${loc.enTitle}</span>
+                        <span class="lang-zh">${loc.zhTitle}</span>
+                    </h3>
+                    <span class="frame-country">
+                        <span class="lang-en">${loc.enSub}</span>
+                        <span class="lang-zh">${loc.zhSub}</span>
+                    </span>
+                </div>
+                <p class="frame-story">
+                    <span class="lang-en">${escapeHtml(photo.titleEn)}</span>
+                    <span class="lang-zh">${escapeHtml(photo.titleZh)}</span>
+                </p>
+                <p class="frame-meta">
+                    <time>
+                        <span class="lang-en">${dateLoc.en}</span>
+                        <span class="lang-zh">${dateLoc.zh}</span>
+                    </time>
+                    <span>${escapeHtml(photo.exif.split(' | ').slice(0, 2).join(' · '))}</span>
                 </p>
             </div>
-            <div class="card-image-container">
-                <img src="${photo.image}" alt="${loc.enTitle}" class="card-image" loading="lazy">
-            </div>
-            <div class="card-footer">${photo.exif}</div>
         `;
 
-        card.addEventListener('click', () => openDetail(photo));
+        card.addEventListener('click', () => openDetail(photo, false, { fromGallery: true }));
         card.addEventListener('keydown', event => {
             if (event.key === 'Enter' || event.key === ' ') {
                 event.preventDefault();
-                openDetail(photo);
+                openDetail(photo, false, { fromGallery: true });
             }
         });
         grid.appendChild(card);
@@ -79,6 +148,9 @@ let activePhoto = null;
 let currentCountry = 'ALL';
 let currentEra = 'ALL';
 let currentViewMode = 'grid';
+const voyageReduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+let detailArrivalAnimation = null;
+let detailRevealObserver = null;
 
 const locationRawCoords = {
     'CHINA·XINJIANG': { lon: 86.0, lat: 45.0 },
@@ -682,52 +754,195 @@ function setupFilters() {
     });
 }
 
-function openDetail(photo, instant = false) {
+function animateDetailArrival() {
+    const detailView = document.getElementById('detail-view');
+    if (!detailView) return;
+
+    detailArrivalAnimation?.pause?.();
+    detailRevealObserver?.disconnect?.();
+    detailArrivalAnimation = null;
+    detailRevealObserver = null;
+
+    if (voyageReduceMotion || typeof window.anime === 'undefined') {
+        detailView.classList.add('detail-ready');
+        return;
+    }
+
+    const heroMedia = detailView.querySelector('.detail-hero-media');
+    const nav = detailView.querySelector('.detail-nav-bar');
+    const heroCopy = [...detailView.querySelectorAll('.detail-hero-copy > *')];
+    const scrollCue = detailView.querySelector('.detail-scroll-cue');
+    const revealSections = [...detailView.querySelectorAll('.detail-reveal')];
+
+    window.anime.remove([heroMedia, nav, scrollCue, ...heroCopy, ...revealSections]);
+    window.anime.set(revealSections, { translateY: 28, opacity: 0 });
+
+    // Coming from the home globe the hero card is already on screen (painted by the
+    // inline head script), so only the chrome fades in — no second entrance.
+    const isHandoff = document.documentElement.classList.contains('atlas-handoff');
+    if (isHandoff) {
+        document.documentElement.classList.add('handoff-ready');
+        // The cover is already in place; the copy rises in quickly right after it lands.
+        window.anime.set(nav, { opacity: 0 });
+        window.anime.set(heroCopy, { translateY: 12, opacity: 0 });
+        detailArrivalAnimation = window.anime.timeline({
+            easing: 'easeOutCubic',
+            complete: () => document.documentElement.classList.remove('atlas-handoff', 'handoff-ready')
+        })
+            .add({ targets: heroCopy, translateY: 0, opacity: 1, delay: window.anime.stagger(60), duration: 600 }, 40)
+            .add({ targets: nav, opacity: 1, duration: 450 }, 200);
+    } else {
+        window.anime.set(heroMedia, { scale: 1.035, opacity: 0.9 });
+        window.anime.set(nav, { translateY: -14, opacity: 0 });
+        window.anime.set(heroCopy, { translateY: 20, opacity: 0 });
+        window.anime.set(scrollCue, { opacity: 0 });
+
+        detailArrivalAnimation = window.anime.timeline({ easing: 'easeOutExpo' })
+            .add({ targets: heroMedia, scale: 1, opacity: 1, duration: 1100 })
+            .add({ targets: nav, translateY: 0, opacity: 1, duration: 600 }, '-=850')
+            .add({
+                targets: heroCopy,
+                translateY: 0,
+                opacity: 1,
+                delay: window.anime.stagger(60),
+                duration: 700
+            }, '-=650');
+    }
+
+    if ('IntersectionObserver' in window) {
+        detailRevealObserver = new IntersectionObserver(entries => {
+            entries.forEach(entry => {
+                if (!entry.isIntersecting) return;
+                detailRevealObserver.unobserve(entry.target);
+                window.anime({
+                    targets: entry.target,
+                    translateY: 0,
+                    opacity: 1,
+                    duration: 950,
+                    easing: 'easeOutExpo'
+                });
+            });
+        }, { threshold: 0.12, rootMargin: '0px 0px -8% 0px' });
+        revealSections.forEach(section => detailRevealObserver.observe(section));
+    } else {
+        window.anime.set(revealSections, { translateY: 0, opacity: 1 });
+    }
+}
+
+function toTitleCase(value) {
+    return String(value || '').toLowerCase().replace(/\b([a-z])/g, char => char.toUpperCase());
+}
+
+// "Open in Maps" buttons: search the landmark (photo.mapQuery) or fall back to city + country.
+function updateMapLinks(photo, loc) {
+    const query = photo.mapQuery || (loc.enTitle === loc.enSub
+        ? toTitleCase(loc.enTitle)
+        : `${toTitleCase(loc.enTitle)}, ${toTitleCase(loc.enSub)}`);
+    const encoded = encodeURIComponent(query);
+    const apple = document.getElementById('detail-map-apple');
+    const google = document.getElementById('detail-map-google');
+    if (apple) {
+        apple.href = `https://maps.apple.com/?q=${encoded}`;
+        apple.setAttribute('aria-label', `在 Apple 地图中打开 ${query}`);
+    }
+    if (google) {
+        google.href = `https://www.google.com/maps/search/?api=1&query=${encoded}`;
+        google.setAttribute('aria-label', `在 Google 地图中打开 ${query}`);
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Navigation flow. Every way out of a story ("back" button, Esc, browser/gesture Back)
+// goes through the browser history, so they all behave the same:
+//   opened from the gallery → back returns to the gallery at the same scroll position
+//   arrived from the home globe → back returns to the globe (which plays its return morph)
+//   opened from a direct link → back shows the gallery in place
+// ---------------------------------------------------------------------------
+// Story shown inside the home page (see home-globe.js "story layer").
+const isAtlasEmbed = new URLSearchParams(window.location.search).get('embed') === '1' && window.parent !== window;
+function postToAtlas(message) {
+    if (isAtlasEmbed) window.parent.postMessage({ source: 'voyage-embed', ...message }, '*');
+}
+
+const cameFromAtlas = (() => {
+    try {
+        if (isAtlasEmbed) return true;
+        // Reloaded while the home page's story layer had this URL: the globe is one step back.
+        if (history.state?.atlasStory != null) return true;
+        if (new URLSearchParams(window.location.search).get('from') === 'atlas') return true;
+        const ref = new URL(document.referrer);
+        return ref.origin === window.location.origin && /\/(index\.html)?$/.test(ref.pathname);
+    } catch (error) {
+        return false;
+    }
+})();
+let galleryScrollY = 0;
+let lastOpenedCardId = null;
+let lastCardViewportTop = null;
+
+// Document position from layout (offsetTop), ignoring transforms — the gallery and its cards
+// replay a short rise animation when they reappear, which would skew getBoundingClientRect.
+function layoutTop(element) {
+    let top = 0;
+    for (let node = element; node; node = node.offsetParent) top += node.offsetTop;
+    return top;
+}
+
+function openDetail(photo, instant = false, { fromGallery = false } = {}) {
+    // The complete series is built a moment after the story appears (scheduleAfterArrival);
+    // clear the previous story's frames now so they never show under the new story.
+    clearMasonry();
     // Update browser URL in-place without page reload
     const targetSearch = `?id=${photo.id}`;
-    if (window.location.search !== targetSearch) {
-        history.pushState({ id: photo.id }, '', `voyage.html${targetSearch}`);
+    if (fromGallery) {
+        galleryScrollY = window.scrollY;
+        lastOpenedCardId = photo.id;
+        // Where the card sat on screen — restored relative to the card itself, so images that
+        // finish loading above it in the meantime can't shift the user's place.
+        const card = document.querySelector(`#gallery-grid .frame-card[data-photo-id="${photo.id}"]`);
+        lastCardViewportTop = card ? layoutTop(card) - window.scrollY : null;
+    }
+    // Inside the home page's story layer the parent owns the history; an entry pushed here
+    // would merge into the tab's back stack.
+    if (!isAtlasEmbed && window.location.search !== targetSearch) {
+        history.pushState({ id: photo.id, fromGallery }, '', `voyage.html${targetSearch}`);
     }
     
     activePhoto = photo;
+    document.body.classList.add('showing-detail');
+    document.getElementById('detail-view')?.style.removeProperty('opacity');
     updateVoyageTitle(safeStorage.getItem('voyage_lang') || 'zh');
 
     const loc = parseLocation(photo.location);
     const dateLoc = parseDate(photo.date);
 
     // Set hero content
-    document.getElementById('detail-hero-bg').style.backgroundImage = `url('${photo.image}')`;
-    updateImageDimensions(photo.image);
+    const heroSrc = imageVariant(photo.image, 'hero');
+    // The small thumbnail sits underneath the cover so a not-yet-decoded cover shows a soft
+    // preview instead of an empty dark card.
+    document.getElementById('detail-hero-bg').style.backgroundImage = `url('${heroSrc}'), url('${imageVariant(photo.image, 'mini')}')`;
+    updateImageDimensions(heroSrc);
     document.getElementById('detail-title').innerHTML = `<span class="lang-en">${loc.enTitle}</span><span class="lang-zh">${loc.zhTitle}</span>`;
     document.getElementById('detail-subtitle').innerHTML = `<span class="lang-en">${loc.enSub} | ${dateLoc.en}</span><span class="lang-zh">${loc.zhSub} | ${dateLoc.zh}</span>`;
 
     // Set Story content
     document.getElementById('detail-story-title').innerHTML = `<span class="lang-en">${photo.titleEn}</span><span class="lang-zh">${photo.titleZh}</span>`;
     document.getElementById('detail-story').innerHTML = `<span class="lang-zh">${photo.storyZh}</span><span class="lang-en"><i>${photo.storyEn}</i></span>`;
+    const detailExif = document.getElementById('detail-exif');
+    const detailIndex = document.getElementById('detail-index');
+    if (detailExif) {
+        // One element per value: inline on narrow screens, a stacked spec list in the wide layout.
+        const parts = String(photo.exif || '').split('|').map(part => part.trim()).filter(Boolean);
+        detailExif.innerHTML = parts.length
+            ? parts.map(part => `<span class="exif-item">${escapeHtml(part)}</span>`).join('')
+            : '—';
+    }
+    if (detailIndex) {
+        const index = Math.max(0, photos.findIndex(item => item.id === photo.id)) + 1;
+        detailIndex.textContent = `${String(index).padStart(2, '0')} / ${String(photos.length).padStart(2, '0')}`;
+    }
 
-    // Regional location information. Coordinates intentionally point to the
-    // wider area rather than the exact camera position.
-    const regionalCoords = locationRawCoords[photo.location];
-    const locationName = document.getElementById('detail-location-name');
-    const locationCountry = document.getElementById('detail-location-country');
-    const locationCoordinates = document.getElementById('detail-location-coordinates');
-    const locationPin = document.getElementById('detail-location-pin');
-
-    if (locationName) {
-        locationName.innerHTML = `<span class="lang-en">${loc.enTitle}</span><span class="lang-zh">${loc.zhTitle}</span>`;
-    }
-    if (locationCountry) {
-        locationCountry.innerHTML = `<span class="lang-en">${loc.enSub}</span><span class="lang-zh">${loc.zhSub}</span>`;
-    }
-    if (regionalCoords && locationCoordinates && locationPin) {
-        const latitude = `${Math.abs(regionalCoords.lat).toFixed(1)}° ${regionalCoords.lat >= 0 ? 'N' : 'S'}`;
-        const longitude = `${Math.abs(regionalCoords.lon).toFixed(1)}° ${regionalCoords.lon >= 0 ? 'E' : 'W'}`;
-        locationCoordinates.textContent = `${latitude} · ${longitude}`;
-        locationPin.style.left = `${((regionalCoords.lon + 180) / 360) * 100}%`;
-        locationPin.style.top = `${((90 - regionalCoords.lat) / 180) * 100}%`;
-    } else if (locationCoordinates) {
-        locationCoordinates.textContent = '—';
-    }
+    updateMapLinks(photo, loc);
 
     const breadcrumbCurrent = document.getElementById('breadcrumb-current-title');
     if (breadcrumbCurrent) {
@@ -737,39 +952,447 @@ function openDetail(photo, instant = false) {
     if (instant) {
         document.getElementById('gallery-view').classList.remove('active');
         document.getElementById('gallery-view').style.display = 'none';
-        document.getElementById('detail-view').style.display = 'flex';
+        document.getElementById('detail-view').style.display = 'block';
         document.getElementById('detail-view').classList.add('active');
         document.documentElement.classList.remove('direct-detail-load');
-        window.scrollTo(0, 0);
-        loadMasonry(photo);
+        jumpTo(0);
+        whenPageActive(() => requestAnimationFrame(animateDetailArrival));
+        announceEmbedReady(photo);
+        // The series sits below the fold: build it once the arrival has settled so its
+        // image downloads and decodes don't compete with the first frames.
+        scheduleAfterArrival(() => loadMasonry(photo));
+    } else if (fromGallery && morphFromCard(photo)) {
+        // Card → cover morph handles the switch (see morphFromCard).
     } else {
         // Switch views smoothly
         document.getElementById('gallery-view').classList.remove('active');
         setTimeout(() => {
             document.getElementById('gallery-view').style.display = 'none';
-            document.getElementById('detail-view').style.display = 'flex';
+            document.getElementById('detail-view').style.display = 'block';
             setTimeout(() => document.getElementById('detail-view').classList.add('active'), 50);
 
-            window.scrollTo(0, 0);
+            jumpTo(0);
             loadMasonry(photo);
+            requestAnimationFrame(animateDetailArrival);
         }, 500); // match transition time
     }
 }
 
-function closeDetail() {
-    if (window.location.search) {
-        history.pushState(null, '', 'voyage.html');
+// ---------------------------------------------------------------------------
+// Gallery card → story cover: the card's photo opens up into the cover card (same idea as
+// the home globe). The photo is mapped so that what the card showed sits exactly on the
+// card at the first frame, and both the window and the photo grow into the cover framing.
+// ---------------------------------------------------------------------------
+let cardMorph = null;
+
+// The gallery card photo is shown slightly dimmed (.frame-media img in main.css); the morph
+// copy animates to/from the same look so there is no tone change at the hand-off.
+const CARD_PHOTO_FILTER = 'saturate(0.88) brightness(0.92)';
+// .frame-media img also carries transform: scale(1.001) (anti-seam); the copy matches it too.
+const CARD_PHOTO_SCALE = 1.001;
+
+// After a morph lands the pointer usually rests on the revealed card, which would start the
+// card's hover zoom the instant it appears (read as a small displacement). Hover on that card
+// is held back until the pointer actually moves.
+function holdCardHover(cardEl) {
+    if (!cardEl) return;
+    cardEl.style.pointerEvents = 'none';
+    const release = () => {
+        cardEl.style.removeProperty('pointer-events');
+        window.removeEventListener('pointermove', release, true);
+    };
+    window.addEventListener('pointermove', release, { capture: true, once: true });
+}
+
+// Hand the screen over from the morph copy to the real card: the real card is shown under the
+// copy, which then fades out quickly (covers the chips / gradient the copy doesn't have).
+function revealCardUnderOverlay(layer, cardEl, done) {
+    // Only the photo is ever hidden during a morph (its caption stays and fades with the list).
+    const photoEl = cardEl?.querySelector('.frame-media');
+    if (photoEl) photoEl.style.visibility = '';
+    const fade = layer.card.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 160, easing: 'ease-out', fill: 'forwards' });
+    fade.finished.then(done).catch(done);
+}
+
+// The photo layer of the morph copy is sized to the whole photo as the cover frames it (cover
+// scale), not to the cover box. The cover crops the photo's top/bottom; a card-sized window
+// shows the full height, so a layer cut to the cover box would leave dark strips at the top and
+// bottom of that window. The card box clips the excess when the window is open.
+function sizeMorphPhoto(layer, naturalW, naturalH, cardRect) {
+    const cover = Math.max(cardRect.width / naturalW, cardRect.height / naturalH);
+    const width = naturalW * cover;
+    const height = naturalH * cover;
+    Object.assign(layer.image.style, {
+        inset: 'auto',
+        left: `${(cardRect.width - width) / 2}px`,
+        top: `${(cardRect.height - height) / 2}px`,
+        width: `${width}px`,
+        height: `${height}px`,
+        backgroundSize: '100% 100%'
+    });
+}
+
+function heroTargetRect() {
+    const probe = document.createElement('div');
+    probe.className = 'atlas-hero-probe';
+    document.body.appendChild(probe);
+    const rect = probe.getBoundingClientRect();
+    const style = getComputedStyle(probe);
+    const radius = ['borderTopLeftRadius', 'borderTopRightRadius', 'borderBottomRightRadius', 'borderBottomLeftRadius']
+        .map(key => parseFloat(style[key]) || 0);
+    probe.remove();
+    return { left: rect.left, top: rect.top, width: rect.width, height: rect.height, radius };
+}
+
+function ensureCardMorphLayer() {
+    if (cardMorph) return cardMorph;
+    const overlay = document.createElement('div');
+    overlay.className = 'atlas-transition';
+    overlay.hidden = true;
+    overlay.setAttribute('aria-hidden', 'true');
+    overlay.innerHTML = `
+        <div class="atlas-transition-card">
+            <div class="atlas-transition-image"><div class="atlas-transition-hires"></div></div>
+            <div class="atlas-transition-wash"></div>
+        </div>`;
+    document.body.appendChild(overlay);
+    cardMorph = {
+        overlay,
+        card: overlay.querySelector('.atlas-transition-card'),
+        image: overlay.querySelector('.atlas-transition-image'),
+        hires: overlay.querySelector('.atlas-transition-hires'),
+        wash: overlay.querySelector('.atlas-transition-wash')
+    };
+    return cardMorph;
+}
+
+function morphFromCard(photo) {
+    if (voyageReduceMotion || typeof Element.prototype.animate !== 'function') return false;
+    const cardEl = document.querySelector(`#gallery-grid .frame-card[data-photo-id="${photo.id}"]`);
+    const thumb = cardEl?.querySelector('.frame-media img');
+    if (!thumb || !thumb.naturalWidth) return false;
+
+    const from = cardEl.querySelector('.frame-media').getBoundingClientRect();
+    const fromRadius = parseFloat(getComputedStyle(cardEl.querySelector('.frame-media')).borderTopLeftRadius) || 0;
+    const to = heroTargetRect();
+    const radii = values => values.map(value => `${value}px`).join(' ');
+
+    // Both the card and the cover crop the photo with "cover", centred.
+    const w = thumb.naturalWidth;
+    const h = thumb.naturalHeight;
+    const coverTo = Math.max(to.width / w, to.height / h);
+    const coverFrom = Math.max(from.width / w, from.height / h);
+    // The clicked card is under the pointer, so it is mid hover-zoom; start from exactly that.
+    const liveStyle = getComputedStyle(thumb);
+    const liveScale = liveStyle.transform && liveStyle.transform !== 'none' ? new DOMMatrix(liveStyle.transform).a : CARD_PHOTO_SCALE;
+    const liveFilter = liveStyle.filter && liveStyle.filter !== '' ? liveStyle.filter : 'none';
+    const scale = (coverFrom / coverTo) * liveScale;
+    const dx = from.left + from.width / 2 - (to.left + to.width / 2);
+    const dy = from.top + from.height / 2 - (to.top + to.height / 2);
+    const startTransform = `translate(${dx}px, ${dy}px) scale(${scale})`;
+    const startClip = `inset(${from.top - to.top}px ${to.left + to.width - from.right}px ${to.top + to.height - from.bottom}px ${from.left - to.left}px round ${fromRadius}px)`;
+    const endClip = `inset(0px 0px 0px 0px round ${radii(to.radius)})`;
+
+    const layer = ensureCardMorphLayer();
+    // The nav stays out of sight while the cover morphs (it would otherwise show as a dark sliver
+    // beside / behind the cover's top edge); it comes back with the story page or the list.
+    document.body.classList.add('card-morphing');
+    const heroSrc = imageVariant(photo.image, 'hero');
+    Object.assign(layer.card.style, {
+        left: `${to.left}px`, top: `${to.top}px`, width: `${to.width}px`, height: `${to.height}px`,
+        borderRadius: radii(to.radius), clipPath: startClip
+    });
+    sizeMorphPhoto(layer, thumb.naturalWidth, thumb.naturalHeight, to);
+    layer.image.style.backgroundImage = `url("${thumb.currentSrc || thumb.src}")`;
+    layer.image.style.transform = startTransform;
+    layer.image.style.filter = liveFilter;
+    layer.hires.style.backgroundImage = `url("${heroSrc}")`;
+    layer.hires.style.opacity = '0';
+    layer.wash.style.opacity = '0';
+    layer.overlay.hidden = false;
+    // Cross-fade: the copy fades in over the real card (chips and bottom gradient included), and
+    // only then does the card step aside — no one-frame jump at the click.
+    layer.card.style.opacity = '0';
+    layer.card.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 140, easing: 'linear', fill: 'forwards' });
+    const cardPhotoEl = cardEl.querySelector('.frame-media');
+    window.setTimeout(() => { cardPhotoEl.style.visibility = 'hidden'; }, 150);
+
+    const hero = new Image();
+    hero.src = heroSrc;
+    const heroReady = (hero.decode ? hero.decode() : Promise.resolve()).catch(() => {});
+    heroReady.then(() => {
+        layer.hires.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 220, easing: 'ease-out', fill: 'forwards' });
+    });
+
+    const galleryView = document.getElementById('gallery-view');
+    // Lay the story out now, invisibly and out of flow: its first style/layout pass (~40ms of
+    // long serif text and the cover) happens before the morph starts moving instead of on
+    // the landing frame, where it showed as a hitch.
+    const detailView = document.getElementById('detail-view');
+    Object.assign(detailView.style, {
+        display: 'block', visibility: 'hidden', position: 'absolute', top: '0px', left: '0px', right: '0px'
+    });
+    void detailView.offsetHeight;
+    const duration = 720;
+    const easing = 'cubic-bezier(0.3, 0, 0.12, 1)';
+    const morph = layer.card.animate([{ clipPath: startClip }, { clipPath: endClip }], { duration, easing, fill: 'forwards' });
+    layer.image.animate([{ transform: startTransform }, { transform: 'none' }], { duration, easing, fill: 'forwards' });
+    layer.wash.animate([{ opacity: 0 }, { opacity: 0, offset: 0.45 }, { opacity: 1 }], { duration, easing: 'linear', fill: 'forwards' });
+    layer.image.animate([{ filter: liveFilter }, { filter: 'none' }], { duration, easing, fill: 'forwards' });
+    // The list visibly fades out while the window opens (starting right after the click, so the
+    // fade happens around the window rather than behind it), and is gone before the swap below
+    // (the morph ends at 720 ms) so nothing around the cover is removed abruptly.
+    galleryView.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 460, delay: 60, easing: 'cubic-bezier(0.25, 0.1, 0.25, 1)', fill: 'forwards' });
+
+    morph.finished
+        .then(() => Promise.race([heroReady, new Promise(resolve => setTimeout(resolve, 500))]))
+        .then(() => {
+            // Swap underneath the overlay: story at the top, already showing the same cover.
+            galleryView.getAnimations().forEach(animation => animation.cancel());
+            galleryView.classList.remove('active');
+            galleryView.style.display = 'none';
+            ['visibility', 'position', 'top', 'left', 'right'].forEach(property => detailView.style.removeProperty(property));
+            detailView.classList.add('active');
+            jumpTo(0);
+            cardPhotoEl.style.visibility = '';
+            document.documentElement.classList.add('atlas-handoff');
+            requestAnimationFrame(() => {
+                animateDetailArrival();
+                requestAnimationFrame(() => requestAnimationFrame(() => {
+                    layer.overlay.hidden = true;
+                    document.body.classList.remove('card-morphing');
+                    [layer.card, layer.image, layer.hires, layer.wash].forEach(element => {
+                        element.getAnimations().forEach(animation => animation.cancel());
+                        element.removeAttribute('style');
+                    });
+                }));
+            });
+            scheduleAfterArrival(() => loadMasonry(photo));
+        });
+    return true;
+}
+
+// Leave the story the way the user came in (see "Navigation flow" above).
+function goBackFromDetail() {
+    if (isAtlasEmbed) {
+        // The home page owns this history entry and plays the return morph.
+        postToAtlas({ type: 'back' });
+        return;
     }
-    
-    document.getElementById('detail-view').classList.remove('active');
-    setTimeout(() => {
-        document.getElementById('detail-view').style.display = 'none';
-        document.getElementById('gallery-view').style.display = 'flex';
-        setTimeout(() => document.getElementById('gallery-view').classList.add('active'), 50);
-    }, 400);
+    if (history.state?.fromGallery || cameFromAtlas) {
+        history.back();
+        return;
+    }
+    // Direct link: there is nothing of ours to go back to, so show the gallery in place.
+    try { history.replaceState(null, '', 'voyage.html'); } catch (error) { /* ignore */ }
+    closeDetail();
+}
+
+function closeDetail() {
+    // Never leave a modal layer or a scroll lock behind when the story closes.
+    if (lightbox && !lightbox.hidden) closeLightbox(true);
+    if (heroSection.classList.contains('zen-mode')) exitZenMode(true);
+    document.body.style.overflow = '';
+
+    detailArrivalAnimation?.pause?.();
+    detailRevealObserver?.disconnect?.();
+    const detailView = document.getElementById('detail-view');
+    const galleryView = document.getElementById('gallery-view');
+    const finishClose = () => {
+        clearMasonry();
+        detailView.classList.remove('active', 'detail-ready');
+        detailView.style.display = 'none';
+        detailView.style.removeProperty('opacity');
+        galleryView.style.display = 'flex';
+        document.body.classList.remove('showing-detail');
+        activePhoto = null;
+        updateVoyageTitle(document.body.classList.contains('lang-en') ? 'en' : 'zh');
+        // Return to the exact spot in the gallery and put focus back on the card.
+        const card = lastOpenedCardId == null ? null
+            : document.querySelector(`#gallery-grid .frame-card[data-photo-id="${lastOpenedCardId}"]`);
+        if (card && lastCardViewportTop != null) {
+            jumpTo(layoutTop(card) - lastCardViewportTop);
+        } else {
+            jumpTo(galleryScrollY);
+        }
+        card?.focus({ preventScroll: true });
+        requestAnimationFrame(() => galleryView.classList.add('active'));
+    };
+
+    if (detailView.style.display !== 'none' && morphToCard(finishClose)) {
+        // Cover → card morph (see morphToCard).
+    } else if (!voyageReduceMotion && typeof window.anime !== 'undefined' && detailView.style.display !== 'none') {
+        window.anime.remove(detailView);
+        window.anime({
+            targets: detailView,
+            opacity: [1, 0],
+            duration: 380,
+            easing: 'easeInOutQuad',
+            complete: finishClose
+        });
+    } else {
+        finishClose();
+    }
+}
+
+// Story cover → gallery card: the reverse of morphFromCard. The cover is copied onto the
+// overlay, the gallery is restored underneath at the user's place, and the cover shrinks
+// back into the card it came from. Only while the cover is still on screen.
+function morphToCard(finishClose) {
+    if (voyageReduceMotion || lastOpenedCardId == null || typeof Element.prototype.animate !== 'function') return false;
+    const detailView = document.getElementById('detail-view');
+    const galleryView = document.getElementById('gallery-view');
+    const heroCard = detailView.querySelector('.detail-arrival');
+    const from = heroCard?.getBoundingClientRect();
+    if (!from || from.bottom < window.innerHeight * 0.45) return false; // cover mostly scrolled away
+    const photo = photos.find(item => item.id === lastOpenedCardId);
+    if (!photo) return false;
+    const fromRadius = getComputedStyle(heroCard);
+    const radii = ['borderTopLeftRadius', 'borderTopRightRadius', 'borderBottomRightRadius', 'borderBottomLeftRadius']
+        .map(key => `${parseFloat(fromRadius[key]) || 0}px`).join(' ');
+
+    // 1. Cover onto the overlay, exactly where it is now.
+    const layer = ensureCardMorphLayer();
+    Object.assign(layer.card.style, {
+        left: `${from.left}px`, top: `${from.top}px`, width: `${from.width}px`, height: `${from.height}px`,
+        borderRadius: radii, clipPath: `inset(0px 0px 0px 0px round ${radii})`
+    });
+    {
+        const probe = document.querySelector(`#gallery-grid .frame-card[data-photo-id="${photo.id}"] .frame-media img`);
+        sizeMorphPhoto(layer, probe?.naturalWidth || 3, probe?.naturalHeight || 2, from);
+    }
+    layer.image.style.backgroundImage = `url("${imageVariant(photo.image, 'card')}")`;
+    layer.image.style.transform = 'none';
+    layer.image.style.filter = 'none';
+    layer.hires.style.backgroundImage = `url("${imageVariant(photo.image, 'hero')}")`;
+    layer.hires.style.opacity = '1';
+    layer.wash.style.opacity = '1';
+    layer.overlay.hidden = false;
+    document.body.classList.add('card-morphing'); // nav stays hidden until the cover has landed
+
+    // 2. Gallery back underneath, at the user's place, with no entrance motion.
+    finishClose();
+    galleryView.classList.add('skip-rise');
+    galleryView.style.transition = 'none';
+    galleryView.classList.add('active');
+    void galleryView.offsetHeight;
+    galleryView.style.removeProperty('transition');
+    const cardEl = document.querySelector(`#gallery-grid .frame-card[data-photo-id="${photo.id}"]`);
+    const media = cardEl?.querySelector('.frame-media');
+    const thumb = media?.querySelector('img');
+    const to = media?.getBoundingClientRect();
+    const resetLayer = () => {
+        layer.overlay.hidden = true;
+        [layer.card, layer.image, layer.hires, layer.wash].forEach(element => {
+            element.getAnimations().forEach(animation => animation.cancel());
+            element.removeAttribute('style');
+        });
+    };
+    const cleanup = () => {
+        document.body.classList.remove('card-morphing'); // nav fades back in with the hand-off
+        holdCardHover(cardEl);
+        revealCardUnderOverlay(layer, cardEl, resetLayer);
+    };
+    if (!to || !thumb?.naturalWidth || to.bottom < 0 || to.top > window.innerHeight) {
+        // Card not on screen: just dissolve the cover over the restored gallery.
+        layer.card.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 380, easing: 'ease-out', fill: 'forwards' })
+            .finished.then(cleanup).catch(cleanup);
+        return true;
+    }
+    media.style.visibility = 'hidden'; // the photo only: the caption below fades in with the list
+
+    // 3. Shrink into the card (same mapping as the open morph, reversed).
+    const w = thumb.naturalWidth;
+    const h = thumb.naturalHeight;
+    const coverFrom = Math.max(from.width / w, from.height / h);
+    const coverTo = Math.max(to.width / w, to.height / h);
+    const scale = (coverTo / coverFrom) * CARD_PHOTO_SCALE;
+    const dx = to.left + to.width / 2 - (from.left + from.width / 2);
+    const dy = to.top + to.height / 2 - (from.top + from.height / 2);
+    const endTransform = `translate(${dx}px, ${dy}px) scale(${scale})`;
+    const toRadius = parseFloat(getComputedStyle(media).borderTopLeftRadius) || 0;
+    const startClip = `inset(0px 0px 0px 0px round ${radii})`;
+    const endClip = `inset(${to.top - from.top}px ${from.left + from.width - to.right}px ${from.top + from.height - to.bottom}px ${to.left - from.left}px round ${toRadius}px)`;
+    const duration = 640;
+    const easing = 'cubic-bezier(0.5, 0, 0.15, 1)';
+    const shrink = layer.card.animate([{ clipPath: startClip }, { clipPath: endClip }], { duration, easing, fill: 'forwards' });
+    layer.image.animate([{ transform: 'none', filter: 'none' }, { transform: endTransform, filter: CARD_PHOTO_FILTER }], { duration, easing, fill: 'forwards' });
+    // The sharp cover gives way to the card-sized photo the card itself shows.
+    layer.hires.animate([{ opacity: 1 }, { opacity: 1, offset: 0.35 }, { opacity: 0 }], { duration, easing: 'linear', fill: 'forwards' });
+    layer.wash.animate([{ opacity: 1 }, { opacity: 0, offset: 0.4 }, { opacity: 0 }], { duration, easing: 'linear', fill: 'forwards' });
+    // The list comes up while the window is opening, so you actually see it fade in (it used to
+    // finish inside the first 190 ms, hidden behind the still almost full-size cover). It starts
+    // from a dim level, not black, so the margins around the cover are never an empty frame.
+    galleryView.animate([{ opacity: 0.1 }, { opacity: 1 }], { duration: 520, easing: 'cubic-bezier(0.4, 0, 0.2, 1)', fill: 'backwards' });
+    shrink.finished.then(cleanup).catch(cleanup);
+    return true;
+}
+
+// A prerendered page (speculation rules from the home globe) must not play its entrance
+// before the user actually lands on it.
+function whenPageActive(task) {
+    if (isAtlasEmbed) {
+        // Preloaded by the home page: start the entrance only when it is revealed.
+        const onMessage = event => {
+            if (event.source !== window.parent || event.data?.type !== 'atlas:activate') return;
+            window.removeEventListener('message', onMessage);
+            task();
+        };
+        window.addEventListener('message', onMessage);
+    } else if (document.prerendering) {
+        document.addEventListener('prerenderingchange', task, { once: true });
+    } else {
+        task();
+    }
+}
+
+// Tell the home page when the preloaded story is fully painted (cover decoded), so the swap
+// from its morph card to this page is pixel-identical.
+function announceEmbedReady(photo) {
+    if (!isAtlasEmbed) return;
+    const img = new Image();
+    img.src = imageVariant(photo.image, 'hero');
+    const decoded = img.decode ? img.decode().catch(() => {}) : Promise.resolve();
+    decoded.then(() => requestAnimationFrame(() => requestAnimationFrame(() => {
+        postToAtlas({ type: 'ready', id: photo.id, title: document.title });
+    })));
+}
+
+function scheduleAfterArrival(task) {
+    const run = () => (window.requestIdleCallback ? window.requestIdleCallback(task, { timeout: 600 }) : task());
+    window.setTimeout(run, voyageReduceMotion ? 0 : 750);
+}
+
+// Wide-screen series layout (used by the ≥1200px CSS on a 6-column grid): a feature frame
+// with two stacked beside it, then rows of three — and the tail regrouped into rows of two
+// so no row is ever left with a lone frame and an empty gap.
+function applySeriesLayout(masonry) {
+    const items = [...masonry.children];
+    const n = items.length;
+    const set = (item, cols, rows = 1) => {
+        item.dataset.cols = String(cols);
+        item.dataset.rows = String(rows);
+    };
+    if (n === 1) return set(items[0], 6, 2);
+    if (n === 2 || n === 4) return items.forEach(item => set(item, 3, 2));
+    set(items[0], 4, 2);
+    set(items[1], 2);
+    set(items[2], 2);
+    const rest = items.slice(3);
+    rest.forEach(item => set(item, 2));
+    const remainder = rest.length % 3;
+    if (remainder === 2) rest.slice(-2).forEach(item => set(item, 3, 2));
+    if (remainder === 1) rest.slice(-4).forEach(item => set(item, 3, 2));
+}
+
+function clearMasonry() {
+    const masonry = document.getElementById('detail-masonry');
+    if (masonry) masonry.innerHTML = '';
 }
 
 function loadMasonry(photo) {
+    // A delayed build for a story the user has already left (or switched away from) is dropped.
+    if (!activePhoto || activePhoto.id !== photo.id) return;
     const masonry = document.getElementById('detail-masonry');
     masonry.innerHTML = '';
 
@@ -793,7 +1416,8 @@ function loadMasonry(photo) {
             item.setAttribute('aria-label', index === 0
                 ? (isEnglish ? 'Open cover image preview' : '打开封面图片预览')
                 : (isEnglish ? 'Open image preview' : '打开图片预览'));
-            item.innerHTML = `<img src="${src}" alt="" loading="lazy"${index === 0 ? ' fetchpriority="high"' : ''}>`;
+            // Thumbnails use the web-sized copy; the lightbox still opens the original.
+            item.innerHTML = `<img src="${imageVariant(src, 'card')}" alt="" loading="lazy" decoding="async">`;
             item.addEventListener('click', () => openLightbox(src));
             item.addEventListener('keydown', event => {
                 if (event.key === 'Enter' || event.key === ' ') {
@@ -803,6 +1427,7 @@ function loadMasonry(photo) {
             });
             masonry.appendChild(item);
         });
+        applySeriesLayout(masonry);
     }
 }
 
@@ -826,6 +1451,8 @@ function openLightbox(src) {
         : '';
     lightbox.hidden = false;
     lightbox.setAttribute('aria-hidden', 'false');
+    // Own history entry: Back (or the phone's back gesture) closes the image, not the story.
+    if (!history.state?.lightbox) history.pushState({ ...(history.state || {}), lightbox: true }, '');
     const scrollbarWidth = Math.max(0, window.innerWidth - document.documentElement.clientWidth);
     document.documentElement.style.setProperty('--scrollbar-compensation', `${scrollbarWidth}px`);
     document.body.classList.add('modal-open');
@@ -850,8 +1477,13 @@ function openLightbox(src) {
     });
 }
 
-function closeLightbox() {
+function closeLightbox(fromHistory = false) {
     if (!lightbox || lightbox.hidden) return;
+    // Closing from the UI pops our history entry; the popstate handler then closes it.
+    if (!fromHistory && history.state?.lightbox) {
+        history.back();
+        return;
+    }
     window.clearTimeout(lightboxAnimationTimer);
     lightbox.classList.remove('show', 'image-ready');
     lightbox.setAttribute('aria-hidden', 'true');
@@ -881,14 +1513,32 @@ closeLightboxBtn?.addEventListener('click', event => {
 });
 
 document.addEventListener('keydown', event => {
-    if (event.key === 'Escape' && lightbox && !lightbox.hidden) {
+    if (event.key !== 'Escape' || event.defaultPrevented) return;
+    if (heroSection.classList.contains('zen-mode')) {
+        event.preventDefault();
+        exitZenMode();
+        return;
+    }
+    if (lightbox && !lightbox.hidden) {
         event.preventDefault();
         closeLightbox();
+        return;
+    }
+    // Esc on a story (no dialog or menu open) = the back button.
+    const shareOpen = document.getElementById('share-popup-modal')?.classList.contains('show');
+    const navOpen = document.getElementById('card-nav')?.classList.contains('open');
+    if (activePhoto && !shareOpen && !navOpen && document.body.classList.contains('showing-detail')) {
+        event.preventDefault();
+        goBackFromDetail();
     }
 });
 
 // Event Listeners
-document.getElementById('back-btn').addEventListener('click', closeDetail);
+const backButton = document.getElementById('back-btn');
+backButton.addEventListener('click', goBackFromDetail);
+if (cameFromAtlas) {
+    backButton.innerHTML = '<span aria-hidden="true">←</span><span class="lang-en">BACK TO ATLAS</span><span class="lang-zh">返回地球</span>';
+}
 const voyageShareBtn = document.getElementById('voyage-share-btn');
 if (voyageShareBtn) {
     voyageShareBtn.addEventListener('click', (e) => {
@@ -982,7 +1632,10 @@ function updateBgTransform() {
     panX = Math.min(limitX, Math.max(-limitX, panX));
     panY = Math.min(limitY, Math.max(-limitY, panY));
 
-    bg.style.transform = `translate(${panX}px, ${panY}px) scale(${zoomScale})`;
+    // Identity transforms are left unset: writing one would promote and re-raster the
+    // cover layer for no visual change, which shows as a jolt right after arrival.
+    const isIdentity = panX === 0 && panY === 0 && zoomScale === 1;
+    bg.style.transform = isIdentity ? '' : `translate(${panX}px, ${panY}px) scale(${zoomScale})`;
 }
 
 function startPan(clientX, clientY) {
@@ -1103,12 +1756,12 @@ function smoothScrollToTop(callback) {
         const progress = Math.min(timeElapsed / duration, 1);
         const ease = easeInOutCubic(progress);
 
-        window.scrollTo(0, start * (1 - ease));
+        jumpTo(start * (1 - ease));
 
         if (progress < 1) {
             requestAnimationFrame(animate);
         } else {
-            window.scrollTo(0, 0);
+            jumpTo(0);
             callback();
         }
     }
@@ -1133,12 +1786,12 @@ function smoothScrollTo(targetY, duration) {
         const progress = Math.min(timeElapsed / duration, 1);
         const ease = easeInOutCubic(progress);
 
-        window.scrollTo(0, start + change * ease);
+        jumpTo(start + change * ease);
 
         if (progress < 1) {
             requestAnimationFrame(animate);
         } else {
-            window.scrollTo(0, targetY);
+            jumpTo(targetY);
         }
     }
 
@@ -1191,7 +1844,17 @@ if (lightboxImmerseBtn) {
     });
 }
 
-function exitZenMode() {
+function exitZenMode(instant = false) {
+    if (instant) {
+        heroSection.classList.remove('zen-mode', 'zen-fixed', 'zen-exiting', 'has-panned');
+        document.body.classList.remove('zen-active', 'zen-fixed-active');
+        document.body.style.overflow = '';
+        zoomScale = 1.0;
+        panX = 0;
+        panY = 0;
+        updateBgTransform();
+        return;
+    }
     if (isFixedZen) {
         if (heroSection.classList.contains('zen-exiting')) return;
         heroSection.classList.add('zen-exiting');
@@ -1206,7 +1869,7 @@ function exitZenMode() {
             document.body.style.overflow = '';
 
             // Instantly restore scroll position
-            window.scrollTo(0, preZenScrollY);
+            jumpTo(preZenScrollY);
 
             heroSection.classList.remove('has-panned');
             zoomScale = 1.0;
@@ -1214,9 +1877,12 @@ function exitZenMode() {
             panY = 0;
             updateBgTransform();
             if (activePhoto) {
-                document.getElementById('detail-hero-bg').style.backgroundImage = `url('${activePhoto.image}')`;
-                updateImageDimensions(activePhoto.image);
+                document.getElementById('detail-hero-bg').style.backgroundImage = `url('${imageVariant(activePhoto.image, 'hero')}'), url('${imageVariant(activePhoto.image, 'mini')}')`;
+                updateImageDimensions(imageVariant(activePhoto.image, 'hero'));
             }
+            // The lightbox this immersive view came from is only visually hidden — close it
+            // properly so it doesn't keep its history entry and scroll lock.
+            if (lightbox && !lightbox.hidden) closeLightbox();
         }, 1200);
     } else {
         // Cover photo exit: standard relative transition (smoothly transitions height back to 80vh)
@@ -1242,6 +1908,21 @@ heroSection.addEventListener('click', (e) => {
 });
 
 // Function to update dynamic voyage title
+if (isAtlasEmbed) {
+    let scrollFrame = 0;
+    window.addEventListener('scroll', () => {
+        if (scrollFrame) return;
+        scrollFrame = requestAnimationFrame(() => {
+            scrollFrame = 0;
+            postToAtlas({ type: 'scroll', y: window.scrollY });
+        });
+    }, { passive: true });
+    document.addEventListener('click', event => {
+        const link = event.target.closest('a[href]');
+        if (link && !link.target) link.target = '_top';
+    }, true);
+}
+
 function updateVoyageTitle(lang) {
     if (activePhoto) {
         if (lang === 'en') {
@@ -1249,6 +1930,7 @@ function updateVoyageTitle(lang) {
         } else {
             document.title = `STEVEN ZHANG | ${activePhoto.titleZh}`;
         }
+        postToAtlas({ type: 'title', title: document.title });
     } else {
         if (lang === 'en') {
             document.title = "STEVEN ZHANG | The Voyage Archive";
@@ -1275,16 +1957,20 @@ document.addEventListener('DOMContentLoaded', () => {
     updateVoyageTitle(currentLang);
 
     setupFilters();
+    renderArchiveStats();
     initGallery();
-    preloadAllImages();
 
     if (hasId) {
         const targetId = parseInt(urlParams.get('id'), 10);
         const targetPhoto = photos.find(p => p.id === targetId);
         if (targetPhoto) {
+            // Drop the hand-off marker (?from=atlas) so Back/Share use the clean URL.
+            if (urlParams.has('from') && !isAtlasEmbed) {
+                try { history.replaceState(history.state, '', `voyage.html?id=${targetId}`); } catch (error) { /* ignore */ }
+            }
             document.getElementById('gallery-view').classList.remove('active');
             document.getElementById('gallery-view').style.display = 'none';
-            document.getElementById('detail-view').style.display = 'flex';
+            document.getElementById('detail-view').style.display = 'block';
             openDetail(targetPhoto, true);
         } else {
             document.getElementById('gallery-view').style.display = 'flex';
@@ -1307,24 +1993,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 80);
 });
 
-// Preload all vault images into browser memory cache
-function preloadAllImages() {
-    photos.forEach(photo => {
-        if (photo.image) {
-            const img = new Image();
-            img.src = photo.image;
-        }
-        if (photo.morePics && Array.isArray(photo.morePics)) {
-            photo.morePics.forEach(src => {
-                const img = new Image();
-                img.src = src;
-            });
-        }
-    });
-}
-
 // Handle Browser Back / Forward buttons without page reloads
 window.addEventListener('popstate', () => {
+    // Back from an open image / immersive view only closes that layer.
+    if (lightbox && !lightbox.hidden && !history.state?.lightbox) {
+        if (heroSection.classList.contains('zen-mode')) exitZenMode(true);
+        closeLightbox(true);
+        return;
+    }
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.has('id')) {
         const targetId = parseInt(urlParams.get('id'), 10);

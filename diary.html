@@ -3,6 +3,7 @@
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+	<script>(function(){var r=document.documentElement;function s(){r.style.setProperty('--ambient-delay',-(Date.now()/1000%100000).toFixed(2)+'s')}s();if(document.prerendering)document.addEventListener('prerenderingchange',s,{once:true})})();</script>
 	<title>STEVEN ZHANG | 日常切片 (Daily Fragments)</title>
 	
 	<!-- Fonts -->
@@ -11,115 +12,57 @@
 	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&amp;family=Playfair+Display:ital,wght@0,400;0,600;1,400&amp;family=Noto+Serif+SC:wght@300;400;500;600&amp;display=swap" rel="stylesheet">
 	
 	<link rel="stylesheet" href="css/main.css">
+	<link rel="stylesheet" href="css/liquid-glass.css">
 	
-	<style>
-		/* Specific Overrides for Diary Filters */
-		.filter-group h4 {
-			font-size: 0.85rem;
-			text-transform: uppercase;
-			letter-spacing: 0.1em;
-			color: var(--secondary-text-light);
-			margin-bottom: 0.5rem;
-		}
-		.filter-list {
-			list-style: none;
-			display: flex;
-			gap: 1rem;
-			flex-wrap: wrap;
-		}
-		.filter-list li {
-			cursor: pointer;
-			opacity: 0.5;
-			transition: opacity 0.3s;
-			font-size: 0.9rem;
-		}
-		.filter-list li.active, .filter-list li:hover {
-			opacity: 1;
-			font-weight: 500;
-		}
-		
-		/* Analog Card Style overrides for text-based diary */
-		.analog-card {
-			background: rgba(255, 255, 255, 0.05);
-			border: 1px solid rgba(255, 255, 255, 0.1);
-			border-radius: 16px;
-			padding: 2rem;
-			backdrop-filter: blur(10px);
-			cursor: pointer;
-			transition: transform 0.4s ease, border-color 0.4s ease;
-			display: flex;
-			flex-direction: column;
-		}
-		.analog-card:hover {
-			transform: translateY(-5px);
-			border-color: rgba(255,255,255,0.3);
-		}
-		.card-header {
-			margin-bottom: 1rem;
-			display: flex;
-			justify-content: space-between;
-			align-items: flex-start;
-		}
-		.card-title {
-			font-size: 1.2rem;
-			font-weight: 600;
-		}
-		.card-subtitle {
-			font-size: 0.8rem;
-			color: var(--secondary-text-light);
-			margin-top: 0.2rem;
-		}
-		.diary-excerpt {
-			font-size: 0.95rem;
-			line-height: 1.6;
-			color: var(--text-light);
-			margin-top: 1rem;
-			opacity: 0.9;
-		}
-
-		.diary-sidebar {
-			display: flex;
-			flex-direction: column;
-			gap: 2rem;
-			margin-bottom: 3rem;
-		}
-		@media(min-width: 768px) {
-			.diary-sidebar {
-				flex-direction: row;
-				justify-content: center;
-				gap: 4rem;
-			}
-		}
-
-		.empty-container {
-			display: none;
-			flex-direction: column;
-			align-items: center;
-			justify-content: center;
-			padding: 5rem 0;
-			text-align: center;
-			opacity: 0.5;
-		}
-	</style>
 </head>
 <body class="lang-zh">
 	
-	<!-- Header -->
-	<header class="main-header">
-		<div class="header-logo">
-			<a href="index.html">STEVEN ZHANG</a>
-			<span style="opacity: 0.5; margin-left: 1rem; font-size: 0.8rem;">
-				<span class="lang-en">| DAILY FRAGMENTS</span>
-				<span class="lang-zh">| 日常切片</span>
-			</span>
-		</div>
-		<nav class="header-nav">
-			<button id="lang-toggle" class="lang-btn magnetic-btn">
-				<span class="lang-en">中文</span>
-				<span class="lang-zh">ENGLISH</span>
-			</button>
+	<!-- Expandable Card Navigation (shared with index.html) -->
+	<div class="card-nav-container">
+		<nav class="card-nav" id="card-nav" aria-label="主要栏目">
+			<div class="card-nav-top">
+				<button class="hamburger-menu" id="card-nav-toggle" type="button" aria-label="打开栏目导航" aria-expanded="false" aria-controls="card-nav-content">
+					<span class="hamburger-line"></span>
+					<span class="hamburger-line"></span>
+				</button>
+				<a class="card-nav-logo" href="index.html" aria-label="Steven Zhang 首页">STEVEN ZHANG</a>
+				<div class="card-nav-actions">
+					<button class="card-nav-search-toggle" type="button" aria-label="搜索" title="搜索 ( / )">
+						<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+					</button>
+					<button id="lang-toggle" class="card-nav-cta-button" type="button" aria-label="Switch to English">
+						<span class="lang-en">中文</span>
+						<span class="lang-zh">ENGLISH</span>
+					</button>
+				</div>
+			</div>
+			<div class="card-nav-content" id="card-nav-content" aria-hidden="true">
+				<label class="card-nav-search">
+					<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+					<input class="site-search-input" type="search" autocomplete="off" spellcheck="false" enterkeyhint="search" aria-label="搜索" aria-controls="site-search-results">
+					<kbd class="site-search-hint">/</kbd>
+				</label>
+				<div class="card-nav-cards">
+					<section class="card-nav-card card-nav-voyage">
+						<p class="card-nav-label"><span>01</span><span class="lang-en">Voyage</span><span class="lang-zh">旅途</span></p>
+						<a class="card-nav-link" href="voyage.html"><span aria-hidden="true">↗</span><span class="lang-en">Photography &amp; journeys</span><span class="lang-zh">摄影与旅程</span></a>
+					</section>
+					<section class="card-nav-card card-nav-daily is-current">
+						<p class="card-nav-label"><span>02</span><span class="lang-en">Daily</span><span class="lang-zh">日常</span></p>
+						<a class="card-nav-link" href="diary.html" aria-current="page"><span aria-hidden="true">↗</span><span class="lang-en">Moments &amp; shadows</span><span class="lang-zh">瞬时记录与光影</span></a>
+					</section>
+					<section class="card-nav-card card-nav-journal">
+						<p class="card-nav-label"><span>03</span><span class="lang-en">Journal</span><span class="lang-zh">随笔</span></p>
+						<a class="card-nav-link" href="journal.html"><span aria-hidden="true">↗</span><span class="lang-en">Notes &amp; reflections</span><span class="lang-zh">笔记与思考</span></a>
+					</section>
+				</div>
+				<div class="site-search-panel" hidden>
+					<ul class="site-search-results" id="site-search-results" role="listbox"></ul>
+					<p class="site-search-empty" hidden></p>
+				</div>
+			</div>
 		</nav>
-	</header>
+	</div>
 
 	<!-- Deep Space Background (Fixed) -->
 	<div class="hero-bg-container">
@@ -135,56 +78,67 @@
 	</div>
 
 	<!-- Content -->
-	<main class="subpage-container">
-		
-		<div class="subpage-header">
-			<h1 class="subpage-title">
-				<span class="lang-en">Daily Fragments</span>
-				<span class="lang-zh">日常切片</span>
-			</h1>
-			<p style="color: var(--secondary-text-light); letter-spacing: 0.1em;">
-				<span class="lang-en">Fleeting moments and everyday visual diaries.</span>
-				<span class="lang-zh">瞬时记录与光影碎屑。</span>
-			</p>
-		</div>
+	<main class="archive-page archive-page-daily">
 
-		<!-- Filters -->
-		<aside class="diary-sidebar glass-panel">
+		<header class="archive-hero">
+			<div class="archive-hero-copy">
+				<p class="archive-kicker"><span>02</span><span class="lang-en">DAILY · MOMENTS &amp; SHADOWS</span><span class="lang-zh">日常 · 瞬时记录与光影</span></p>
+				<h1 class="archive-title">
+					<span class="lang-en">Daily <em>Fragments.</em></span>
+					<span class="lang-zh">日常<em>切片</em></span>
+				</h1>
+				<p class="archive-intro">
+					<span class="lang-en">Small, unposed things: a window at 5pm, a receipt, a street that smelled like rain. Kept here before they fade.</span>
+					<span class="lang-zh">那些不经意的小事：傍晚五点的窗、一张小票、一条带着雨味的街。在它们褪色之前，先收在这里。</span>
+				</p>
+			</div>
+			<dl class="archive-stats" aria-label="日常概览">
+				<div><dt><span class="lang-en">Fragments</span><span class="lang-zh">切片</span></dt><dd data-stat="count">—</dd></div>
+				<div><dt><span class="lang-en">Topics</span><span class="lang-zh">主题</span></dt><dd data-stat="topics">—</dd></div>
+			</dl>
+		</header>
+
+		<!-- Filters (hidden by JS when there is nothing to filter) -->
+		<div class="archive-toolbar" role="toolbar" aria-label="筛选" hidden>
 			<div class="filter-group">
-				<h4>
-					<span class="lang-en">Category</span>
-					<span class="lang-zh">分类</span>
-				</h4>
+				<h4><span class="lang-en">Category</span><span class="lang-zh">分类</span></h4>
 				<ul class="filter-list" id="category-filter">
-					<!-- Dynamically populated, or hardcoded for now -->
 					<li data-category="ALL" class="active"><span class="lang-en">All</span><span class="lang-zh">全部</span></li>
-					<li data-category="LIFE"><span class="lang-en">Life</span><span class="lang-zh">生活</span></li>
-					<li data-category="CODE"><span class="lang-en">Code</span><span class="lang-zh">代码</span></li>
-					<li data-category="DESIGN"><span class="lang-en">Design</span><span class="lang-zh">设计</span></li>
 				</ul>
 			</div>
 			<div class="filter-group">
-				<h4>
-					<span class="lang-en">Year</span>
-					<span class="lang-zh">年份</span>
-				</h4>
+				<h4><span class="lang-en">Year</span><span class="lang-zh">年份</span></h4>
 				<ul class="filter-list" id="year-filter">
 					<li data-year="ALL" class="active"><span class="lang-en">All</span><span class="lang-zh">全部</span></li>
-					<li data-year="2026"><span class="lang-en">2026</span><span class="lang-zh">2026</span></li>
 				</ul>
 			</div>
-		</aside>
+			<p class="archive-result" id="diary-result" aria-live="polite"></p>
+		</div>
 
 		<!-- Empty State -->
-		<div class="empty-container" id="diary-empty-container">
-			<p>
-				<span class="lang-en">No fragments collected yet.</span>
-				<span class="lang-zh">碎片整理中，暂无内容。</span>
-			</p>
+		<div class="archive-empty" id="diary-empty-container">
+			<div class="empty-sheet" aria-hidden="true">
+				<span>01</span><span>02</span><span>03</span><span>04</span><span>05</span><span>06</span>
+			</div>
+			<div class="empty-copy">
+				<p class="archive-kicker"><span>00</span><span class="lang-en">IN THE DARKROOM</span><span class="lang-zh">暗房冲洗中</span></p>
+				<h2>
+					<span class="lang-en">No fragments developed yet.</span>
+					<span class="lang-zh">碎片整理中，暂无内容。</span>
+				</h2>
+				<p>
+					<span class="lang-en">This contact sheet is still blank. Meanwhile, the journeys have already come into focus.</span>
+					<span class="lang-zh">这张底片页还是空白的。在它显影之前，不妨先去看看已经成像的旅途。</span>
+				</p>
+				<a class="primary-action" href="voyage.html">
+					<span class="lang-en">VISIT THE VOYAGE ARCHIVE</span><span class="lang-zh">浏览旅途影像</span>
+					<span aria-hidden="true">↗</span>
+				</a>
+			</div>
 		</div>
 
 		<!-- Grid -->
-		<section class="gallery-grid" id="diary-grid" aria-live="polite" aria-label="日常切片列表" style="grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));"></section>
+		<section class="archive-grid frame-grid" id="diary-grid" aria-live="polite" aria-label="日常切片列表"></section>
 
 	</main>
 
@@ -197,8 +151,11 @@
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
 	<!-- Data & App Logic -->
 	<script src="js/data.js"></script>
+	<script src="js/archive-list.js"></script>
 	<script src="js/diary.js"></script>
 	<!-- Starfield Parallax -->
+	<script src="js/maintenance-config.js"></script>
+	<script src="js/site-search.js"></script>
 	<script src="js/main.js"></script>
 </body>
 </html>

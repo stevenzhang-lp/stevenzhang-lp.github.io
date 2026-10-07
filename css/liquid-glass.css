@@ -1,0 +1,1920 @@
+/* ==========================================================================
+   LIQUID GLASS — site-wide theme layer
+   Loaded after main.css on every page. One material, one neutral palette:
+   translucent fill + backdrop blur/saturation + specular top highlight +
+   a light-catching rim, floating over soft ambient color fields.
+   ========================================================================== */
+
+:root {
+	--lg-bg: #07080b;
+	--lg-text: #f5f5f7;
+	--lg-text-2: rgba(245, 245, 247, 0.66);
+	--lg-text-3: rgba(245, 245, 247, 0.42);
+	--lg-line: rgba(255, 255, 255, 0.1);
+
+	--lg-fill: rgba(255, 255, 255, 0.07);
+	--lg-fill-soft: rgba(255, 255, 255, 0.045);
+	--lg-fill-hover: rgba(255, 255, 255, 0.12);
+	--lg-fill-active: rgba(255, 255, 255, 0.18);
+	--lg-fill-dense: rgba(24, 26, 32, 0.5);
+
+	--lg-blur: blur(28px) saturate(170%);
+	--lg-blur-soft: blur(16px) saturate(160%);
+	--lg-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.2), inset 0 -1px 0 rgba(255, 255, 255, 0.04);
+	--lg-shadow: 0 16px 48px rgba(0, 0, 0, 0.28);
+	--lg-rim: linear-gradient(
+		155deg,
+		rgba(255, 255, 255, 0.5) 0%,
+		rgba(255, 255, 255, 0.1) 22%,
+		rgba(255, 255, 255, 0.02) 50%,
+		rgba(255, 255, 255, 0.08) 78%,
+		rgba(255, 255, 255, 0.28) 100%
+	);
+
+	--lg-radius-lg: 28px;
+	--lg-radius: 22px;
+	--lg-radius-sm: 14px;
+	--lg-ease: cubic-bezier(0.16, 1, 0.3, 1);
+
+	/* Retune the archive tokens from main.css to the neutral palette. */
+	--atlas-bg: var(--lg-bg);
+	--atlas-surface: var(--lg-fill);
+	--atlas-line: var(--lg-line);
+	--atlas-line-strong: rgba(255, 255, 255, 0.16);
+	--atlas-muted: var(--lg-text-2);
+	--atlas-faint: var(--lg-text-3);
+	--atlas-accent: var(--lg-text);
+	--atlas-accent-soft: var(--lg-fill-active);
+}
+
+/* --------------------------------------------------------------------------
+   Ambient background: three slow color fields instead of stars + nebula.
+   -------------------------------------------------------------------------- */
+html,
+body,
+body.single-page,
+body:has(.archive-page),
+body:has(.not-found-container),
+.voyage-page,
+.voyage-page.showing-detail,
+.voyage-page #detail-view {
+	background: var(--lg-bg);
+}
+
+body .hero-bg-container,
+.single-page .hero-bg-container {
+	position: fixed;
+	inset: 0;
+	z-index: 0;
+	width: 100%;
+	height: 100%;
+	opacity: 1;
+	pointer-events: none;
+}
+
+.voyage-page.showing-detail > .hero-bg-container {
+	opacity: 1;
+}
+
+.hero-bg-container .stars-container {
+	display: none;
+}
+
+.hero-bg-container::before,
+.hero-bg-container::after,
+body .hero-bg-orb,
+.single-page .hero-bg-orb {
+	content: '';
+	position: absolute;
+	border-radius: 50%;
+	/* No filter and no animation: the radial gradients already fade out softly, and a static
+	   background means the glass surfaces above it only re-blur when something moves. A
+	   full-screen blur(70px) layer animating every frame was the main cost on large screens. */
+	pointer-events: none;
+}
+
+/* Blue field */
+body .hero-bg-orb,
+.single-page .hero-bg-orb {
+	top: 18%;
+	left: 72%;
+	width: min(62vw, 820px);
+	height: min(62vw, 820px);
+	background: radial-gradient(circle, rgba(64, 118, 214, 0.42) 0%, rgba(52, 96, 180, 0.16) 40%, rgba(52, 96, 180, 0.05) 58%, transparent 72%);
+	opacity: 0.85;
+}
+
+/* Violet field */
+.hero-bg-container::before {
+	bottom: -18%;
+	left: -12%;
+	width: min(58vw, 760px);
+	height: min(58vw, 760px);
+	background: radial-gradient(circle, rgba(126, 88, 206, 0.36) 0%, rgba(98, 70, 170, 0.13) 42%, rgba(98, 70, 170, 0.04) 58%, transparent 72%);
+}
+
+/* Teal field */
+.hero-bg-container::after {
+	top: 48%;
+	left: 38%;
+	width: min(44vw, 580px);
+	height: min(44vw, 580px);
+	background: radial-gradient(circle, rgba(46, 150, 164, 0.26) 0%, rgba(40, 120, 140, 0.09) 42%, rgba(40, 120, 140, 0.03) 58%, transparent 72%);
+}
+
+body .hero-bg-overlay,
+.single-page .hero-bg-overlay {
+	z-index: 1;
+	background:
+		radial-gradient(ellipse at 50% 40%, transparent 30%, rgba(7, 8, 11, 0.55) 100%),
+		linear-gradient(to bottom, rgba(7, 8, 11, 0) 60%, rgba(7, 8, 11, 0.5) 100%);
+}
+
+@keyframes lg-drift-a {
+	from { transform: translate(0, 0) scale(1); }
+	to { transform: translate(14vw, -10vh) scale(1.15); }
+}
+
+@keyframes lg-drift-b {
+	from { transform: translate(0, 0) scale(1); }
+	to { transform: translate(-18vw, 12vh) scale(0.9); }
+}
+
+/* --------------------------------------------------------------------------
+   The material
+   -------------------------------------------------------------------------- */
+.card-nav,
+.archive-toolbar,
+.journal-card,
+.empty-sheet,
+.frame-card-text .frame-caption,
+.primary-action,
+.journal-card-action,
+.card-nav-cta-button,
+.glass-pill-group,
+.share-controls-column .glass-pill-group,
+.share-action-btn.glass-btn,
+.share-link-preview,
+.share-toast,
+.close-modal,
+.close-lightbox,
+.share-close-btn,
+.detail-back-btn,
+.voyage-page #detail-view .detail-back-btn,
+.voyage-page #detail-view .share-btn,
+.status-badge,
+.main-header {
+	color: var(--lg-text);
+	background: var(--lg-fill);
+	border: 0;
+	box-shadow: var(--lg-highlight), var(--lg-shadow);
+	backdrop-filter: var(--lg-blur);
+	-webkit-backdrop-filter: var(--lg-blur);
+	isolation: isolate;
+}
+
+/* Rim hosts that are statically positioned by default. */
+.empty-sheet,
+.frame-card-text .frame-caption,
+.primary-action,
+.journal-card-action,
+.card-nav-cta-button,
+.glass-pill-group,
+.share-action-btn.glass-btn,
+.share-close-btn,
+.detail-back-btn,
+.voyage-page #detail-view .share-btn,
+.status-badge {
+	position: relative;
+}
+
+/* Light-catching rim (a masked 1px gradient border). */
+.card-nav::after,
+.archive-toolbar::after,
+.journal-card::after,
+.empty-sheet::after,
+.frame-card-text .frame-caption::after,
+.primary-action::after,
+.journal-card-action::after,
+.card-nav-cta-button::after,
+.glass-pill-group::after,
+.share-action-btn.glass-btn::after,
+.close-modal::after,
+.close-lightbox::after,
+.share-close-btn::after,
+.detail-back-btn::after,
+.voyage-page #detail-view .share-btn::after,
+.status-badge::after,
+.card-nav-card::after {
+	content: '';
+	position: absolute;
+	inset: 0;
+	z-index: 2;
+	padding: 1px;
+	border-radius: inherit;
+	background: var(--lg-rim);
+	-webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+	-webkit-mask-composite: xor;
+	mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+	mask-composite: exclude;
+	filter: none;
+	opacity: 1;
+	pointer-events: none;
+	transition: none;
+}
+
+/* Scrollable surfaces keep the rim as an inset line so it never scrolls away. */
+.home-modal-content,
+.share-popup-content.glass-panel {
+	color: var(--lg-text);
+	background: var(--lg-fill-dense);
+	border: 0;
+	box-shadow:
+		inset 0 0 0 1px rgba(255, 255, 255, 0.12),
+		inset 0 1px 0 rgba(255, 255, 255, 0.26),
+		0 40px 120px rgba(0, 0, 0, 0.5);
+	backdrop-filter: blur(40px) saturate(180%);
+	-webkit-backdrop-filter: blur(40px) saturate(180%);
+}
+
+@media (hover: hover) {
+	.primary-action:hover,
+	.journal-card:hover .journal-card-action,
+	.card-nav-cta-button:hover,
+	.share-action-btn.glass-btn:hover,
+	.close-modal:hover,
+	.close-lightbox:hover,
+	.share-close-btn:hover,
+	.detail-back-btn:hover,
+	.voyage-page #detail-view .share-btn:hover {
+		color: #fff;
+		background: var(--lg-fill-hover);
+		border-color: transparent;
+		transform: none;
+	}
+}
+
+/* --------------------------------------------------------------------------
+   Controls
+   -------------------------------------------------------------------------- */
+.primary-action,
+.journal-card-action {
+	min-width: 0;
+	gap: 1.4rem;
+	padding: 0.85rem 1.25rem 0.85rem 1.4rem;
+	border-radius: 999px;
+	font-size: 0.7rem;
+	font-weight: 600;
+	letter-spacing: 0.1em;
+}
+
+.text-action {
+	color: var(--lg-text-2);
+	border-bottom-color: rgba(255, 255, 255, 0.24);
+}
+
+.card-nav-cta-button {
+	height: calc(100% - 4px);
+	margin: 2px 0;
+	padding: 0 1.1rem;
+	border-radius: 999px;
+	background: var(--lg-fill-soft);
+	box-shadow: var(--lg-highlight);
+}
+
+.glass-pill-group,
+.share-controls-column .glass-pill-group {
+	gap: 4px;
+	padding: 4px;
+	background: rgba(0, 0, 0, 0.18);
+	border-radius: 999px;
+	box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.glass-pill-btn,
+.share-controls-column .glass-pill-btn {
+	position: relative;
+	z-index: 3;
+	color: var(--lg-text-2);
+	border-radius: 999px;
+	transition: color 0.25s ease, background-color 0.3s var(--lg-ease), box-shadow 0.3s var(--lg-ease);
+}
+
+.glass-pill-btn.active,
+.share-controls-column .glass-pill-btn.active {
+	color: #fff;
+	background: var(--lg-fill-active);
+	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 4px 14px rgba(0, 0, 0, 0.25);
+}
+
+.share-action-btn.glass-btn {
+	border-radius: 999px;
+}
+
+.share-action-btn.glass-btn-primary {
+	color: #0b0c10;
+	background: rgba(255, 255, 255, 0.88);
+}
+
+@media (hover: hover) {
+	.share-action-btn.glass-btn-primary:hover {
+		color: #0b0c10;
+		background: #fff;
+	}
+}
+
+.share-link-preview {
+	color: var(--lg-text-3);
+	background: var(--lg-fill-soft);
+	border-radius: var(--lg-radius-sm);
+	box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+
+.share-toast {
+	border-radius: 999px;
+	background: var(--lg-fill-dense);
+}
+
+.close-modal,
+.close-lightbox,
+.share-close-btn {
+	border-radius: 50%;
+}
+
+/* Filter chips: a segmented glass control. */
+.archive-toolbar {
+	border-radius: var(--lg-radius);
+	padding: 0.45rem 0.55rem 0.45rem 1.1rem;
+}
+
+.archive-toolbar .filter-list li {
+	color: var(--lg-text-2);
+	border: 0;
+	transition: color 0.2s ease, background-color 0.3s var(--lg-ease), box-shadow 0.3s var(--lg-ease);
+}
+
+.archive-toolbar .filter-list li:hover {
+	color: #fff;
+	background: var(--lg-fill-soft);
+}
+
+.archive-toolbar .filter-list li.active {
+	color: #fff;
+	background: var(--lg-fill-active);
+	border: 0;
+	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 4px 14px rgba(0, 0, 0, 0.22);
+}
+
+/* --------------------------------------------------------------------------
+   CardNav
+   -------------------------------------------------------------------------- */
+.card-nav {
+	/* Denser than other glass: it floats over large type, which must not read through it. */
+	background: rgba(20, 22, 28, 0.95);
+	border-radius: var(--lg-radius);
+	box-shadow: var(--lg-highlight), 0 20px 60px rgba(0, 0, 0, 0.35);
+	backdrop-filter: blur(44px) saturate(150%);
+	-webkit-backdrop-filter: blur(44px) saturate(150%);
+}
+
+/* Scrolling down collapses the bar into a round hamburger button (main.js toggles
+   .is-compact); the bar's own shape, contents and padding morph rather than swapping. */
+/* Left-anchored (instead of centred with translateX(-50%)) so collapsing only shrinks the
+   width: the left edge — where the hamburger lives — never moves. Same centred position as
+   before: max(gutter, 50% − half of the 980px bar). */
+.card-nav-container {
+	left: max(1.5rem, calc(50% - 490px));
+	transform: none;
+	/* Expanding (leaving .is-compact): glide back to the bar's spot first, then grow. */
+	transition:
+		left 0.42s cubic-bezier(0.22, 1, 0.36, 1),
+		width 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.16s,
+		transform 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+		opacity 0.3s ease;
+}
+
+@media (max-width: 768px) {
+	.card-nav-container {
+		left: 1rem;
+	}
+}
+
+.card-nav {
+	transition: border-radius 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Hamburger centred 30px from the bar's left edge — exactly the centre of the 60px circle it
+   collapses into, so the icon doesn't move at all between the two states. */
+.card-nav-top {
+	padding-left: 9px;
+	transition: padding 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Growing back from the round button: the bar first slides back and widens (~0.66s), so the
+   logo and language button wait until it is almost full width before fading in. Collapsing
+   (rule below) fades them out at once. */
+.card-nav-logo,
+.card-nav-cta-button,
+.card-nav-actions {
+	transition: opacity 0.3s ease 0.52s;
+}
+
+.card-nav-container.is-compact .card-nav-logo,
+.card-nav-container.is-compact .card-nav-cta-button,
+.card-nav-container.is-compact .card-nav-actions {
+	transition: opacity 0.15s ease;
+}
+
+/* Collapses into its own hamburger, in place: the round button stays exactly where the
+   bar's left end was — off the centred content, and it unfolds again from the same spot. */
+.card-nav-container.is-compact {
+	/* Collapsing: shrink into the hamburger in place, then dock in the empty margin beside
+	   the content (--nav-dock-left is measured by main.js), so it never sits on the content. */
+	left: var(--nav-dock-left, max(1.5rem, calc(50% - 490px)));
+	width: 60px;
+	transition:
+		width 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+		left 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.22s,
+		transform 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+		opacity 0.3s ease;
+}
+
+.card-nav-container.is-compact .card-nav {
+	border-radius: 50%;
+}
+
+.card-nav-container.is-compact .card-nav-top {
+	padding: 0;
+}
+
+/* The button becomes the whole circle, so the icon is centred exactly. */
+.card-nav-container.is-compact .hamburger-menu {
+	flex: 0 0 60px;
+	width: 60px;
+	height: 60px;
+}
+
+
+
+.card-nav-container.is-compact .card-nav-logo,
+.card-nav-container.is-compact .card-nav-cta-button {
+	opacity: 0;
+	pointer-events: none;
+}
+
+.card-nav-container.is-compact .hamburger-menu {
+	border-radius: 50%;
+}
+
+.hamburger-menu {
+	transition: width 0.55s cubic-bezier(0.22, 1, 0.36, 1), flex-basis 0.55s cubic-bezier(0.22, 1, 0.36, 1), background-color 0.2s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.card-nav-container,
+	.card-nav,
+	.card-nav-top {
+		transition: none;
+	}
+}
+
+.hamburger-menu {
+	border-radius: 999px;
+}
+
+.card-nav-card {
+	background: var(--lg-fill-soft);
+	border: 0;
+	border-radius: 16px;
+	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+	transition: background-color 0.3s var(--lg-ease);
+}
+
+.card-nav-card::before {
+	display: none;
+}
+
+.card-nav-card::after {
+	opacity: 0.55;
+}
+
+.card-nav-card:hover,
+.card-nav-card:focus-within,
+.card-nav-card.is-current {
+	background: var(--lg-fill-hover);
+	border: 0;
+	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.card-nav-card:hover::after,
+.card-nav-card:focus-within::after,
+.card-nav-card.is-current::after {
+	opacity: 1;
+}
+
+.card-nav-card.is-current .card-nav-label > span:first-child {
+	color: var(--lg-text-2);
+}
+
+.card-nav-card.is-current .card-nav-label::after {
+	background: #fff;
+	box-shadow: 0 0 10px rgba(255, 255, 255, 0.7);
+}
+
+/* --------------------------------------------------------------------------
+   Typography — no gradient text, a quiet two-tone instead.
+   -------------------------------------------------------------------------- */
+.title-line-accent,
+.title-line-accent .title-char,
+.archive-title em,
+.error-code,
+.maintenance-title {
+	color: var(--lg-text-3);
+	background: none;
+	-webkit-background-clip: border-box;
+	background-clip: border-box;
+	-webkit-text-fill-color: currentColor;
+}
+
+.error-code {
+	color: var(--lg-text);
+}
+
+.world-copy .hero-eyebrow,
+.archive-kicker,
+.journal-card-eyebrow,
+.share-modal-eyebrow {
+	color: var(--lg-text-3);
+}
+
+.world-copy .hero-intro,
+.archive-intro,
+.empty-copy > p:not(.archive-kicker),
+.error-desc {
+	color: var(--lg-text-2);
+}
+
+/* --------------------------------------------------------------------------
+   Home
+   -------------------------------------------------------------------------- */
+.globe-orbit {
+	border-color: rgba(255, 255, 255, 0.1);
+}
+
+.globe-meta {
+	color: var(--lg-text-3);
+}
+
+.live-dot {
+	background: #fff;
+	box-shadow: 0 0 10px rgba(255, 255, 255, 0.7);
+}
+
+
+
+
+.social-btn {
+	color: var(--lg-text-2);
+	opacity: 1;
+}
+
+.social-btn:hover {
+	color: #fff;
+}
+
+.home-modal {
+	background: rgba(7, 8, 11, 0.35);
+	backdrop-filter: blur(8px);
+	-webkit-backdrop-filter: blur(8px);
+}
+
+/* Globe fades in once its texture is ready (class set by home-globe.js). */
+.globe-shell .globe-canvas,
+.globe-shell .globe-markers,
+.globe-shell .globe-controls {
+	transition: opacity 0.9s ease;
+}
+
+.globe-shell.is-loading .globe-canvas,
+.globe-shell.is-loading .globe-markers,
+.globe-shell.is-loading .globe-controls {
+	opacity: 0;
+	pointer-events: none;
+}
+
+/* Globe zoom controls */
+.globe-controls {
+	position: absolute;
+	bottom: 6%;
+	left: 4%;
+	z-index: 7;
+	display: flex;
+	gap: 2px;
+	padding: 4px;
+	background: var(--lg-fill);
+	border-radius: 999px;
+	box-shadow: var(--lg-highlight), 0 10px 30px rgba(0, 0, 0, 0.25);
+	backdrop-filter: var(--lg-blur);
+	-webkit-backdrop-filter: var(--lg-blur);
+	isolation: isolate;
+}
+
+.globe-controls::after {
+	content: '';
+	position: absolute;
+	inset: 0;
+	padding: 1px;
+	border-radius: inherit;
+	background: var(--lg-rim);
+	-webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+	-webkit-mask-composite: xor;
+	mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+	mask-composite: exclude;
+	pointer-events: none;
+}
+
+.globe-control {
+	position: relative;
+	z-index: 1;
+	display: grid;
+	width: 34px;
+	height: 34px;
+	place-items: center;
+	color: var(--lg-text-2);
+	border-radius: 50%;
+	transition: color 0.2s ease, background-color 0.2s ease, opacity 0.2s ease;
+}
+
+.globe-control:disabled {
+	opacity: 0.32;
+	cursor: default;
+}
+
+@media (hover: hover) {
+	.globe-control:not(:disabled):hover {
+		color: #fff;
+		background: var(--lg-fill-hover);
+	}
+}
+
+/* Zoom lens (radius / feather / shade are driven per frame by home-globe.js). At the
+   default size the mask sits exactly on the globe's edge, so nothing is visibly cropped. */
+.globe-canvas {
+	-webkit-mask-image: radial-gradient(circle at 50% 50%, #000 calc(var(--lens, 50%) - var(--lens-feather, 1px)), transparent var(--lens, 50%));
+	mask-image: radial-gradient(circle at 50% 50%, #000 calc(var(--lens, 50%) - var(--lens-feather, 1px)), transparent var(--lens, 50%));
+}
+
+/* Limb shading + a faint rim once the surface overflows the lens, so it still reads as a sphere. */
+.globe-canvas::after {
+	content: '';
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+	background:
+		radial-gradient(circle at 50% 50%, transparent calc(var(--lens, 50%) * 0.62), rgba(3, 5, 8, 0.6) calc(var(--lens, 50%) - 2px), rgba(255, 255, 255, 0.22) calc(var(--lens, 50%) - 1px), transparent var(--lens, 50%));
+	opacity: var(--lens-shade, 0);
+}
+
+/* Full-screen globe ------------------------------------------------------- */
+/* Stands in for the globe on the page while it is full screen (sized by .globe-shell). */
+.globe-placeholder {
+	visibility: hidden;
+	filter: none;
+}
+
+.globe-shell.is-immersive {
+	position: fixed;
+	inset: 0;
+	z-index: 900;
+	width: 100vw;
+	height: 100vh;
+	height: 100dvh;
+	min-width: 0;
+	max-width: none;
+	aspect-ratio: auto;
+	margin: 0;
+	filter: none;
+	transform-origin: 50% 50%;
+	will-change: transform;
+}
+
+.globe-shell.is-immersive .globe-orbit,
+.globe-shell.is-immersive .globe-meta {
+	display: none;
+}
+
+.globe-freeze {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	pointer-events: none;
+}
+
+.globe-shell.is-immersive .globe-canvas {
+	-webkit-mask-image: none;
+	mask-image: none;
+}
+
+.globe-shell.is-immersive .globe-canvas::after {
+	display: none;
+}
+
+/* The page behind fades and frosts over; the backdrop is separate from the shell so it
+   never shows as a scaled rectangle during the expand animation. */
+body::after {
+	content: '';
+	position: fixed;
+	inset: 0;
+	z-index: 890;
+	background: rgba(7, 8, 11, 0.86);
+	backdrop-filter: blur(24px) saturate(140%);
+	-webkit-backdrop-filter: blur(24px) saturate(140%);
+	opacity: 0;
+	visibility: hidden;
+	pointer-events: none;
+	transition: opacity 0.5s ease, visibility 0s linear 0.5s;
+}
+
+body.globe-immersive::after {
+	opacity: 1;
+	visibility: visible;
+	transition: opacity 0.5s ease, visibility 0s;
+}
+
+body.globe-scroll-lock {
+	overflow: hidden;
+}
+
+.globe-shell.is-immersive .globe-controls {
+	position: fixed;
+	bottom: max(1.5rem, env(safe-area-inset-bottom));
+	left: 50%;
+	transform: translateX(-50%);
+}
+
+.globe-exit {
+	position: fixed;
+	top: max(1.25rem, env(safe-area-inset-top));
+	left: max(1.25rem, env(safe-area-inset-left));
+	z-index: 10;
+	display: inline-flex;
+	align-items: center;
+	gap: 0.55rem;
+	min-height: 44px;
+	padding: 0 1.1rem;
+	color: var(--lg-text);
+	background: var(--lg-fill);
+	border-radius: 999px;
+	box-shadow: var(--lg-highlight), 0 10px 30px rgba(0, 0, 0, 0.25);
+	backdrop-filter: var(--lg-blur);
+	-webkit-backdrop-filter: var(--lg-blur);
+	font-size: 0.7rem;
+	font-weight: 600;
+	letter-spacing: 0.1em;
+}
+
+/* Controls ride inside the scaling shell, so keep them out of sight while it moves. */
+.globe-shell.is-immersive .globe-controls,
+.globe-shell.is-immersive .globe-exit {
+	animation: globe-ui-in 0.35s ease 0.5s both;
+}
+
+.globe-shell.is-leaving .globe-controls,
+.globe-shell.is-leaving .globe-exit,
+.globe-shell.is-leaving .globe-meta {
+	visibility: hidden;
+}
+
+@keyframes globe-ui-in {
+	from { opacity: 0; }
+	to { opacity: 1; }
+}
+
+.globe-exit[hidden] {
+	display: none;
+}
+
+@media (hover: hover) {
+	.globe-exit:hover {
+		background: var(--lg-fill-hover);
+	}
+}
+
+.globe-shell.is-fallback .globe-controls {
+	display: none;
+}
+
+@media (max-width: 700px) {
+	.globe-controls {
+		bottom: 4%;
+		left: 8%;
+	}
+
+	.globe-control {
+		width: 40px;
+		height: 40px;
+	}
+}
+
+/* --------------------------------------------------------------------------
+   Archive pages
+   -------------------------------------------------------------------------- */
+.frame-media {
+	border-radius: var(--lg-radius);
+	box-shadow: 0 18px 50px rgba(0, 0, 0, 0.3);
+}
+
+.frame-media::before {
+	content: '';
+	position: absolute;
+	inset: 0;
+	z-index: 2;
+	padding: 1px;
+	border-radius: inherit;
+	background: var(--lg-rim);
+	-webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+	-webkit-mask-composite: xor;
+	mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+	mask-composite: exclude;
+	opacity: 0.6;
+	pointer-events: none;
+}
+
+.frame-media::after {
+	background: linear-gradient(to top, rgba(7, 8, 11, 0.35), transparent 38%);
+}
+
+/* Small glass chips floating on the photo. */
+.frame-index,
+.frame-count,
+.frame-open {
+	z-index: 3;
+	color: #fff;
+	background: rgba(18, 20, 26, 0.3);
+	border: 0;
+	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28), inset 0 0 0 1px rgba(255, 255, 255, 0.1), 0 4px 14px rgba(0, 0, 0, 0.18);
+	backdrop-filter: var(--lg-blur-soft);
+	-webkit-backdrop-filter: var(--lg-blur-soft);
+}
+
+.frame-index,
+.frame-count {
+	padding: 0.35rem 0.65rem;
+	border-radius: 999px;
+	line-height: 1;
+}
+
+.frame-index {
+	top: 0.8rem;
+	left: 0.8rem;
+}
+
+.frame-count {
+	bottom: 0.8rem;
+	left: 0.8rem;
+}
+
+.frame-open {
+	top: 0.8rem;
+	right: 0.8rem;
+}
+
+.frame-heading {
+	border-bottom-color: var(--lg-line);
+}
+
+.frame-card-text .frame-caption {
+	border-radius: var(--lg-radius);
+}
+
+.empty-sheet {
+	border-radius: var(--lg-radius);
+}
+
+.empty-sheet span {
+	color: var(--lg-text-3);
+	background: var(--lg-fill-soft);
+	border: 0;
+	border-radius: 14px;
+	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+	animation-name: lg-sheet-glow;
+}
+
+@keyframes lg-sheet-glow {
+	0%, 100% { background-color: rgba(255, 255, 255, 0.03); }
+	50% { background-color: rgba(255, 255, 255, 0.1); }
+}
+
+.journal-card {
+	background: var(--lg-fill);
+	border-radius: var(--lg-radius-lg);
+}
+
+.journal-card::before {
+	display: none;
+}
+
+.journal-card:hover {
+	background: var(--lg-fill-hover);
+	border: 0;
+	box-shadow: var(--lg-highlight), 0 28px 70px rgba(0, 0, 0, 0.35);
+}
+
+.journal-card-content,
+.journal-project-visual {
+	z-index: 3;
+}
+
+.journal-project-visual {
+	background: rgba(255, 255, 255, 0.035);
+	border-left: 1px solid var(--lg-line);
+}
+
+.project-equation {
+	text-shadow: none;
+}
+
+.journal-card-action {
+	color: var(--lg-text);
+}
+
+@media (max-width: 760px) {
+	.journal-project-visual {
+		border-top: 1px solid var(--lg-line);
+		border-left: 0;
+	}
+}
+
+body:has(.archive-page) .site-global-footer,
+body:has(.not-found-container) .site-global-footer,
+.site-global-footer {
+	color: var(--lg-text-3);
+	border-top-color: var(--lg-line);
+}
+
+/* --------------------------------------------------------------------------
+   Voyage detail
+   -------------------------------------------------------------------------- */
+.voyage-page #detail-view {
+	background: transparent;
+}
+
+.voyage-page #detail-view .detail-arrival {
+	border: 0;
+	border-radius: var(--lg-radius-lg);
+	/* No drop shadow: the globe morph card can't carry one under clip-path, and the two
+	   must look identical at the hand-off. */
+	box-shadow: none;
+}
+
+.voyage-page #detail-view .detail-arrival::after,
+.atlas-transition-card::after {
+	content: '';
+	position: absolute;
+	inset: 0;
+	z-index: 6;
+	padding: 1px;
+	border-radius: inherit;
+	background: var(--lg-rim);
+	-webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+	-webkit-mask-composite: xor;
+	mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+	mask-composite: exclude;
+	opacity: 0.7;
+	pointer-events: none;
+}
+
+.voyage-page #detail-view .detail-back-btn,
+.voyage-page #detail-view .share-btn {
+	min-height: 40px;
+	padding: 0 1rem;
+	gap: 0.55rem;
+	border-radius: 999px;
+	/* Tinted glass: these sit on photos, so keep white text legible on bright skies. */
+	background: rgba(18, 20, 26, 0.34);
+}
+
+.voyage-page #detail-view .detail-back-btn > span,
+.voyage-page #detail-view .share-btn > * {
+	position: relative;
+	z-index: 3;
+}
+
+.masonry-item,
+.masonry-item img,
+.voyage-page #detail-view .masonry-item,
+.voyage-page #detail-view .masonry-item img {
+	border-radius: 18px;
+}
+
+.voyage-page #detail-view .story-section,
+.voyage-page #detail-view .series-section,
+.voyage-page.showing-detail .site-global-footer {
+	border-color: var(--lg-line);
+	background: transparent;
+}
+
+/* Lightbox: the page frosts over instead of going black. */
+.lightbox.show {
+	background: rgba(7, 8, 11, 0.62);
+	backdrop-filter: blur(30px) saturate(160%);
+	-webkit-backdrop-filter: blur(30px) saturate(160%);
+}
+
+.lightbox-content {
+	border-radius: 18px;
+}
+
+/* --------------------------------------------------------------------------
+   Share modal
+   -------------------------------------------------------------------------- */
+.share-popup-modal {
+	background: rgba(7, 8, 11, 0.4);
+	backdrop-filter: blur(10px);
+	-webkit-backdrop-filter: blur(10px);
+}
+
+.share-popup-content.glass-panel {
+	border-radius: var(--lg-radius-lg);
+}
+
+.share-modal-header,
+.share-preview-column {
+	border-color: var(--lg-line);
+}
+
+.share-preview-column {
+	background: rgba(0, 0, 0, 0.12);
+}
+
+.share-poster-canvas {
+	border-radius: 14px;
+}
+
+/* --------------------------------------------------------------------------
+   Maintenance page header (the only page still using .main-header)
+   -------------------------------------------------------------------------- */
+.main-header {
+	position: fixed;
+	top: 1.25rem;
+	left: 50%;
+	width: min(980px, calc(100% - 3rem));
+	padding: 0.55rem 0.55rem 0.55rem 1.4rem;
+	border-radius: var(--lg-radius);
+	transform: translateX(-50%);
+}
+
+.main-header .lang-btn {
+	border-radius: 999px;
+}
+
+.status-badge {
+	padding: 0.65rem 1.4rem;
+	border-radius: 999px;
+	color: var(--lg-text-2);
+}
+
+/* --------------------------------------------------------------------------
+   Page transitions
+   -------------------------------------------------------------------------- */
+@view-transition {
+	navigation: auto;
+}
+
+/* The top bar is its own element in page transitions: when it is the same on both pages it
+   stays put instead of cross-fading with the rest of the page. */
+.card-nav-container {
+	view-transition-name: site-nav;
+}
+
+::view-transition-group(site-nav) {
+	animation-duration: 0.32s;
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+	animation-duration: 0.32s;
+}
+
+::view-transition-group(voyage-hero) {
+	animation-duration: 0.32s;
+}
+
+/* Globe → detail hand-off: the hero card is painted on the first frame,
+   matching the end state of the morph on the home page. */
+.atlas-handoff.direct-detail-load .voyage-page > .hero-bg-container {
+	opacity: 1 !important;
+}
+
+.atlas-handoff .voyage-page #detail-view {
+	display: block !important;
+}
+
+/* Permanent (not tied to .atlas-handoff): toggling a view-transition-name re-composites
+   the cover, which is visible as a jolt once the hand-off class is removed. */
+.voyage-page #detail-view .detail-arrival {
+	view-transition-name: voyage-hero;
+}
+
+.atlas-handoff #detail-hero-bg {
+	background-image: var(--handoff-image), var(--handoff-mini, none);
+}
+
+.atlas-handoff:not(.handoff-ready) #detail-view .detail-hero-copy,
+.atlas-handoff:not(.handoff-ready) #detail-view .detail-nav-bar {
+	opacity: 0;
+}
+
+/* Single source of truth for the detail hero card. The home globe measures an
+   invisible probe styled with the same variables, so the morph lands exactly here. */
+:root {
+	--hero-w: min(1200px, calc(100vw - 3rem));
+	--hero-h: min(820px, max(620px, calc(100svh - 3rem)));
+	--hero-top: 1.5rem;
+	--hero-radius: 28px;
+}
+
+@media (max-width: 900px) {
+	:root {
+		--hero-h: min(760px, max(580px, calc(100svh - 2rem)));
+		--hero-top: 1rem;
+	}
+}
+
+@media (max-width: 640px) {
+	:root {
+		--hero-w: 100vw;
+		--hero-h: max(520px, 76svh);
+		--hero-top: 0px;
+		--hero-radius: 0 0 24px 24px;
+	}
+}
+
+.voyage-page #detail-view .detail-arrival {
+	width: var(--hero-w) !important;
+	max-width: none !important;
+	height: var(--hero-h);
+	min-height: 0;
+	margin: var(--hero-top) auto 0 !important;
+	border-radius: var(--hero-radius);
+}
+
+.atlas-hero-probe {
+	position: fixed;
+	top: var(--hero-top);
+	left: 50%;
+	width: var(--hero-w);
+	height: var(--hero-h);
+	border-radius: var(--hero-radius);
+	transform: translateX(-50%);
+	visibility: hidden;
+	pointer-events: none;
+}
+
+/* Story layer (home page): the preloaded story sits invisible above the page and is revealed
+   when the globe morph lands. Kept rendered (opacity, not visibility/display) so it is fully
+   painted and its timers aren't throttled before it is shown. */
+.atlas-story-frame {
+	position: fixed;
+	inset: 0;
+	z-index: 9500;
+	width: 100%;
+	height: 100%;
+	border: 0;
+	background: transparent;
+	opacity: 0;
+	pointer-events: none;
+	color-scheme: dark;
+}
+
+.atlas-story-frame.is-visible {
+	opacity: 1;
+	pointer-events: auto;
+}
+
+body.atlas-story-open {
+	overflow: hidden;
+}
+
+/* The story page inside that frame: transparent so nothing differs from the home page behind. */
+.atlas-embed .voyage-page .card-nav-container {
+	display: none;
+}
+
+/* --------------------------------------------------------------------------
+   Detail: open in maps
+   -------------------------------------------------------------------------- */
+.map-links {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: 1rem 1.5rem;
+	margin-top: 1.75rem;
+}
+
+.map-links-label {
+	color: var(--lg-text-3);
+	font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+	font-size: 0.6rem;
+	letter-spacing: 0.14em;
+}
+
+.map-links-buttons {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.6rem;
+}
+
+.map-link {
+	position: relative;
+	display: inline-flex;
+	align-items: center;
+	gap: 0.55rem;
+	min-height: 44px;
+	padding: 0 1.1rem;
+	color: var(--lg-text);
+	background: var(--lg-fill);
+	border-radius: 999px;
+	box-shadow: var(--lg-highlight), 0 10px 30px rgba(0, 0, 0, 0.22);
+	backdrop-filter: var(--lg-blur);
+	-webkit-backdrop-filter: var(--lg-blur);
+	font-size: 0.74rem;
+	font-weight: 500;
+	letter-spacing: 0.03em;
+	isolation: isolate;
+	transition: background-color 0.25s ease;
+}
+
+.map-link::after {
+	content: '';
+	position: absolute;
+	inset: 0;
+	padding: 1px;
+	border-radius: inherit;
+	background: var(--lg-rim);
+	-webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+	-webkit-mask-composite: xor;
+	mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+	mask-composite: exclude;
+	pointer-events: none;
+}
+
+.map-link svg {
+	opacity: 0.8;
+}
+
+.map-link-arrow {
+	color: var(--lg-text-3);
+	transition: transform 0.25s ease, color 0.25s ease;
+}
+
+@media (hover: hover) {
+	.map-link:hover {
+		background: var(--lg-fill-hover);
+	}
+
+	.map-link:hover .map-link-arrow {
+		color: #fff;
+		transform: translate(2px, -2px);
+	}
+}
+
+@media (max-width: 640px) {
+	.map-links-buttons,
+	.map-link {
+		width: 100%;
+	}
+
+	.map-link {
+		justify-content: flex-start;
+	}
+
+	.map-link-arrow {
+		margin-left: auto;
+	}
+}
+
+/* --------------------------------------------------------------------------
+   Fallbacks
+   -------------------------------------------------------------------------- */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+	.card-nav,
+	.archive-toolbar,
+	.journal-card,
+	.home-modal-content,
+	.share-popup-content.glass-panel,
+	.share-toast,
+	.main-header {
+		background: rgba(26, 28, 34, 0.94);
+	}
+}
+
+@media (prefers-reduced-transparency: reduce) {
+	.card-nav,
+	.archive-toolbar,
+	.journal-card,
+	.home-modal-content,
+	.share-popup-content.glass-panel,
+	.share-toast,
+	.primary-action,
+	.frame-index,
+	.frame-count,
+	.frame-open,
+	.main-header {
+		background: #1a1c22;
+		backdrop-filter: none;
+		-webkit-backdrop-filter: none;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.hero-bg-container::before,
+	.hero-bg-container::after,
+	.empty-sheet span {
+		animation: none;
+	}
+}
+
+/* --------------------------------------------------------------------------
+   Story page — capture data items (all sizes)
+   -------------------------------------------------------------------------- */
+.capture-data .exif-item + .exif-item::before {
+	content: '·';
+	margin: 0 0.6em;
+	opacity: 0.45;
+}
+
+/* --------------------------------------------------------------------------
+   Story page — wide-screen editorial layout (≥ 1200px)
+   The hero card and the content share one width (--hero-w), so the home globe's morph,
+   which measures the same variables, keeps landing exactly on the cover.
+   -------------------------------------------------------------------------- */
+@media (min-width: 1200px) {
+	:root {
+		--hero-w: min(1640px, calc(100vw - 4rem));
+		--hero-h: min(900px, max(640px, calc(100svh - 3rem)));
+		--hero-top: 1.5rem;
+	}
+
+	.voyage-page #detail-view .detail-hero-copy {
+		bottom: clamp(2.5rem, 6vh, 4.5rem);
+		left: clamp(2rem, 4.5vw, 5rem);
+		width: min(820px, calc(100% - 4rem));
+	}
+
+	.voyage-page #detail-view .hero-title {
+		font-size: clamp(4.5rem, 6.4vw, 7.5rem);
+	}
+
+	.voyage-page #detail-view .detail-story-lead {
+		max-width: 640px;
+		font-size: clamp(1.05rem, 1.15vw, 1.3rem);
+	}
+
+	.voyage-page #detail-view .detail-content {
+		width: var(--hero-w) !important;
+		max-width: none !important;
+		padding: clamp(5rem, 10vh, 7.5rem) clamp(2rem, 4.5vw, 5rem) 7rem !important;
+	}
+
+	/* 01 — narrative: a narrow spec column beside a wide reading column */
+	.voyage-page #detail-view .story-section {
+		grid-template-columns: minmax(260px, 0.32fr) minmax(0, 1fr);
+		grid-auto-rows: min-content;
+		column-gap: clamp(3rem, 6vw, 8rem);
+		row-gap: 2.6rem;
+		align-items: start;
+		padding: 0 0 clamp(5rem, 9vh, 7rem);
+	}
+
+	.voyage-page #detail-view .story-body {
+		display: contents;
+	}
+
+	.voyage-page #detail-view .detail-section-label {
+		grid-column: 1;
+		align-self: start;
+		align-items: baseline;
+	}
+
+	.voyage-page #detail-view .story-text {
+		grid-column: 2;
+		grid-row: 1 / span 3;
+		max-width: 34em;
+		margin: 0;
+		color: rgba(255, 255, 255, 0.82);
+		font-size: clamp(1.2rem, 1.35vw, 1.45rem);
+		line-height: 2.05;
+	}
+
+	.voyage-page #detail-view .capture-data {
+		grid-column: 1;
+		display: grid;
+		gap: 0.9rem;
+		margin: 0;
+		padding: 1.4rem 0 0;
+		border-top: 1px solid var(--lg-line);
+		text-align: left;
+	}
+
+	.voyage-page #detail-view .capture-data strong {
+		display: grid;
+		gap: 0.45rem;
+		justify-items: start;
+		color: var(--lg-text);
+		font-size: 0.74rem;
+		letter-spacing: 0.06em;
+	}
+
+	.voyage-page #detail-view .capture-data .exif-item + .exif-item::before {
+		content: none;
+	}
+
+	.voyage-page #detail-view .map-links {
+		grid-column: 1;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 0.9rem;
+		margin: 0;
+		padding-top: 1.4rem;
+		border-top: 1px solid var(--lg-line);
+	}
+
+	.voyage-page #detail-view .map-links-buttons {
+		width: 100%;
+	}
+
+	.voyage-page #detail-view .map-link {
+		flex: 1 1 0;
+		justify-content: flex-start;
+	}
+
+	.voyage-page #detail-view .map-link-arrow {
+		margin-left: auto;
+	}
+
+	/* 02 — the complete series spans the full width: a feature frame plus a tiled set */
+	.voyage-page #detail-view .series-section {
+		grid-template-columns: minmax(0, 1fr);
+		row-gap: 2rem;
+		padding: clamp(5rem, 9vh, 7rem) 0 0;
+	}
+
+	.voyage-page #detail-view .masonry-grid {
+		grid-column: 1;
+		grid-template-columns: repeat(6, minmax(0, 1fr));
+		grid-auto-rows: clamp(200px, 15vw, 300px);
+		gap: clamp(0.75rem, 1vw, 1.25rem);
+	}
+
+	/* Spans come from applySeriesLayout() in app.js (data-cols / data-rows). */
+	.voyage-page #detail-view .masonry-item,
+	.voyage-page #detail-view .masonry-item:first-child,
+	.voyage-page #detail-view .masonry-item:nth-child(4n) {
+		grid-column: span 2;
+		grid-row: span 1;
+		aspect-ratio: auto;
+		height: auto;
+	}
+
+	.voyage-page #detail-view .masonry-item[data-cols="3"] { grid-column: span 3; }
+	.voyage-page #detail-view .masonry-item[data-cols="4"] { grid-column: span 4; }
+	.voyage-page #detail-view .masonry-item[data-cols="6"] { grid-column: span 6; }
+	.voyage-page #detail-view .masonry-item[data-rows="2"] { grid-row: span 2; }
+
+	.voyage-page #detail-view .masonry-item img {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+	}
+
+	.voyage-page #detail-view .scroll-hint-container {
+		grid-column: 1;
+	}
+}
+
+
+/* --------------------------------------------------------------------------
+   Nav dock gutter: from 1024px up, page content keeps ≥104px each side so the collapsed
+   round nav button (60px + 22px air either side) always parks in empty margin, never on
+   content. Wide screens already have more than that; only mid widths change.
+   -------------------------------------------------------------------------- */
+@media (min-width: 1024px) {
+	.archive-page {
+		padding-left: max(104px, clamp(1.25rem, 4.5vw, 4.5rem));
+		padding-right: max(104px, clamp(1.25rem, 4.5vw, 4.5rem));
+	}
+
+	.world-hero {
+		padding-left: max(104px, clamp(1.5rem, 4.5vw, 4.5rem));
+		padding-right: max(104px, clamp(1.5rem, 4.5vw, 4.5rem));
+	}
+
+	.single-page .hub-footer {
+		width: min(1240px, calc(100% - 208px));
+	}
+}
+
+/* Returning from a story by morph: the gallery reappears in place, without replaying its
+   rise-in entrance (which would move the card the cover is shrinking into). */
+#gallery-view.skip-rise,
+#gallery-view.skip-rise .archive-hero > *,
+#gallery-view.skip-rise .archive-toolbar,
+#gallery-view.skip-rise .frame-card {
+	animation: none !important;
+}
+
+/* While a card ↔ cover morph runs the floating nav is hidden outright: it is wider than the
+   cover's top margin on large screens, so it showed as a dark sliver (with cut-off text)
+   above the cover. It fades back in once the morph has landed. */
+body.card-morphing .card-nav-container {
+	opacity: 0 !important;
+	pointer-events: none;
+	transition: opacity 0.1s ease !important;
+}
+
+/* --------------------------------------------------------------------------
+   Nav actions (language)
+   -------------------------------------------------------------------------- */
+.card-nav-actions {
+	display: flex;
+	height: 100%;
+	align-items: center;
+	gap: 6px;
+}
+
+.card-nav-container.is-compact .card-nav-actions {
+	opacity: 0;
+	pointer-events: none;
+}
+
+/* --------------------------------------------------------------------------
+   Expanded menu: search row on top, then the section cards (or, while searching, the results).
+   Height is measured from this content by main.js.
+   -------------------------------------------------------------------------- */
+.card-nav-content {
+	flex-direction: column;
+	align-items: stretch;
+	bottom: auto;
+	gap: 10px;
+}
+
+.card-nav-cards {
+	display: flex;
+	height: 190px;
+	gap: 10px;
+}
+
+.card-nav-cards[hidden],
+.site-search-panel[hidden] {
+	display: none;
+}
+
+.card-nav-search {
+	display: flex;
+	height: 52px;
+	align-items: center;
+	gap: 0.8rem;
+	padding: 0 1.1rem;
+	color: var(--lg-text-3);
+	background: var(--lg-fill-soft);
+	border-radius: 16px;
+	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+	cursor: text;
+	transition: background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card-nav-search:focus-within {
+	background: var(--lg-fill-hover);
+	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), inset 0 0 0 1px rgba(255, 255, 255, 0.14);
+}
+
+.site-search-hint {
+	padding: 0.15rem 0.45rem;
+	color: var(--lg-text-3);
+	border: 1px solid var(--lg-line);
+	border-radius: 6px;
+	font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+	font-size: 0.62rem;
+}
+
+.site-search-panel {
+	max-height: min(56vh, 520px);
+	overflow-y: auto;
+}
+
+.site-search-input {
+	flex: 1;
+	min-width: 0;
+	height: 100%;
+	color: var(--lg-text);
+	background: transparent;
+	border: 0;
+	outline: none;
+	font: inherit;
+	font-size: 1rem;
+	letter-spacing: 0.01em;
+}
+
+.site-search-input::placeholder {
+	color: var(--lg-text-3);
+}
+
+.site-search-input::-webkit-search-cancel-button {
+	display: none;
+}
+
+.site-search-results {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.site-search-results:empty {
+	display: none;
+}
+
+.site-search-result {
+	display: grid;
+	grid-template-columns: 52px minmax(0, 1fr) auto;
+	align-items: center;
+	gap: 1rem;
+	padding: 0.65rem 0.75rem;
+	border-radius: 14px;
+	cursor: pointer;
+}
+
+.site-search-result.is-selected {
+	background: var(--lg-fill-hover);
+	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+.site-search-thumb {
+	width: 52px;
+	height: 52px;
+	object-fit: cover;
+	border-radius: 12px;
+}
+
+.site-search-thumb-text {
+	display: grid;
+	place-items: center;
+	color: var(--lg-text-2);
+	background: var(--lg-fill);
+	font-family: 'STIX Two Math', 'Cambria Math', serif;
+	font-size: 1.4rem;
+}
+
+.site-search-text {
+	display: grid;
+	gap: 0.2rem;
+	min-width: 0;
+}
+
+.site-search-title {
+	overflow: hidden;
+	font-size: 0.95rem;
+	font-weight: 500;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.site-search-sub {
+	color: var(--lg-text-3);
+	font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+	font-size: 0.62rem;
+	letter-spacing: 0.06em;
+}
+
+.site-search-panel mark {
+	color: #fff;
+	background: rgba(172, 216, 239, 0.28);
+	border-radius: 3px;
+	padding: 0 0.1em;
+}
+
+.site-search-kind {
+	color: var(--lg-text-3);
+	font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+	font-size: 0.58rem;
+	letter-spacing: 0.12em;
+}
+
+.site-search-empty {
+	padding: 1.4rem 1.25rem;
+	color: var(--lg-text-3);
+	font-size: 0.85rem;
+}
+
+@media (max-width: 768px) {
+	.card-nav-cards {
+		height: auto;
+		flex-direction: column;
+		gap: 8px;
+	}
+
+	.site-search-hint,
+	.site-search-kind {
+		display: none;
+	}
+
+	.site-search-panel {
+		max-height: calc(100dvh - 12rem);
+	}
+
+	.site-search-result {
+		grid-template-columns: 44px minmax(0, 1fr);
+	}
+
+	.site-search-thumb {
+		width: 44px;
+		height: 44px;
+	}
+}
+
+/* --------------------------------------------------------------------------
+   Maintenance (js/maintenance-config.js)
+   -------------------------------------------------------------------------- */
+.card-nav-badge {
+	margin-left: auto;
+	align-self: center;
+	padding: 0.18rem 0.5rem;
+	color: var(--lg-text-2);
+	background: var(--lg-fill);
+	border-radius: 999px;
+	box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+	font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+	font-size: 0.56rem;
+	letter-spacing: 0.1em;
+}
+
+/* The "current page" dot sits in the same spot; the badge takes precedence. */
+.card-nav-card.is-current .card-nav-label:has(.card-nav-badge)::after {
+	display: none;
+}
+
+.archive-maintenance {
+	max-width: 560px;
+	padding: clamp(1rem, 3vh, 2rem) 0;
+	animation: archive-rise 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both;
+}
+
+.archive-maintenance h2 {
+	margin-bottom: 1rem;
+	font-size: clamp(1.6rem, 2.8vw, 2.4rem);
+	font-weight: 500;
+	letter-spacing: -0.03em;
+	line-height: 1.2;
+}
+
+.archive-maintenance > p:not(.archive-kicker) {
+	margin-bottom: 2rem;
+	color: var(--lg-text-2);
+	font-size: 0.92rem;
+	line-height: 1.85;
+}
+
+.archive-stats[hidden] {
+	display: none !important;
+}
+
+/* --------------------------------------------------------------------------
+   Launch hand-off (unlisted search command): frosted screen + progress bar
+   -------------------------------------------------------------------------- */
+.site-launch {
+	position: fixed;
+	inset: 0;
+	z-index: 20000;
+	display: grid;
+	place-items: center;
+	background: rgba(7, 8, 11, 0.55);
+	backdrop-filter: blur(28px) saturate(150%);
+	-webkit-backdrop-filter: blur(28px) saturate(150%);
+	opacity: 0;
+	transition: opacity 0.3s ease;
+}
+
+.site-launch.is-open {
+	opacity: 1;
+}
+
+.site-launch-box {
+	display: grid;
+	justify-items: center;
+	gap: 0.9rem;
+	transform: translateY(8px);
+	transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.site-launch.is-open .site-launch-box {
+	transform: none;
+}
+
+.site-launch-kicker,
+.site-launch-hint {
+	color: var(--lg-text-3);
+	font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+	font-size: 0.62rem;
+	letter-spacing: 0.2em;
+}
+
+.site-launch-name {
+	color: var(--lg-text);
+	font-size: clamp(1.8rem, 3vw, 2.6rem);
+	font-weight: 500;
+	letter-spacing: -0.02em;
+}
+
+.site-launch-track {
+	position: relative;
+	width: min(260px, 70vw);
+	height: 4px;
+	margin-top: 0.4rem;
+	overflow: hidden;
+	background: rgba(255, 255, 255, 0.1);
+	border-radius: 999px;
+	box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+
+.site-launch-bar {
+	position: absolute;
+	inset: 0;
+	background: linear-gradient(90deg, rgba(255, 255, 255, 0.55), #fff);
+	border-radius: inherit;
+	box-shadow: 0 0 12px rgba(255, 255, 255, 0.45);
+	transform: scaleX(0);
+	transform-origin: left center;
+}
+
+.site-launch-hint {
+	margin-top: 0.4rem;
+	letter-spacing: 0.1em;
+}
+
+/* Whole menu card is clickable (main.js forwards the click to its link). */
+.card-nav-card {
+	cursor: pointer;
+}
+
+/* Small round search button left of the language toggle. */
+.card-nav-search-toggle {
+	position: relative;
+	display: grid;
+	width: 42px;
+	height: 42px;
+	flex: 0 0 42px;
+	place-items: center;
+	color: var(--lg-text-2);
+	background: var(--lg-fill-soft);
+	border-radius: 50%;
+	box-shadow: var(--lg-highlight);
+	transition: color 0.2s ease, background-color 0.2s ease;
+}
+
+@media (hover: hover) {
+	.card-nav-search-toggle:hover {
+		color: #fff;
+		background: var(--lg-fill-hover);
+	}
+}
+
+/* Phones: the top bar holds ☰, the logo, search and language — the logo sits left after ☰
+   (instead of centred) and things tighten so nothing overlaps. */
+@media (max-width: 768px) {
+	.card-nav-top {
+		gap: 4px;
+	}
+
+	.card-nav-logo {
+		position: static;
+		flex: 1 1 auto;
+		min-width: 0;
+		margin-left: 4px;
+		overflow: hidden;
+		font-size: 0.7rem;
+		letter-spacing: 0.12em;
+		text-overflow: clip;
+		white-space: nowrap;
+		transform: none;
+	}
+
+	.card-nav-search-toggle {
+		width: 38px;
+		height: 38px;
+		flex-basis: 38px;
+	}
+
+	.card-nav-cta-button {
+		padding: 0 0.8rem;
+		font-size: 0.62rem;
+	}
+}
+
+@media (max-width: 340px) {
+	.card-nav-logo {
+		font-size: 0.62rem;
+		letter-spacing: 0.06em;
+	}
+}

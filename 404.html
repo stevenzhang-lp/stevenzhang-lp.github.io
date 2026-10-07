@@ -3,6 +3,7 @@
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+	<script>(function(){var r=document.documentElement;function s(){r.style.setProperty('--ambient-delay',-(Date.now()/1000%100000).toFixed(2)+'s')}s();if(document.prerendering)document.addEventListener('prerenderingchange',s,{once:true})})();</script>
 	<title>STEVEN ZHANG | 404 Lost in Space</title>
 	
 	<!-- Fonts -->
@@ -11,85 +12,57 @@
 	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&amp;family=Playfair+Display:ital,wght@0,400;0,600;1,400&amp;family=Noto+Serif+SC:wght@300;400;500;600&amp;display=swap" rel="stylesheet">
 	
 	<link rel="stylesheet" href="css/main.css">
+	<link rel="stylesheet" href="css/liquid-glass.css">
 	
-	<style>
-		.not-found-container {
-			position: relative;
-			z-index: 10;
-			display: flex;
-			flex-direction: column;
-			align-items: center;
-			justify-content: center;
-			min-height: 100vh;
-			text-align: center;
-			padding: 2rem;
-		}
-		
-		.error-code {
-			font-family: 'Playfair Display', serif;
-			font-size: clamp(6rem, 15vw, 12rem);
-			font-weight: 600;
-			line-height: 1;
-			margin-bottom: 1rem;
-			background: linear-gradient(180deg, #ffffff 0%, rgba(255,255,255,0) 100%);
-			-webkit-background-clip: text;
-			-webkit-text-fill-color: transparent;
-			opacity: 0.8;
-			letter-spacing: -0.05em;
-		}
-		
-		.error-title {
-			font-size: 1.5rem;
-			font-weight: 400;
-			letter-spacing: 0.2em;
-			text-transform: uppercase;
-			color: var(--secondary-text-light);
-			margin-bottom: 2rem;
-		}
-		
-		.error-desc {
-			font-size: 1rem;
-			color: #aaa;
-			max-width: 400px;
-			line-height: 1.6;
-			margin-bottom: 3rem;
-		}
-		
-		.return-btn {
-			display: inline-block;
-			padding: 1rem 2rem;
-			background: rgba(255, 255, 255, 0.05);
-			border: 1px solid rgba(255, 255, 255, 0.1);
-			border-radius: 30px;
-			color: white;
-			text-decoration: none;
-			font-size: 0.9rem;
-			letter-spacing: 0.1em;
-			backdrop-filter: blur(10px);
-			transition: all 0.3s ease;
-		}
-		
-		.return-btn:hover {
-			background: rgba(255, 255, 255, 0.1);
-			transform: translateY(-3px);
-			box-shadow: 0 10px 20px rgba(0,0,0,0.3);
-		}
-	</style>
 </head>
 <body class="lang-zh">
 	
-	<!-- Header -->
-	<header class="main-header">
-		<div class="header-logo">
-			<a href="index.html">STEVEN ZHANG</a>
-		</div>
-		<nav class="header-nav">
-			<button id="lang-toggle" class="lang-btn magnetic-btn">
-				<span class="lang-en">中文</span>
-				<span class="lang-zh">ENGLISH</span>
-			</button>
+	<!-- Expandable Card Navigation (shared with index.html) -->
+	<div class="card-nav-container">
+		<nav class="card-nav" id="card-nav" aria-label="主要栏目">
+			<div class="card-nav-top">
+				<button class="hamburger-menu" id="card-nav-toggle" type="button" aria-label="打开栏目导航" aria-expanded="false" aria-controls="card-nav-content">
+					<span class="hamburger-line"></span>
+					<span class="hamburger-line"></span>
+				</button>
+				<a class="card-nav-logo" href="index.html" aria-label="Steven Zhang 首页">STEVEN ZHANG</a>
+				<div class="card-nav-actions">
+					<button class="card-nav-search-toggle" type="button" aria-label="搜索" title="搜索 ( / )">
+						<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+					</button>
+					<button id="lang-toggle" class="card-nav-cta-button" type="button" aria-label="Switch to English">
+						<span class="lang-en">中文</span>
+						<span class="lang-zh">ENGLISH</span>
+					</button>
+				</div>
+			</div>
+			<div class="card-nav-content" id="card-nav-content" aria-hidden="true">
+				<label class="card-nav-search">
+					<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+					<input class="site-search-input" type="search" autocomplete="off" spellcheck="false" enterkeyhint="search" aria-label="搜索" aria-controls="site-search-results">
+					<kbd class="site-search-hint">/</kbd>
+				</label>
+				<div class="card-nav-cards">
+					<section class="card-nav-card card-nav-voyage">
+						<p class="card-nav-label"><span>01</span><span class="lang-en">Voyage</span><span class="lang-zh">旅途</span></p>
+						<a class="card-nav-link" href="voyage.html"><span aria-hidden="true">↗</span><span class="lang-en">Photography &amp; journeys</span><span class="lang-zh">摄影与旅程</span></a>
+					</section>
+					<section class="card-nav-card card-nav-daily">
+						<p class="card-nav-label"><span>02</span><span class="lang-en">Daily</span><span class="lang-zh">日常</span></p>
+						<a class="card-nav-link" href="diary.html"><span aria-hidden="true">↗</span><span class="lang-en">Moments &amp; shadows</span><span class="lang-zh">瞬时记录与光影</span></a>
+					</section>
+					<section class="card-nav-card card-nav-journal">
+						<p class="card-nav-label"><span>03</span><span class="lang-en">Journal</span><span class="lang-zh">随笔</span></p>
+						<a class="card-nav-link" href="journal.html"><span aria-hidden="true">↗</span><span class="lang-en">Notes &amp; reflections</span><span class="lang-zh">笔记与思考</span></a>
+					</section>
+				</div>
+				<div class="site-search-panel" hidden>
+					<ul class="site-search-results" id="site-search-results" role="listbox"></ul>
+					<p class="site-search-empty" hidden></p>
+				</div>
+			</div>
 		</nav>
-	</header>
+	</div>
 
 	<!-- Deep Space Background -->
 	<div class="hero-bg-container">
@@ -106,7 +79,8 @@
 
 	<!-- Content -->
 	<main class="not-found-container">
-		<div class="error-code">404</div>
+		<p class="archive-kicker"><span>404</span><span class="lang-en">SIGNAL LOST</span><span class="lang-zh">信号中断</span></p>
+		<div class="error-code" aria-hidden="true">404</div>
 		<h1 class="error-title">
 			<span class="lang-en">Lost in Space</span>
 			<span class="lang-zh">迷失星际</span>
@@ -115,9 +89,10 @@
 			<span class="lang-en">The transmission was lost. The page you are looking for has drifted beyond the known archive.</span>
 			<span class="lang-zh">信号已中断。你要寻找的页面已经漂流到了档案室的边缘之外。</span>
 		</p>
-		<a href="index.html" class="return-btn">
+		<a href="index.html" class="primary-action">
 			<span class="lang-en">RETURN TO HUB</span>
 			<span class="lang-zh">返回主星港</span>
+			<span aria-hidden="true">↗</span>
 		</a>
 	</main>
 
@@ -129,6 +104,8 @@
 	<!-- Core Libraries -->
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
 	<!-- Language & Parallax Logic -->
+	<script src="js/maintenance-config.js"></script>
+	<script src="js/site-search.js"></script>
 	<script src="js/main.js"></script>
 </body>
 </html>
