@@ -2,24 +2,26 @@
 	'use strict';
 
 	const markerData = [
-		{ lat: 43.82, lng: 87.62, image: 'images/pic01.JPG', id: 1, en: 'XINJIANG', zh: '新疆' },
-		{ lat: 28.68, lng: 115.89, image: 'images/pic02.JPG', id: 2, en: 'JIANGXI', zh: '江西' },
-		{ lat: 22.32, lng: 114.17, image: 'images/pic04.JPG', id: 4, en: 'HONG KONG', zh: '香港' },
-		{ lat: 25.04, lng: 102.71, image: 'images/pic05.JPG', id: 5, en: 'YUNNAN', zh: '云南' },
-		{ lat: 3.14, lng: 101.69, image: 'images/pic06.jpg', id: 6, en: 'KUALA LUMPUR', zh: '吉隆坡', offsetX: -32, offsetY: -16 },
-		{ lat: 2.93, lng: 101.70, image: 'images/pic07.JPG', id: 7, en: 'PUTRAJAYA', zh: '布城', offsetX: 31, offsetY: 12 },
-		{ lat: 5.41, lng: 100.33, image: 'images/pic08.JPG', id: 8, en: 'PENANG', zh: '槟城', offsetX: -18, offsetY: 18 },
-		{ lat: 1.35, lng: 103.82, image: 'images/pic10.JPG', id: 10, en: 'SINGAPORE', zh: '新加坡', offsetX: 26, offsetY: 29 },
-		{ lat: 25.03, lng: 121.57, image: 'images/pic11.JPG', id: 11, en: 'TAIPEI', zh: '台北' }
+		{ lat: 43.82, lng: 87.62, image: 'images/stories/anjihai/original/cover.jpg', id: 1, en: 'XINJIANG', zh: '新疆' },
+		{ lat: 28.68, lng: 115.89, image: 'images/stories/sanqingshan/original/cover.jpg', id: 2, en: 'JIANGXI', zh: '江西' },
+		{ lat: 22.32, lng: 114.17, image: 'images/stories/victoria-harbour/original/cover.jpg', id: 4, en: 'HONG KONG', zh: '香港' },
+		{ lat: 25.04, lng: 102.71, image: 'images/stories/erhai/original/cover.jpg', id: 5, en: 'YUNNAN', zh: '云南' },
+		{ lat: 3.14, lng: 101.69, image: 'images/stories/kuala-lumpur/original/cover.jpg', id: 6, en: 'KUALA LUMPUR', zh: '吉隆坡', offsetX: -32, offsetY: -16 },
+		{ lat: 2.93, lng: 101.70, image: 'images/stories/putrajaya/original/cover.jpg', id: 7, en: 'PUTRAJAYA', zh: '布城', offsetX: 31, offsetY: 12 },
+		{ lat: 5.41, lng: 100.33, image: 'images/stories/batu-ferringhi/original/cover.jpg', id: 8, en: 'PENANG', zh: '槟城', offsetX: -18, offsetY: 18 },
+		{ lat: 1.35, lng: 103.82, image: 'images/stories/singapore/original/cover.jpg', id: 10, en: 'SINGAPORE', zh: '新加坡', offsetX: 26, offsetY: 29 },
+		{ lat: 25.03, lng: 121.57, image: 'images/stories/taipei/original/cover.jpg', id: 11, en: 'TAIPEI', zh: '台北' }
 	];
 
 	// Same mapping as imageVariant() in data.js (not loaded on the home page).
-	const variant = (src, size) => src.replace(/^images\/([^/]+)\.jpe?g$/i, `images/${size}/$1.jpg`);
+	const variant = (src, size) => src.replace(/^(images\/stories\/[^/]+)\/original\/(.+)$/i, `$1/${size}/$2`);
+	const mobileLite = window.matchMedia('(max-width: 760px), (pointer: coarse)').matches;
+	const transitionVariant = marker => variant(marker.image, mobileLite ? 'card' : 'hero');
 
 	const heroImages = new Map();
 	const heroDecoded = new Set();
 	function warmHeroImage(marker) {
-		const src = variant(marker.image, 'hero');
+		const src = transitionVariant(marker);
 		if (!heroImages.has(src)) {
 			const img = new Image();
 			img.decoding = 'async';
@@ -69,7 +71,7 @@
 		if (frozen === globeFrozen) return;
 		globeFrozen = frozen;
 		if (!rendererReady) return;
-		if (frozen) {
+		if (frozen && !mobileLite) {
 			renderer.render(scene, camera);
 			const source = renderer.domElement;
 			freezeSnapshot = document.createElement('canvas');
@@ -160,7 +162,7 @@
 			clipPath: `inset(0px 0px 0px 0px round ${radiusValue(target.radius)})`
 		});
 		transitionImage.style.backgroundImage = `url("${variant(marker.image, 'mini')}")`;
-		transitionHiRes.style.backgroundImage = `url("${variant(marker.image, 'hero')}")`;
+		transitionHiRes.style.backgroundImage = `url("${transitionVariant(marker)}")`;
 		transitionHiRes.style.opacity = '1';
 		transitionImage.style.transform = 'none';
 		transitionWash.style.opacity = '1';
@@ -222,6 +224,7 @@
 	let titleBeforeStory = document.title;
 
 	function prepareStory(marker) {
+		if (mobileLite) return null;
 		if (storyLayer?.marker.id === marker.id) return storyLayer;
 		if (storyOpen) return null;
 		storyLayer?.frame.remove();
@@ -329,7 +332,7 @@
 
 	function navigateToDetail(marker) {
 		try {
-			sessionStorage.setItem('atlasHandoff', JSON.stringify({ id: marker.id, image: variant(marker.image, 'hero'), time: Date.now() }));
+			sessionStorage.setItem('atlasHandoff', JSON.stringify({ id: marker.id, image: transitionVariant(marker), time: Date.now() }));
 			sessionStorage.setItem('atlasReturn', JSON.stringify({ id: marker.id, time: Date.now() }));
 		} catch (error) { /* the detail page then simply plays its own entrance */ }
 		window.location.assign(`voyage.html?id=${marker.id}&from=atlas`);
@@ -345,7 +348,7 @@
 		// Fast start, long soft landing: the card is clearly growing from the first frames,
 		// so the page never sits dark while waiting for it.
 		const easing = 'cubic-bezier(0.3, 0, 0.12, 1)';
-		const duration = 900;
+		const duration = mobileLite ? 360 : 900;
 		isTransitioning = true;
 		setGlobeFrozen(true);
 		lastOpenedMarker = marker;
@@ -361,8 +364,8 @@
 		// Thumbnail underneath, sharp cover on top: shown at once if it is already decoded,
 		// otherwise cross-faded in when ready instead of popping from blurry to sharp.
 		transitionImage.style.backgroundImage = `url("${variant(marker.image, 'mini')}")`;
-		transitionHiRes.style.backgroundImage = `url("${variant(marker.image, 'hero')}")`;
-		transitionHiRes.style.opacity = heroDecoded.has(variant(marker.image, 'hero')) ? '1' : '0';
+		transitionHiRes.style.backgroundImage = `url("${transitionVariant(marker)}")`;
+		transitionHiRes.style.opacity = heroDecoded.has(transitionVariant(marker)) ? '1' : '0';
 		heroReady.then(() => {
 			if (isTransitioning && transitionHiRes.style.opacity !== '1') {
 				transitionHiRes.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 260, easing: 'ease-out' });
@@ -388,7 +391,12 @@
 			transitionImage.animate([{ transform: startTransform }, { transform: 'none' }], { duration, easing, fill: 'both' }),
 			transitionWash.animate([{ opacity: 0 }, { opacity: 0, offset: 0.45 }, { opacity: 1 }], { duration, easing: 'linear', fill: 'both' }),
 			// The page fades only while the card is already covering most of the view.
-			...[...pageChrome()].map(element => element.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 560, delay: 220, easing: 'ease-in-out', fill: 'forwards' }))
+			...[...pageChrome()].map(element => element.animate([{ opacity: 1 }, { opacity: 0 }], {
+				duration: mobileLite ? 240 : 560,
+				delay: mobileLite ? 80 : 220,
+				easing: 'ease-in-out',
+				fill: 'forwards'
+			}))
 		];
 
 		// When the morph lands, reveal the story that was preloaded in the story layer (same
@@ -396,12 +404,18 @@
 		// back to a normal page navigation.
 		const layer = prepareStory(marker);
 		transitionAnimations[0].finished
-			.then(() => Promise.race([
-				layer ? layer.ready : heroReady,
-				new Promise(resolve => setTimeout(resolve, layer ? 2500 : 600))
-			]))
 			.then(() => {
-				if (!isTransitioning) return;
+				if (mobileLite) {
+					navigateToDetail(marker);
+					return null;
+				}
+				return Promise.race([
+					layer ? layer.ready : heroReady,
+					new Promise(resolve => setTimeout(resolve, layer ? 2500 : 600))
+				]);
+			})
+			.then(() => {
+				if (mobileLite || !isTransitioning) return;
 				if (layer?.isReady) showStory(layer);
 				else navigateToDetail(marker);
 			})
@@ -453,13 +467,13 @@
 	let renderer;
 
 	try {
-		renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
+		renderer = new THREE.WebGLRenderer({ antialias: !mobileLite, alpha: true, powerPreference: 'high-performance' });
 	} catch (error) {
 		showFallback();
 		return;
 	}
 
-	const MAX_RENDER_PIXELS = 2.6e6; // full-screen on a large Retina display would otherwise be ~6 MP per frame
+	const MAX_RENDER_PIXELS = mobileLite ? 9e5 : 2.6e6;
 	renderer.setClearColor(0x000000, 0);
 	renderer.outputEncoding = THREE.sRGBEncoding;
 	mount.appendChild(renderer.domElement);
@@ -476,7 +490,7 @@
 	scene.add(globeGroup);
 
 	const radius = 2;
-	const sphereGeometry = new THREE.SphereGeometry(radius, 72, 72);
+	const sphereGeometry = new THREE.SphereGeometry(radius, mobileLite ? 48 : 72, mobileLite ? 32 : 72);
 	const earthMaterial = new THREE.MeshStandardMaterial({
 		color: 0x31536b,
 		roughness: 0.82,
@@ -516,7 +530,7 @@
 		},
 		markGlobeReady // no texture at all: show the plain globe rather than nothing
 	);
-	loadTexture('earth-topology.png', texture => {
+	if (!mobileLite) loadTexture('earth-topology.png', texture => {
 		earthMaterial.bumpMap = texture;
 		earthMaterial.bumpScale = 0.09;
 		earthMaterial.needsUpdate = true;
@@ -573,7 +587,7 @@
 		button.type = 'button';
 		button.setAttribute('aria-label', `${marker.zh} / ${marker.en}`);
 		button.innerHTML = `<img src="${variant(marker.image, 'mini')}" alt="" draggable="false"><span class="marker-label-en">${marker.en}</span><span class="marker-label-zh">${marker.zh}</span>`;
-		const warm = () => { warmHeroImage(marker); prepareStory(marker); };
+		const warm = () => { warmHeroImage(marker); if (!mobileLite) prepareStory(marker); };
 		button.addEventListener('pointerenter', warm);
 		button.addEventListener('focus', warm);
 		button.addEventListener('pointerdown', warm);

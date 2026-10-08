@@ -1197,6 +1197,17 @@ body.atlas-story-open {
 	overflow: hidden;
 }
 
+@media (max-width: 760px), (pointer: coarse) {
+	body::after {
+		backdrop-filter: none;
+		-webkit-backdrop-filter: none;
+	}
+
+	.atlas-transition-card::after {
+		display: none;
+	}
+}
+
 /* The story page inside that frame: transparent so nothing differs from the home page behind. */
 .atlas-embed .voyage-page .card-nav-container {
 	display: none;

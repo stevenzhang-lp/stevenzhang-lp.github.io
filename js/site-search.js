@@ -19,11 +19,15 @@ document.addEventListener('DOMContentLoaded', () => {
 		if (typeof photos !== 'undefined') return Promise.resolve();
 		if (dataPromise) return dataPromise;
 		dataPromise = new Promise(resolve => {
-			const script = document.createElement('script');
-			script.src = 'js/data.js';
-			script.onload = resolve;
-			script.onerror = resolve;
-			document.head.appendChild(script);
+			const generated = document.createElement('script');
+			generated.src = 'js/generated-content.js';
+			generated.onload = generated.onerror = () => {
+				const script = document.createElement('script');
+				script.src = 'js/data.js';
+				script.onload = script.onerror = resolve;
+				document.head.appendChild(script);
+			};
+			document.head.appendChild(generated);
 		});
 		return dataPromise;
 	}

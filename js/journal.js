@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     const { escapeHtml, renderStats, setupFilters, renderResult, noResult, showMaintenance } = window.ArchiveList;
     if (showMaintenance('journal.html')) return;
     const page = document.querySelector('.archive-page');
@@ -52,11 +52,13 @@ document.addEventListener('DOMContentLoaded', () => {
             card.style.animationDelay = `${Math.min(index, 8) * 0.07}s`;
             if (item.link) {
                 card.href = item.link;
-                card.target = '_blank';
-                card.rel = 'noopener noreferrer';
+                if (/^https?:\/\//i.test(item.link)) {
+                    card.target = '_blank';
+                    card.rel = 'noopener noreferrer';
+                }
                 card.setAttribute('aria-label', isEnglish()
-                    ? `Open ${item.titleEn} in a new tab`
-                    : `在新标签页打开${item.titleZh}`);
+                    ? `Open ${item.titleEn}`
+                    : `打开${item.titleZh}`);
             }
 
             const hasVisual = Boolean(item.formulaTex || item.formulaText);
