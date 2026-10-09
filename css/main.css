@@ -1953,6 +1953,30 @@ body:has(.markdown-page) .site-global-footer {
 	transform: translateY(0) scale(1);
 }
 
+.lightbox.is-morphing .lightbox-content {
+	visibility: hidden;
+}
+
+.atlas-transition.is-lightbox-morph {
+	z-index: 2001;
+	pointer-events: none;
+}
+
+.atlas-transition.is-lightbox-morph .atlas-transition-card::after {
+	display: none;
+}
+
+.voyage-page #detail-view .masonry-item {
+	background-position: center;
+	background-size: cover;
+}
+
+.voyage-page #detail-view .masonry-item picture {
+	display: block;
+	width: 100%;
+	height: 100%;
+}
+
 .close-lightbox {
 	position: absolute;
 	top: max(1rem, env(safe-area-inset-top));

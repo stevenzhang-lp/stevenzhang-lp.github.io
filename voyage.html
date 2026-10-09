@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
+	<script src="js/search-motion.js"></script>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 	<meta name="theme-color" content="#07080b">
@@ -144,7 +145,7 @@
 	<!-- Scrollable Content -->
 	<main id="gallery-view" class="archive-page active">
 
-		<header class="archive-hero">
+		<header class="archive-hero has-globe">
 			<div class="archive-hero-copy">
 				<p class="archive-kicker"><span>01</span><span class="lang-en">VOYAGE · PHOTOGRAPHY &amp; JOURNEYS</span><span class="lang-zh">旅途 · 摄影与旅程</span></p>
 				<h1 class="archive-title">
@@ -152,8 +153,8 @@
 					<span class="lang-zh">时空<em>档案室</em></span>
 				</h1>
 				<p class="archive-intro">
-					<span class="lang-en">Every frame is a coordinate. Filter by country or era, then step into the full story behind each place.</span>
-					<span class="lang-zh">每一帧都是一个坐标。按国家或年份筛选，再走进每个地点背后的完整故事。</span>
+					<span class="lang-en">Every frame is a coordinate. Choose a place on the globe or filter by country and era to explore its story.</span>
+					<span class="lang-zh">每一帧都是一个坐标。在地球上选择地点，或按国家与年份筛选，走进旅程背后的完整故事。</span>
 				</p>
 			</div>
 			<dl class="archive-stats" aria-label="档案概览">
@@ -162,6 +163,34 @@
 				<div><dt><span class="lang-en">Countries</span><span class="lang-zh">国家</span></dt><dd data-stat="countries">—</dd></div>
 				<div><dt><span class="lang-en">Span</span><span class="lang-zh">跨度</span></dt><dd data-stat="span">—</dd></div>
 			</dl>
+
+			<div class="globe-shell archive-globe is-loading" id="globe-shell" data-archive="true">
+				<div class="globe-orbit globe-orbit-one" aria-hidden="true"></div>
+				<div class="globe-orbit globe-orbit-two" aria-hidden="true"></div>
+				<div id="globe-canvas" class="globe-canvas" role="img" aria-label="可旋转的个人旅行地球，标记中国、马来西亚与新加坡的旅行地点"></div>
+				<div id="globe-markers" class="globe-markers" aria-label="旅行地点"></div>
+				<div class="globe-fallback" id="globe-fallback" hidden>
+					<span>EARTH / 03 COUNTRIES / 09 COORDINATES</span>
+				</div>
+				<div class="globe-meta globe-meta-top"><span class="live-dot"></span><span class="lang-en">LIVE ATLAS</span><span class="lang-zh">实时图谱</span></div>
+				<div class="globe-meta globe-meta-bottom"><span class="lang-en">DRAG · SCROLL OR PINCH TO ZOOM</span><span class="lang-zh">拖动旋转 · 滚轮或双指缩放</span></div>
+				<button class="globe-exit" type="button" aria-label="退出全屏地图" hidden>
+					<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg>
+					<span class="lang-en">EXIT MAP</span><span class="lang-zh">退出地图</span>
+				</button>
+				<div class="globe-controls" role="group" aria-label="地球缩放">
+					<button class="globe-control" type="button" data-zoom="in" aria-label="放大地球">
+						<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>
+					</button>
+					<button class="globe-control" type="button" data-zoom="out" aria-label="缩小地球">
+						<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14"></path></svg>
+					</button>
+					<button class="globe-control" type="button" data-zoom="reset" aria-label="复位地球">
+						<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"></path><path d="M3 4v5h5"></path></svg>
+					</button>
+				</div>
+			</div>
+
 		</header>
 
 		<!-- Filters -->
@@ -301,7 +330,9 @@
 	<!-- Data & App Logic -->
 	<script src="js/generated-content.js"></script>
 	<script src="js/data.js"></script>
+	<script src="js/cover-morph.js"></script>
 	<script src="js/app.js"></script>
+	<script src="js/archive-globe.js"></script>
 	<!-- Share Feature -->
 	<script src="js/share.js"></script>
 	<!-- Starfield Parallax -->

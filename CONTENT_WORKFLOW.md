@@ -233,3 +233,13 @@ draft: true
 2. `cover.jpg` 和 `gallery-01.jpg` 命名是否正确。
 3. 四个尺寸目录中的文件名是否一致。
 4. `story.md` 的 `slug` 是否与图片目录一致。
+
+### 手机端完整影集图片
+
+添加或更换旅途图片后，生成轻量 WebP 影集版本：
+
+```sh
+python3 tools/build-album-images.py
+```
+
+需要 Pillow。输出位于每个故事的 `album/` 目录，最长边 960 像素；桌面影集仍使用 `card/`。图片预览先显示已加载的缩略图，再切换到屏幕尺寸的清晰版本。

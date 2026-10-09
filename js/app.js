@@ -779,7 +779,7 @@ function animateDetailArrival() {
 
     // Coming from the home globe the hero card is already on screen (painted by the
     // inline head script), so only the chrome fades in — no second entrance.
-    const isHandoff = document.documentElement.classList.contains('atlas-handoff');
+    const isHandoff = document.documentElement.classList.contains('atlas-handoff') || document.documentElement.classList.contains('search-arriving');
     if (isHandoff) {
         document.documentElement.classList.add('handoff-ready');
         // The cover is already in place; the copy rises in quickly right after it lands.
@@ -878,6 +878,7 @@ const cameFromAtlas = (() => {
 })();
 let galleryScrollY = 0;
 let lastOpenedCardId = null;
+let lastOpenedGlobeMarker = null;
 let lastCardViewportTop = null;
 
 // Document position from layout (offsetTop), ignoring transforms — the gallery and its cards
@@ -888,28 +889,29 @@ function layoutTop(element) {
     return top;
 }
 
-function openDetail(photo, instant = false, { fromGallery = false } = {}) {
-    // The complete series is built a moment after the story appears (scheduleAfterArrival);
-    // clear the previous story's frames now so they never show under the new story.
+function openDetail(photo, instant = false, { fromGallery = false, source = null, fromSearch = false } = {}) {
+    // Clear the previous story's frames before building the new series.
     clearMasonry();
     // Update browser URL in-place without page reload
     const targetSearch = `?id=${photo.id}`;
     if (fromGallery) {
         galleryScrollY = window.scrollY;
         lastOpenedCardId = photo.id;
+        lastOpenedGlobeMarker = source?.classList.contains('globe-marker') ? source : null;
         // Where the card sat on screen — restored relative to the card itself, so images that
         // finish loading above it in the meantime can't shift the user's place.
         const card = document.querySelector(`#gallery-grid .frame-card[data-photo-id="${photo.id}"]`);
-        lastCardViewportTop = card ? layoutTop(card) - window.scrollY : null;
+        lastCardViewportTop = card && !lastOpenedGlobeMarker ? layoutTop(card) - window.scrollY : null;
     }
     // Inside the home page's story layer the parent owns the history; an entry pushed here
     // would merge into the tab's back stack.
     if (!isAtlasEmbed && window.location.search !== targetSearch) {
-        history.pushState({ id: photo.id, fromGallery }, '', `voyage.html${targetSearch}`);
+        history.pushState({ id: photo.id, fromGallery, fromSearch, ...(lastOpenedGlobeMarker && history.state?.atlasImmersive ? { atlasImmersive: true } : {}) }, '', `voyage.html${targetSearch}`);
     }
     
     activePhoto = photo;
     document.body.classList.add('showing-detail');
+    window.dispatchEvent(new CustomEvent('site:archive-view', { detail: { isDetail: true } }));
     document.getElementById('detail-view')?.style.removeProperty('opacity');
     updateVoyageTitle(safeStorage.getItem('voyage_lang') || 'zh');
 
@@ -960,8 +962,8 @@ function openDetail(photo, instant = false, { fromGallery = false } = {}) {
         announceEmbedReady(photo);
         // The series sits below the fold: build it once the arrival has settled so its
         // image downloads and decodes don't compete with the first frames.
-        scheduleAfterArrival(() => loadMasonry(photo));
-    } else if (fromGallery && morphFromCard(photo)) {
+        requestAnimationFrame(() => loadMasonry(photo));
+    } else if (fromGallery && morphFromCard(photo, source)) {
         // Card → cover morph handles the switch (see morphFromCard).
     } else {
         // Switch views smoothly
@@ -1008,7 +1010,7 @@ function holdCardHover(cardEl) {
 // copy, which then fades out quickly (covers the chips / gradient the copy doesn't have).
 function revealCardUnderOverlay(layer, cardEl, done) {
     // Only the photo is ever hidden during a morph (its caption stays and fades with the list).
-    const photoEl = cardEl?.querySelector('.frame-media');
+    const photoEl = cardEl?.classList.contains('globe-marker') ? cardEl.querySelector('img') : cardEl?.querySelector('.frame-media');
     if (photoEl) photoEl.style.visibility = '';
     const fade = layer.card.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 160, easing: 'ease-out', fill: 'forwards' });
     fade.finished.then(done).catch(done);
@@ -1044,8 +1046,7 @@ function heroTargetRect() {
     return { left: rect.left, top: rect.top, width: rect.width, height: rect.height, radius };
 }
 
-function ensureCardMorphLayer() {
-    if (cardMorph) return cardMorph;
+function createPhotoMorphLayer() {
     const overlay = document.createElement('div');
     overlay.className = 'atlas-transition';
     overlay.hidden = true;
@@ -1056,42 +1057,39 @@ function ensureCardMorphLayer() {
             <div class="atlas-transition-wash"></div>
         </div>`;
     document.body.appendChild(overlay);
-    cardMorph = {
+    return {
         overlay,
         card: overlay.querySelector('.atlas-transition-card'),
         image: overlay.querySelector('.atlas-transition-image'),
         hires: overlay.querySelector('.atlas-transition-hires'),
         wash: overlay.querySelector('.atlas-transition-wash')
     };
-    return cardMorph;
 }
 
-function morphFromCard(photo) {
+function ensureCardMorphLayer() {
+    return cardMorph || (cardMorph = createPhotoMorphLayer());
+}
+
+function morphFromCard(photo, sourceEl = null) {
     if (voyageReduceMotion || typeof Element.prototype.animate !== 'function') return false;
-    const cardEl = document.querySelector(`#gallery-grid .frame-card[data-photo-id="${photo.id}"]`);
-    const thumb = cardEl?.querySelector('.frame-media img');
+    const cardEl = sourceEl || document.querySelector(`#gallery-grid .frame-card[data-photo-id="${photo.id}"]`);
+    const media = sourceEl?.classList.contains('globe-marker') ? sourceEl.querySelector('img') : cardEl?.querySelector('.frame-media');
+    const thumb = media?.tagName === 'IMG' ? media : media?.querySelector('img');
     if (!thumb || !thumb.naturalWidth) return false;
 
-    const from = cardEl.querySelector('.frame-media').getBoundingClientRect();
-    const fromRadius = parseFloat(getComputedStyle(cardEl.querySelector('.frame-media')).borderTopLeftRadius) || 0;
+    const from = media.getBoundingClientRect();
+    const fromRadius = parseFloat(getComputedStyle(media).borderTopLeftRadius) || 0;
     const to = heroTargetRect();
     const radii = values => values.map(value => `${value}px`).join(' ');
 
     // Both the card and the cover crop the photo with "cover", centred.
     const w = thumb.naturalWidth;
     const h = thumb.naturalHeight;
-    const coverTo = Math.max(to.width / w, to.height / h);
-    const coverFrom = Math.max(from.width / w, from.height / h);
-    // The clicked card is under the pointer, so it is mid hover-zoom; start from exactly that.
+    // Match the card's current hover zoom and colour at the first frame.
     const liveStyle = getComputedStyle(thumb);
     const liveScale = liveStyle.transform && liveStyle.transform !== 'none' ? new DOMMatrix(liveStyle.transform).a : CARD_PHOTO_SCALE;
     const liveFilter = liveStyle.filter && liveStyle.filter !== '' ? liveStyle.filter : 'none';
-    const scale = (coverFrom / coverTo) * liveScale;
-    const dx = from.left + from.width / 2 - (to.left + to.width / 2);
-    const dy = from.top + from.height / 2 - (to.top + to.height / 2);
-    const startTransform = `translate(${dx}px, ${dy}px) scale(${scale})`;
-    const startClip = `inset(${from.top - to.top}px ${to.left + to.width - from.right}px ${to.top + to.height - from.bottom}px ${from.left - to.left}px round ${fromRadius}px)`;
-    const endClip = `inset(0px 0px 0px 0px round ${radii(to.radius)})`;
+    const source = { left: from.left, top: from.top, width: from.width, height: from.height, radius: [fromRadius, fromRadius, fromRadius, fromRadius] };
 
     const layer = ensureCardMorphLayer();
     // The nav stays out of sight while the cover morphs (it would otherwise show as a dark sliver
@@ -1100,11 +1098,10 @@ function morphFromCard(photo) {
     const heroSrc = imageVariant(photo.image, 'hero');
     Object.assign(layer.card.style, {
         left: `${to.left}px`, top: `${to.top}px`, width: `${to.width}px`, height: `${to.height}px`,
-        borderRadius: radii(to.radius), clipPath: startClip
+        borderRadius: radii(to.radius), clipPath: 'none'
     });
     sizeMorphPhoto(layer, thumb.naturalWidth, thumb.naturalHeight, to);
     layer.image.style.backgroundImage = `url("${thumb.currentSrc || thumb.src}")`;
-    layer.image.style.transform = startTransform;
     layer.image.style.filter = liveFilter;
     layer.hires.style.backgroundImage = `url("${heroSrc}")`;
     layer.hires.style.opacity = '0';
@@ -1114,7 +1111,7 @@ function morphFromCard(photo) {
     // only then does the card step aside — no one-frame jump at the click.
     layer.card.style.opacity = '0';
     layer.card.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 140, easing: 'linear', fill: 'forwards' });
-    const cardPhotoEl = cardEl.querySelector('.frame-media');
+    const cardPhotoEl = media;
     window.setTimeout(() => { cardPhotoEl.style.visibility = 'hidden'; }, 150);
 
     const hero = new Image();
@@ -1135,8 +1132,7 @@ function morphFromCard(photo) {
     void detailView.offsetHeight;
     const duration = 720;
     const easing = 'cubic-bezier(0.3, 0, 0.12, 1)';
-    const morph = layer.card.animate([{ clipPath: startClip }, { clipPath: endClip }], { duration, easing, fill: 'forwards' });
-    layer.image.animate([{ transform: startTransform }, { transform: 'none' }], { duration, easing, fill: 'forwards' });
+    const [morph] = animateCoverMorph(layer.card, layer.image, source, to, w, h, { duration, easing, fill: 'forwards' }, liveScale);
     layer.wash.animate([{ opacity: 0 }, { opacity: 0, offset: 0.45 }, { opacity: 1 }], { duration, easing: 'linear', fill: 'forwards' });
     layer.image.animate([{ filter: liveFilter }, { filter: 'none' }], { duration, easing, fill: 'forwards' });
     // The list visibly fades out while the window opens (starting right after the click, so the
@@ -1167,7 +1163,7 @@ function morphFromCard(photo) {
                     });
                 }));
             });
-            scheduleAfterArrival(() => loadMasonry(photo));
+            requestAnimationFrame(() => loadMasonry(photo));
         });
     return true;
 }
@@ -1179,7 +1175,7 @@ function goBackFromDetail() {
         postToAtlas({ type: 'back' });
         return;
     }
-    if (history.state?.fromGallery || cameFromAtlas) {
+    if (history.state?.fromGallery || history.state?.fromSearch || cameFromAtlas) {
         history.back();
         return;
     }
@@ -1196,6 +1192,9 @@ function closeDetail() {
 
     detailArrivalAnimation?.pause?.();
     detailRevealObserver?.disconnect?.();
+    // Closing can interrupt the arrival before its completion callback clears
+    // these classes. atlas-handoff forces display:block even on a hidden view.
+    document.documentElement.classList.remove('atlas-handoff', 'handoff-ready');
     const detailView = document.getElementById('detail-view');
     const galleryView = document.getElementById('gallery-view');
     const finishClose = () => {
@@ -1208,14 +1207,15 @@ function closeDetail() {
         activePhoto = null;
         updateVoyageTitle(document.body.classList.contains('lang-en') ? 'en' : 'zh');
         // Return to the exact spot in the gallery and put focus back on the card.
-        const card = lastOpenedCardId == null ? null
-            : document.querySelector(`#gallery-grid .frame-card[data-photo-id="${lastOpenedCardId}"]`);
+        const card = lastOpenedGlobeMarker || (lastOpenedCardId == null ? null
+            : document.querySelector(`#gallery-grid .frame-card[data-photo-id="${lastOpenedCardId}"]`));
         if (card && lastCardViewportTop != null) {
             jumpTo(layoutTop(card) - lastCardViewportTop);
         } else {
             jumpTo(galleryScrollY);
         }
         card?.focus({ preventScroll: true });
+        window.dispatchEvent(new CustomEvent('site:archive-view', { detail: { isDetail: false } }));
         requestAnimationFrame(() => galleryView.classList.add('active'));
     };
 
@@ -1258,7 +1258,7 @@ function morphToCard(finishClose) {
         borderRadius: radii, clipPath: `inset(0px 0px 0px 0px round ${radii})`
     });
     {
-        const probe = document.querySelector(`#gallery-grid .frame-card[data-photo-id="${photo.id}"] .frame-media img`);
+        const probe = lastOpenedGlobeMarker?.querySelector('img') || document.querySelector(`#gallery-grid .frame-card[data-photo-id="${photo.id}"] .frame-media img`);
         sizeMorphPhoto(layer, probe?.naturalWidth || 3, probe?.naturalHeight || 2, from);
     }
     layer.image.style.backgroundImage = `url("${imageVariant(photo.image, 'card')}")`;
@@ -1277,9 +1277,9 @@ function morphToCard(finishClose) {
     galleryView.classList.add('active');
     void galleryView.offsetHeight;
     galleryView.style.removeProperty('transition');
-    const cardEl = document.querySelector(`#gallery-grid .frame-card[data-photo-id="${photo.id}"]`);
-    const media = cardEl?.querySelector('.frame-media');
-    const thumb = media?.querySelector('img');
+    const cardEl = lastOpenedGlobeMarker || document.querySelector(`#gallery-grid .frame-card[data-photo-id="${photo.id}"]`);
+    const media = lastOpenedGlobeMarker ? cardEl.querySelector('img') : cardEl?.querySelector('.frame-media');
+    const thumb = media?.tagName === 'IMG' ? media : media?.querySelector('img');
     const to = media?.getBoundingClientRect();
     const resetLayer = () => {
         layer.overlay.hidden = true;
@@ -1290,7 +1290,7 @@ function morphToCard(finishClose) {
     };
     const cleanup = () => {
         document.body.classList.remove('card-morphing'); // nav fades back in with the hand-off
-        holdCardHover(cardEl);
+        if (!lastOpenedGlobeMarker) holdCardHover(cardEl);
         revealCardUnderOverlay(layer, cardEl, resetLayer);
     };
     if (!to || !thumb?.naturalWidth || to.bottom < 0 || to.top > window.innerHeight) {
@@ -1304,19 +1304,17 @@ function morphToCard(finishClose) {
     // 3. Shrink into the card (same mapping as the open morph, reversed).
     const w = thumb.naturalWidth;
     const h = thumb.naturalHeight;
-    const coverFrom = Math.max(from.width / w, from.height / h);
-    const coverTo = Math.max(to.width / w, to.height / h);
-    const scale = (coverTo / coverFrom) * CARD_PHOTO_SCALE;
-    const dx = to.left + to.width / 2 - (from.left + from.width / 2);
-    const dy = to.top + to.height / 2 - (from.top + from.height / 2);
-    const endTransform = `translate(${dx}px, ${dy}px) scale(${scale})`;
+    const source = {
+        left: from.left, top: from.top, width: from.width, height: from.height,
+        radius: ['borderTopLeftRadius', 'borderTopRightRadius', 'borderBottomRightRadius', 'borderBottomLeftRadius']
+            .map(key => parseFloat(fromRadius[key]) || 0)
+    };
     const toRadius = parseFloat(getComputedStyle(media).borderTopLeftRadius) || 0;
-    const startClip = `inset(0px 0px 0px 0px round ${radii})`;
-    const endClip = `inset(${to.top - from.top}px ${from.left + from.width - to.right}px ${from.top + from.height - to.bottom}px ${to.left - from.left}px round ${toRadius}px)`;
+    const target = { left: to.left, top: to.top, width: to.width, height: to.height, radius: [toRadius, toRadius, toRadius, toRadius] };
     const duration = 640;
     const easing = 'cubic-bezier(0.5, 0, 0.15, 1)';
-    const shrink = layer.card.animate([{ clipPath: startClip }, { clipPath: endClip }], { duration, easing, fill: 'forwards' });
-    layer.image.animate([{ transform: 'none', filter: 'none' }, { transform: endTransform, filter: CARD_PHOTO_FILTER }], { duration, easing, fill: 'forwards' });
+    const [shrink] = animateCoverMorph(layer.card, layer.image, source, target, w, h, { duration, easing, fill: 'forwards' }, 1, CARD_PHOTO_SCALE);
+    layer.image.animate([{ filter: 'none' }, { filter: CARD_PHOTO_FILTER }], { duration, easing, fill: 'forwards' });
     // The sharp cover gives way to the card-sized photo the card itself shows.
     layer.hires.animate([{ opacity: 1 }, { opacity: 1, offset: 0.35 }, { opacity: 0 }], { duration, easing: 'linear', fill: 'forwards' });
     layer.wash.animate([{ opacity: 1 }, { opacity: 0, offset: 0.4 }, { opacity: 0 }], { duration, easing: 'linear', fill: 'forwards' });
@@ -1356,11 +1354,6 @@ function announceEmbedReady(photo) {
     decoded.then(() => requestAnimationFrame(() => requestAnimationFrame(() => {
         postToAtlas({ type: 'ready', id: photo.id, title: document.title });
     })));
-}
-
-function scheduleAfterArrival(task) {
-    const run = () => (window.requestIdleCallback ? window.requestIdleCallback(task, { timeout: 600 }) : task());
-    window.setTimeout(run, voyageReduceMotion ? 0 : 750);
 }
 
 // Wide-screen series layout (used by the ≥1200px CSS on a 6-column grid): a feature frame
@@ -1416,13 +1409,15 @@ function loadMasonry(photo) {
             item.setAttribute('aria-label', index === 0
                 ? (isEnglish ? 'Open cover image preview' : '打开封面图片预览')
                 : (isEnglish ? 'Open image preview' : '打开图片预览'));
-            // Thumbnails use the web-sized copy; the lightbox still opens the original.
-            item.innerHTML = `<img src="${imageVariant(src, 'card')}" alt="" loading="lazy" decoding="async">`;
-            item.addEventListener('click', () => openLightbox(src));
+            // A tiny cached preview fills the frame while the responsive image loads.
+            item.style.backgroundImage = `url("${imageVariant(src, 'mini')}")`;
+            const mobileSrc = src.replace('/original/', '/album/').replace(/\.jpe?g$/i, '.webp');
+            item.innerHTML = `<picture><source media="(max-width: 760px)" srcset="${mobileSrc}"><img src="${imageVariant(src, 'card')}" alt="" loading="${index < 2 ? 'eager' : 'lazy'}" decoding="async"></picture>`;
+            item.addEventListener('click', () => openLightbox(src, item));
             item.addEventListener('keydown', event => {
                 if (event.key === 'Enter' || event.key === ' ') {
                     event.preventDefault();
-                    openLightbox(src);
+                    openLightbox(src, item);
                 }
             });
             masonry.appendChild(item);
@@ -1440,64 +1435,152 @@ let currentLightboxSrc = '';
 let lightboxReturnFocus = null;
 let lightboxAnimationTimer = null;
 
-function openLightbox(src) {
+let lightboxSource = null;
+let lightboxMorph = null;
+let lightboxGeneration = 0;
+
+function resetLightboxMorph() {
+    if (!lightboxMorph) return;
+    lightboxMorph.overlay.hidden = true;
+    [lightboxMorph.card, lightboxMorph.image, lightboxMorph.hires, lightboxMorph.wash].forEach(element => {
+        element.getAnimations().forEach(animation => animation.cancel());
+        element.removeAttribute('style');
+    });
+    lightbox.classList.remove('is-morphing');
+}
+
+function animateLightboxPhoto(from, to, src, naturalW, naturalH, duration, closing = false) {
+    if (!lightboxMorph) {
+        lightboxMorph = createPhotoMorphLayer();
+        lightboxMorph.overlay.classList.add('is-lightbox-morph');
+    }
+    const layer = lightboxMorph;
+    layer.image.style.backgroundImage = `url("${src}")`;
+    layer.hires.style.opacity = '0';
+    layer.wash.style.background = 'none';
+    const [animation] = animateCoverMorph(layer.card, layer.image, from, to, naturalW, naturalH, {
+        duration, easing: 'cubic-bezier(0.3, 0, 0.12, 1)', fill: 'both'
+    });
+    layer.card.animate(closing
+        ? [{ opacity: 1 }, { opacity: 1, offset: 0.8 }, { opacity: 0 }]
+        : [{ opacity: 0 }, { opacity: 1 }], {
+        duration: closing ? duration : 120, easing: 'linear', fill: 'both'
+    });
+    lightbox.classList.add('is-morphing');
+    layer.overlay.hidden = false;
+    // The backdrop and close button stay interactive while the photo moves.
+    layer.overlay.style.pointerEvents = 'none';
+    return animation.finished;
+}
+
+function openLightbox(src, source = null) {
     window.clearTimeout(lightboxAnimationTimer);
+    const generation = ++lightboxGeneration;
+    resetLightboxMorph();
     currentLightboxSrc = src;
-    lightboxReturnFocus = document.activeElement;
+    lightboxSource = source;
+    lightboxReturnFocus = source || document.activeElement;
+    const thumb = source?.querySelector('img');
+    const previewSrc = thumb?.naturalWidth ? (thumb.currentSrc || thumb.src) : imageVariant(src, 'mini');
+    const naturalW = thumb?.naturalWidth || 3;
+    const naturalH = thumb?.naturalHeight || 2;
+    const scale = Math.min(Math.min(window.innerWidth * 0.92, 1500) / naturalW, window.innerHeight * 0.86 / naturalH);
+    const width = naturalW * scale;
+    const height = naturalH * scale;
+    const target = { left: (window.innerWidth - width) / 2, top: (window.innerHeight - height) / 2, width, height, radius: [18, 18, 18, 18] };
     lightbox.classList.remove('show', 'image-ready');
-    lightboxImg.src = src;
+    lightboxImg.src = previewSrc;
+    // A small cached bitmap must occupy the same box as the sharper replacement.
+    lightboxImg.style.width = `${width}px`;
+    lightboxImg.style.height = `${height}px`;
     lightboxImg.alt = activePhoto
         ? (document.body.classList.contains('lang-en') ? activePhoto.titleEn : activePhoto.titleZh)
         : '';
     lightbox.hidden = false;
     lightbox.setAttribute('aria-hidden', 'false');
-    // Own history entry: Back (or the phone's back gesture) closes the image, not the story.
     if (!history.state?.lightbox) history.pushState({ ...(history.state || {}), lightbox: true }, '');
     const scrollbarWidth = Math.max(0, window.innerWidth - document.documentElement.clientWidth);
     document.documentElement.style.setProperty('--scrollbar-compensation', `${scrollbarWidth}px`);
     document.body.classList.add('modal-open');
 
-    const revealImage = () => {
-        if (currentLightboxSrc === src && !lightbox.hidden) {
-            window.requestAnimationFrame(() => lightbox.classList.add('image-ready'));
-        }
-    };
-    if (lightboxImg.complete) revealImage();
-    else {
-        lightboxImg.addEventListener('load', revealImage, { once: true });
-        lightboxImg.addEventListener('error', revealImage, { once: true });
+    let opening = Promise.resolve();
+    if (source && thumb?.naturalWidth && !voyageReduceMotion && typeof Element.prototype.animate === 'function') {
+        const rect = source.getBoundingClientRect();
+        const radius = parseFloat(getComputedStyle(source).borderTopLeftRadius) || 0;
+        const from = { left: rect.left, top: rect.top, width: rect.width, height: rect.height, radius: [radius, radius, radius, radius] };
+        opening = animateLightboxPhoto(from, target, previewSrc, naturalW, naturalH, 520);
     }
-
-    // Let the browser paint the initial state before starting the transition.
-    window.requestAnimationFrame(() => {
-        window.requestAnimationFrame(() => {
-            lightbox.classList.add('show');
-            closeLightboxBtn?.focus({ preventScroll: true });
-        });
+    // Show the cached photo immediately; a slow network never holds the preview closed.
+    requestAnimationFrame(() => {
+        if (generation !== lightboxGeneration) return;
+        lightbox.classList.add('show', 'image-ready');
+        closeLightboxBtn?.focus({ preventScroll: true });
     });
+    opening.then(() => {
+        if (generation === lightboxGeneration) resetLightboxMorph();
+    }).catch(() => {});
+
+    // Decode a screen-sized image separately before swapping it in. Original files
+    // can contain tens of megapixels and are unnecessary for a phone-sized preview.
+    const sharp = new Image();
+    sharp.decoding = 'async';
+    sharp.src = imageVariant(src, 'hero');
+    const decoded = sharp.decode ? sharp.decode() : new Promise((resolve, reject) => {
+        sharp.onload = resolve;
+        sharp.onerror = reject;
+    });
+    Promise.all([opening, decoded]).then(() => {
+        if (generation !== lightboxGeneration || lightbox.hidden) return;
+        lightboxImg.src = sharp.src;
+    }).catch(() => {}); // Keep the already visible preview on download failure.
 }
 
 function closeLightbox(fromHistory = false) {
     if (!lightbox || lightbox.hidden) return;
-    // Closing from the UI pops our history entry; the popstate handler then closes it.
     if (!fromHistory && history.state?.lightbox) {
         history.back();
         return;
     }
     window.clearTimeout(lightboxAnimationTimer);
+    const generation = ++lightboxGeneration;
+    // If closed during the opening morph, reverse from its current visible crop.
+    let from = null;
+    if (lightbox.classList.contains('is-morphing') && lightboxMorph) {
+        const rect = lightboxMorph.card.getBoundingClientRect();
+        const clip = getComputedStyle(lightboxMorph.card).clipPath;
+        const values = clip.slice(6).split(' round')[0].split(' ').map(parseFloat);
+        const top = values[0], right = values[1] ?? top, bottom = values[2] ?? top, left = values[3] ?? right;
+        from = { left: rect.left + left, top: rect.top + top, width: rect.width - left - right, height: rect.height - top - bottom, radius: [18, 18, 18, 18] };
+    }
+    if (!from) {
+        const rect = lightboxImg.getBoundingClientRect();
+        from = { left: rect.left, top: rect.top, width: rect.width, height: rect.height, radius: [18, 18, 18, 18] };
+    }
+    resetLightboxMorph();
     lightbox.classList.remove('show', 'image-ready');
     lightbox.setAttribute('aria-hidden', 'true');
-
-    lightboxAnimationTimer = window.setTimeout(() => {
-        if (lightbox.classList.contains('show')) return;
+    const finish = () => {
+        if (generation !== lightboxGeneration) return;
+        resetLightboxMorph();
         lightbox.hidden = true;
         lightboxImg.removeAttribute('src');
+        lightboxImg.style.removeProperty('width');
+        lightboxImg.style.removeProperty('height');
         document.body.classList.remove('modal-open');
         document.documentElement.style.removeProperty('--scrollbar-compensation');
-        if (lightboxReturnFocus instanceof HTMLElement) {
+        if (lightboxReturnFocus instanceof HTMLElement && lightboxReturnFocus.isConnected) {
             lightboxReturnFocus.focus({ preventScroll: true });
         }
-    }, 320);
+    };
+    const toRect = lightboxSource?.isConnected ? lightboxSource.getBoundingClientRect() : null;
+    if (!voyageReduceMotion && typeof Element.prototype.animate === 'function' && lightboxImg.naturalWidth && toRect?.width && toRect.bottom > 0 && toRect.top < window.innerHeight) {
+        const radius = parseFloat(getComputedStyle(lightboxSource).borderTopLeftRadius) || 0;
+        const to = { left: toRect.left, top: toRect.top, width: toRect.width, height: toRect.height, radius: [radius, radius, radius, radius] };
+        animateLightboxPhoto(from, to, lightboxImg.currentSrc || lightboxImg.src, lightboxImg.naturalWidth, lightboxImg.naturalHeight, 360, true)
+            .then(finish).catch(() => {});
+    } else {
+        lightboxAnimationTimer = window.setTimeout(finish, voyageReduceMotion ? 0 : 320);
+    }
 }
 
 lightbox.addEventListener('click', (e) => {
@@ -1993,6 +2076,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 80);
 });
 
+window.addEventListener('site:globe-story', event => {
+    const photo = photos.find(item => item.id === event.detail.id);
+    if (photo && !activePhoto) openDetail(photo, false, { fromGallery: true, source: event.detail.source });
+});
+
 // Handle Browser Back / Forward buttons without page reloads
 window.addEventListener('popstate', () => {
     // Back from an open image / immersive view only closes that layer.
@@ -2008,7 +2096,7 @@ window.addEventListener('popstate', () => {
         if (targetPhoto) {
             openDetail(targetPhoto, true);
         }
-    } else {
+    } else if (activePhoto) {
         closeDetail();
     }
 });

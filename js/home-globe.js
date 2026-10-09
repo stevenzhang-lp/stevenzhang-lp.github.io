@@ -36,6 +36,7 @@
 	const markerLayer = document.getElementById('globe-markers');
 	const fallback = document.getElementById('globe-fallback');
 	if (!shell || !mount || !markerLayer) return;
+	const archiveMode = shell.dataset.archive === 'true';
 
 	const transitionOverlay = document.createElement('div');
 	transitionOverlay.className = 'atlas-transition';
@@ -127,24 +128,12 @@
 		const thumbImg = button.querySelector('img');
 		const thumb = (thumbImg || button).getBoundingClientRect();
 		const target = detailHeroRect();
-		const inset = {
-			top: thumb.top - target.top,
-			right: target.left + target.width - thumb.right,
-			bottom: target.top + target.height - thumb.bottom,
-			left: thumb.left - target.left
-		};
-		const photoW = thumbImg?.naturalWidth || 3;
-		const photoH = thumbImg?.naturalHeight || 2;
-		sizeMorphPhoto(photoW, photoH, target);
-		const cover = Math.max(target.width / photoW, target.height / photoH);
-		const startScale = Math.min(thumb.width, thumb.height) / (Math.min(photoW, photoH) * cover);
-		const dx = thumb.left + thumb.width / 2 - (target.left + target.width / 2);
-		const dy = thumb.top + thumb.height / 2 - (target.top + target.height / 2);
+		const radius = thumb.width / 2;
 		return {
 			target,
-			startClip: `inset(${inset.top}px ${inset.right}px ${inset.bottom}px ${inset.left}px round ${thumb.width / 2}px)`,
-			endClip: `inset(0px 0px 0px 0px round ${radiusValue(target.radius)})`,
-			startTransform: `translate(${dx}px, ${dy}px) scale(${startScale})`
+			thumb: { left: thumb.left, top: thumb.top, width: thumb.width, height: thumb.height, radius: [radius, radius, radius, radius] },
+			photoW: thumbImg?.naturalWidth || 3,
+			photoH: thumbImg?.naturalHeight || 2
 		};
 	}
 
@@ -201,12 +190,11 @@
 		}
 
 		button.style.opacity = '0';
-		const { startClip, endClip, startTransform } = morphGeometry(button);
+		const { target, thumb, photoW, photoH } = morphGeometry(button);
 		const duration = 760;
 		const easing = 'cubic-bezier(0.55, 0, 0.15, 1)';
 		transitionAnimations = [
-			transitionCard.animate([{ clipPath: endClip }, { clipPath: startClip }], { duration, easing, fill: 'both' }),
-			transitionImage.animate([{ transform: 'none' }, { transform: startTransform }], { duration, easing, fill: 'both' }),
+			...animateCoverMorph(transitionCard, transitionImage, target, thumb, photoW, photoH, { duration, easing, fill: 'both' }),
 			transitionWash.animate([{ opacity: 1 }, { opacity: 0, offset: 0.4 }, { opacity: 0 }], { duration, easing: 'linear', fill: 'both' }),
 			...fadeChromeIn(200, 520)
 		];
@@ -224,7 +212,7 @@
 	let titleBeforeStory = document.title;
 
 	function prepareStory(marker) {
-		if (mobileLite) return null;
+		if (archiveMode || mobileLite) return null;
 		if (storyLayer?.marker.id === marker.id) return storyLayer;
 		if (storyOpen) return null;
 		storyLayer?.frame.remove();
@@ -340,6 +328,10 @@
 
 	function openMarker(marker, button) {
 		if (isTransitioning) return;
+		if (archiveMode) {
+			window.dispatchEvent(new CustomEvent('site:globe-story', { detail: { id: marker.id, source: button } }));
+			return;
+		}
 		if (reduceMotion || typeof transitionCard.animate !== 'function') {
 			window.location.assign(`voyage.html?id=${marker.id}`);
 			return;
@@ -353,7 +345,7 @@
 		setGlobeFrozen(true);
 		lastOpenedMarker = marker;
 		const heroReady = warmHeroImage(marker);
-		const { target, startClip, endClip, startTransform } = morphGeometry(button);
+		const { target, thumb, photoW, photoH } = morphGeometry(button);
 		Object.assign(transitionCard.style, {
 			left: `${target.left}px`,
 			top: `${target.top}px`,
@@ -375,8 +367,7 @@
 
 		// Paint the start state inline before the layer becomes visible, so no frame can show
 		// the full-size card even if the animations start a frame late.
-		transitionCard.style.clipPath = startClip;
-		transitionImage.style.transform = startTransform;
+		const photoAnimations = animateCoverMorph(transitionCard, transitionImage, thumb, target, photoW, photoH, { duration, easing, fill: 'both' });
 		transitionWash.style.opacity = '0';
 		transitionOverlay.hidden = false;
 		transitionOverlay.setAttribute('aria-hidden', 'false');
@@ -387,8 +378,7 @@
 		button.style.opacity = '0';
 
 		transitionAnimations = [
-			transitionCard.animate([{ clipPath: startClip }, { clipPath: endClip }], { duration, easing, fill: 'both' }),
-			transitionImage.animate([{ transform: startTransform }, { transform: 'none' }], { duration, easing, fill: 'both' }),
+			...photoAnimations,
 			transitionWash.animate([{ opacity: 0 }, { opacity: 0, offset: 0.45 }, { opacity: 1 }], { duration, easing: 'linear', fill: 'both' }),
 			// The page fades only while the card is already covering most of the view.
 			...[...pageChrome()].map(element => element.animate([{ opacity: 1 }, { opacity: 0 }], {
@@ -446,6 +436,14 @@
 	function markGlobeReady() {
 		if (!shell.classList.contains('is-loading')) return;
 		shell.classList.remove('is-loading');
+		// The archive loads this globe lazily, so its entrance starts when the
+		// texture is painted, using the home page's scale, rotation and duration.
+		if (archiveMode && !window.matchMedia('(prefers-reduced-motion: reduce)').matches && typeof shell.animate === 'function') {
+			shell.animate([
+				{ opacity: 0, transform: 'scale(0.86) rotate(-3deg)' },
+				{ opacity: 1, transform: 'scale(1) rotate(0deg)' }
+			], { duration: 1250, easing: 'cubic-bezier(0.16, 1, 0.3, 1)' });
+		}
 		resolveGlobeReady();
 	}
 
@@ -952,6 +950,7 @@
 	const navigationType = performance.getEntriesByType?.('navigation')?.[0]?.type;
 	if (history.state?.atlasImmersive) enterImmersive({ instant: true, fromHistory: true });
 	(() => {
+		if (archiveMode) return;
 		let pending = null;
 		try {
 			pending = JSON.parse(sessionStorage.getItem('atlasReturn') || 'null');
@@ -972,6 +971,16 @@
 			requestAnimationFrame(() => requestAnimationFrame(() => playReturn(marker)));
 		});
 	})();
+
+	if (archiveMode) {
+		window.addEventListener('site:archive-view', event => {
+			setGlobeFrozen(event.detail.isDetail);
+			if (immersive) {
+				document.body.classList.toggle('globe-immersive', !event.detail.isDetail);
+				document.body.classList.toggle('globe-scroll-lock', !event.detail.isDetail);
+			}
+		});
+	}
 
 	const projected = new THREE.Vector3();
 	const worldPosition = new THREE.Vector3();

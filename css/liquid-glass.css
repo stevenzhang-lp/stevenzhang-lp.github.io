@@ -963,8 +963,7 @@ body:has(.not-found-container) .site-global-footer,
 .voyage-page #detail-view .detail-arrival {
 	border: 0;
 	border-radius: var(--lg-radius-lg);
-	/* No drop shadow: the globe morph card can't carry one under clip-path, and the two
-	   must look identical at the hand-off. */
+	/* Match the globe morph card so the hand-off does not introduce a shadow. */
 	box-shadow: none;
 }
 
@@ -983,6 +982,17 @@ body:has(.not-found-container) .site-global-footer,
 	mask-composite: exclude;
 	opacity: 0.7;
 	pointer-events: none;
+}
+
+.atlas-transition-card::after {
+	left: var(--morph-hero-left, 0px);
+	top: var(--morph-hero-top, 0px);
+	right: auto;
+	bottom: auto;
+	width: var(--morph-hero-width, 100%);
+	height: var(--morph-hero-height, 100%);
+	box-sizing: border-box;
+	border-radius: var(--morph-hero-radius, inherit);
 }
 
 .voyage-page #detail-view .detail-back-btn,
@@ -1928,4 +1938,90 @@ body.card-morphing .card-nav-container {
 		font-size: 0.62rem;
 		letter-spacing: 0.06em;
 	}
+}
+
+/* The archive shares the home globe without taking over the story layout. */
+.archive-hero.has-globe {
+	grid-template-columns: minmax(0, 1fr) minmax(320px, 0.85fr);
+	grid-template-areas: 'copy globe' 'stats globe';
+	align-items: center;
+	row-gap: 2rem;
+}
+
+.archive-hero.has-globe .archive-hero-copy { grid-area: copy; }
+.archive-hero.has-globe .archive-stats { grid-area: stats; }
+
+.archive-hero.has-globe .globe-shell {
+	grid-area: globe;
+	width: min(100%, 520px);
+	min-width: 0;
+	max-width: 100%;
+}
+
+.voyage-page.showing-detail > .globe-shell.is-immersive {
+	visibility: hidden;
+}
+
+@media (max-width: 760px) {
+	.archive-hero.has-globe {
+		grid-template-columns: minmax(0, 1fr);
+		grid-template-areas: 'copy' 'globe' 'stats';
+		row-gap: 1.75rem;
+	}
+
+	.archive-hero.has-globe .globe-shell {
+		width: min(100%, 420px);
+	}
+}
+
+/* One coordinated entrance, started after the globe texture is ready. */
+.archive-hero.has-globe > .globe-shell {
+	animation: none;
+}
+
+.archive-globe.is-loading {
+	opacity: 0;
+}
+
+.archive-globe .globe-canvas,
+.archive-globe .globe-markers,
+.archive-globe .globe-controls {
+	transition: none;
+}
+
+/* Search carries the selected row left while the destination takes its place. */
+.search-result-flight {
+	position: fixed;
+	z-index: 20000;
+	box-sizing: border-box;
+	margin: 0;
+	list-style: none;
+	pointer-events: none;
+	background: var(--lg-fill-hover);
+	backdrop-filter: var(--lg-blur);
+	-webkit-backdrop-filter: var(--lg-blur);
+	will-change: transform, opacity;
+}
+
+.search-result-flight mark {
+	color: var(--lg-text);
+	background: rgba(172, 216, 239, 0.18);
+	border-radius: 3px;
+}
+
+.search-departing .card-nav-container {
+	pointer-events: none;
+}
+
+.search-arriving main,
+.search-arriving .hub-footer,
+.search-arriving .site-global-footer,
+.search-arriving .card-nav-container {
+	visibility: hidden;
+}
+
+/* Search moves focus to the destination heading for keyboard and screen-reader
+   continuity. The page transition itself is the visible focus cue. */
+.search-focus-target:focus {
+	outline: none;
 }

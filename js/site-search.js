@@ -171,24 +171,29 @@ document.addEventListener('DOMContentLoaded', () => {
 		panel.hidden = true;
 	}
 
-	function closeMenu() {
-		nav.dispatchEvent(new CustomEvent('cardnav:close'));
+	function closeMenu(instant = false) {
+		nav.dispatchEvent(new CustomEvent('cardnav:close', { detail: { instant } }));
 	}
 
-	function openResult(entry) {
+	function openResult(entry, row = list.children[selected]) {
 		if (!entry) return;
-		closeMenu();
-		if (entry.type === 'journal') {
-			if (entry.link) window.open(entry.link, '_blank', 'noopener');
-			else window.location.assign('journal.html');
+		const url = entry.type === 'journal' ? (entry.link || 'journal.html') : `voyage.html?id=${entry.id}`;
+		// External essays keep their separate-tab behavior and the direct user gesture.
+		if (new URL(url, location.href).origin !== location.origin) {
+			window.open(url, '_blank', 'noopener');
+			closeMenu();
 			return;
 		}
-		// Already on the voyage page: open the story in place.
-		const photo = typeof photos !== 'undefined' ? photos.find(item => item.id === entry.id) : null;
-		if (photo && typeof openDetail === 'function' && document.getElementById('detail-view')) {
-			openDetail(photo, true);
+		const photo = entry.type === 'voyage' && typeof photos !== 'undefined' ? photos.find(item => item.id === entry.id) : null;
+		const render = photo && typeof openDetail === 'function' && document.getElementById('detail-view')
+			? () => openDetail(photo, true, { fromSearch: true, fromGallery: getComputedStyle(document.getElementById('gallery-view')).display !== 'none' })
+			: null;
+		if (window.SearchMotion) {
+			window.SearchMotion.open({ row, url, render, closeMenu: () => closeMenu(true) });
 		} else {
-			window.location.assign(`voyage.html?id=${entry.id}`);
+			closeMenu();
+			if (render) render();
+			else window.location.assign(url);
 		}
 	}
 
@@ -201,7 +206,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 	list.addEventListener('click', event => {
 		const row = event.target.closest('.site-search-result');
-		if (row) openResult(results[Number(row.dataset.index)]);
+		if (row) openResult(results[Number(row.dataset.index)], row);
 	});
 	list.addEventListener('pointermove', event => {
 		const row = event.target.closest('.site-search-result');

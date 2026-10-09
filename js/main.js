@@ -100,13 +100,14 @@ document.addEventListener('DOMContentLoaded', () => {
 			if (hasGsap) window.gsap.set(reveal, { y: 50, opacity: 0 });
 		};
 
-		const setExpanded = open => {
+		const setExpanded = (open, instant = false) => {
 			if (open === expanded) return;
 			expanded = open;
 			toggle.classList.toggle('open', open);
 			toggle.setAttribute('aria-expanded', String(open));
 			toggle.setAttribute('aria-label', open ? '关闭栏目导航' : '打开栏目导航');
 			animation?.kill?.();
+			if (instant && hasGsap) window.gsap.killTweensOf(nav);
 
 			if (open) {
 				nav.classList.add('open');
@@ -120,7 +121,7 @@ document.addEventListener('DOMContentLoaded', () => {
 					nav.style.height = `${calculateHeight()}px`;
 					reveal.forEach(card => { card.style.opacity = '1'; card.style.transform = 'none'; });
 				}
-			} else if (hasGsap && !reduceMotion) {
+			} else if (hasGsap && !reduceMotion && !instant) {
 				animation = window.gsap.timeline({ onComplete: finishClosed })
 					.to(reveal, { y: 24, opacity: 0, duration: 0.22, ease: 'power2.in', stagger: { each: 0.035, from: 'end' } })
 					.to(nav, { height: 60, duration: 0.32, ease: 'power3.inOut' }, '-=0.08');
@@ -146,7 +147,7 @@ document.addEventListener('DOMContentLoaded', () => {
 			});
 		});
 
-		nav.addEventListener('cardnav:close', () => setExpanded(false));
+		nav.addEventListener('cardnav:close', event => setExpanded(false, Boolean(event.detail?.instant)));
 		// Search: open the menu (from the round button too), and refit it when results change.
 		nav.addEventListener('cardnav:open', () => {
 			nav.closest('.card-nav-container')?.classList.remove('is-compact');
@@ -301,6 +302,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 	function initAnimeMotion() {
+		// Search already owns the destination's horizontal entrance.
+		if (window.SearchMotion?.arriving) return true;
 		if (!hasAnime || reduceMotion) return false;
 		body.classList.add('motion-ready');
 
@@ -347,7 +350,7 @@ document.addEventListener('DOMContentLoaded', () => {
 				duration: 850
 			}, '-=720')
 			.add({
-				targets: '.globe-shell',
+				targets: '.globe-shell:not([data-archive])',
 				scale: [0.86, 1],
 				rotate: ['-3deg', '0deg'],
 				opacity: [0, 1],
@@ -379,7 +382,7 @@ document.addEventListener('DOMContentLoaded', () => {
 				.fromTo('.hero-actions', { opacity: 0, y: 20 }, {
 					opacity: 1, y: 0, duration: 0.72, ease: 'power3.out'
 				}, '-=0.6')
-				.fromTo('.globe-shell', { opacity: 0, scale: 0.9 }, {
+				.fromTo('.globe-shell:not([data-archive])', { opacity: 0, scale: 0.9 }, {
 					opacity: 1, scale: 1, duration: 1.1, ease: 'power3.out'
 				}, '-=1.1');
 		}
