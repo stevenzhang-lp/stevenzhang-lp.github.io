@@ -601,7 +601,9 @@
         const pageByType = { voyage: 'voyage.html', diary: 'diary.html', journal: 'journal.html' };
         const shareUrl = item.isPage
             ? `${baseUrl}/${item.pagePath}`
-            : `${baseUrl}/${pageByType[type] || 'index.html'}?id=${encodeURIComponent(item.id)}`;
+            : type === 'voyage' && item.slug
+                ? `${baseUrl}/share/${encodeURIComponent(item.slug)}.html`
+                : `${baseUrl}/${pageByType[type] || 'index.html'}?id=${encodeURIComponent(item.id)}`;
 
         let modal = document.getElementById('share-popup-modal');
         if (!modal) {
